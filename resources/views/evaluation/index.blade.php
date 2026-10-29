@@ -54,41 +54,41 @@
     </div>
 
     <!-- KPI Summary Box (Matches Dashboard Monitoring BBM Reference) -->
-    <div class="digi-form-box" style="margin-bottom: 22px; padding: 18px 22px; background: #f8fafc;">
-        <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(175px, 1fr)); gap: 14px;">
-            <div style="background: #fff; border: 1px solid #e2e8f0; border-radius: 8px; padding: 12px 14px;">
-                <div style="font-size: 11.5px; color: #64748b; font-weight: 600;">TOTAL JARAK / JAM OPERASI</div>
-                <div style="font-size: 19px; font-weight: 800; color: #0284c7; margin-top: 4px;">
-                    {{ number_format($summary['total_distance'], 0, ',', '.') }} <span style="font-size: 12px; font-weight: 600;">KM/HM</span>
+    <div class="digi-form-box" style="margin-bottom: 22px; padding: 18px 22px; background: #e0f2fe; border-color: #7dd3fc;">
+        <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(195px, 1fr)); gap: 14px; text-align: center;">
+            <div style="background: #fff; border: 1px solid #bae6fd; border-radius: 8px; padding: 12px 14px;">
+                <div style="font-size: 11.5px; color: #334155; font-weight: 700;">TOTAL JARAK (KM)</div>
+                <div style="font-size: 21px; font-weight: 800; color: #0369a1; margin-top: 4px;">
+                    {{ number_format($summary['total_distance'], 0, ',', '.') }}
                 </div>
             </div>
-            <div style="background: #fff; border: 1px solid #e2e8f0; border-radius: 8px; padding: 12px 14px;">
-                <div style="font-size: 11.5px; color: #64748b; font-weight: 600;">TOTAL PENGISIAN FUEL AKTUAL</div>
-                <div style="font-size: 19px; font-weight: 800; color: #0f172a; margin-top: 4px;">
-                    {{ number_format($summary['total_actual_liters'], 1, ',', '.') }} <span style="font-size: 12px; font-weight: 600;">Liter</span>
+            <div style="background: #fff; border: 1px solid #bae6fd; border-radius: 8px; padding: 12px 14px;">
+                <div style="font-size: 11.5px; color: #334155; font-weight: 700;">TOTAL PENGISIAN FUEL (L)</div>
+                <div style="font-size: 21px; font-weight: 800; color: #0369a1; margin-top: 4px;">
+                    {{ number_format($summary['total_actual_liters'], 1, ',', '.') }}
                 </div>
             </div>
-            <div style="background: #fff; border: 1px solid #e2e8f0; border-radius: 8px; padding: 12px 14px;">
-                <div style="font-size: 11.5px; color: #64748b; font-weight: 600;">RATA-RATA RASIO AKTUAL</div>
-                <div style="font-size: 19px; font-weight: 800; color: #15803d; margin-top: 4px;">
-                    {{ number_format($summary['avg_ratio'], 2, ',', '.') }} <span style="font-size: 12px; font-weight: 600;">KM/L</span>
+            <div style="background: #fff; border: 1px solid #bae6fd; border-radius: 8px; padding: 12px 14px;">
+                <div style="font-size: 11.5px; color: #334155; font-weight: 700;">RATA-RATA RASIO (KM/L)</div>
+                <div style="font-size: 21px; font-weight: 800; color: #0369a1; margin-top: 4px;">
+                    {{ number_format($summary['avg_ratio'], 1, ',', '.') }}
                 </div>
             </div>
-            <div style="background: #fff; border: 1px solid #e2e8f0; border-radius: 8px; padding: 12px 14px;">
-                <div style="font-size: 11.5px; color: #64748b; font-weight: 600;">TOTAL BIAYA BBM AKTUAL</div>
-                <div style="font-size: 18px; font-weight: 800; color: #0f172a; margin-top: 4px;">
+            <div style="background: #fff; border: 1px solid #bae6fd; border-radius: 8px; padding: 12px 14px;">
+                <div style="font-size: 11.5px; color: #334155; font-weight: 700;">TOTAL BIAYA (IDR)</div>
+                <div style="font-size: 20px; font-weight: 800; color: #0369a1; margin-top: 4px;">
                     Rp {{ number_format($summary['total_actual_cost'], 0, ',', '.') }}
                 </div>
             </div>
             <div style="background: #fff; border: 1px solid #fecaca; border-radius: 8px; padding: 12px 14px;">
-                <div style="font-size: 11.5px; color: #b91c1c; font-weight: 600;">VARIAN PEMBOROSAN BBM</div>
-                <div style="font-size: 19px; font-weight: 800; color: #dc2626; margin-top: 4px;">
-                    {{ number_format($summary['total_waste_liters'], 2, ',', '.') }} <span style="font-size: 12px; font-weight: 600;">Liter</span>
+                <div style="font-size: 11.5px; color: #991b1b; font-weight: 700;">VARIAN PEMBOROSAN (L)</div>
+                <div style="font-size: 20px; font-weight: 800; color: #dc2626; margin-top: 4px;">
+                    {{ number_format($summary['total_waste_liters'], 1, ',', '.') }}
                 </div>
             </div>
             <div style="background: #fef2f2; border: 1px solid #fca5a5; border-radius: 8px; padding: 12px 14px;">
-                <div style="font-size: 11.5px; color: #991b1b; font-weight: 700;">ESTIMASI BIAYA KERUGIAN</div>
-                <div style="font-size: 18px; font-weight: 800; color: #b91c1c; margin-top: 4px;">
+                <div style="font-size: 11.5px; color: #991b1b; font-weight: 700;">BIAYA KERUGIAN (IDR)</div>
+                <div style="font-size: 20px; font-weight: 800; color: #b91c1c; margin-top: 4px;">
                     Rp {{ number_format($summary['total_cost_loss'], 0, ',', '.') }}
                 </div>
             </div>
@@ -113,70 +113,57 @@
         </div>
     @endif
 
-    <!-- Table Rangkuman Performa per Unit -->
-    <h2 class="digi-section-title" style="margin-bottom: 12px;">Rangkuman Evaluasi Performa per Unit ({{ $period }})</h2>
+    <!-- Table Rangkuman Performa per Unit LV (Matches Dashboard_Monitoring_BBM MEI 2026.xlsx) -->
+    <h2 class="digi-section-title" style="margin-bottom: 12px;">Rangkuman Performa per Unit LV ({{ $period }})</h2>
     <div style="overflow-x: auto;">
         <table class="digi-table">
             <thead>
-                <tr>
-                    <th>No</th>
-                    <th>ID Kendaraan / Unit Code</th>
-                    <th>Tipe Unit</th>
-                    <th>Meter Awal → Akhir</th>
-                    <th>Total Jarak / HM</th>
-                    <th>BBM Aktual (L)</th>
-                    <th>BBM Standar (L)</th>
-                    <th>Rasio Aktual vs Target</th>
-                    <th>Evaluasi per Unit</th>
-                    <th>Total Biaya (IDR)</th>
-                    <th>Varian Pemborosan (L)</th>
-                    <th>Biaya Kerugian (IDR)</th>
-                    <th>Detail</th>
+                <tr style="background: #1e3a8a; color: #ffffff;">
+                    <th style="color: #ffffff; background: #1e3a8a;">ID Kendaraan</th>
+                    <th style="color: #ffffff; background: #1e3a8a;">Tipe Unit</th>
+                    <th style="color: #ffffff; background: #1e3a8a; text-align: right;">Total Jarak (Km)</th>
+                    <th style="color: #ffffff; background: #1e3a8a; text-align: right;">Total Pengisian Fuel (L)</th>
+                    <th style="color: #ffffff; background: #1e3a8a; text-align: right;">Rasio Aktual (Km/L)</th>
+                    <th style="color: #ffffff; background: #1e3a8a; text-align: right;">Rasio Standar (Km/L)</th>
+                    <th style="color: #ffffff; background: #1e3a8a; text-align: center;">Evaluasi per Unit</th>
+                    <th style="color: #ffffff; background: #1e3a8a; text-align: right;">Total Biaya (IDR)</th>
+                    <th style="color: #ffffff; background: #1e3a8a; text-align: right;">Varian Pemborosan (L)</th>
+                    <th style="color: #ffffff; background: #1e3a8a; text-align: right;">Biaya Kerugian (IDR)</th>
+                    <th style="color: #ffffff; background: #1e3a8a; text-align: center;">Detail</th>
                 </tr>
             </thead>
             <tbody>
                 @forelse($evaluations as $idx => $eval)
                     <tr>
-                        <td>{{ $evaluations->firstItem() + $idx }}</td>
-                        <td>
-                            <div style="font-weight: 700; color: #0284c7;">{{ $eval->vehicle?->unit_code ?? '-' }}</div>
-                            <div style="font-size: 11.5px; color: #64748b;">{{ $eval->vehicle?->police_no ?? '-' }}</div>
+                        <td style="font-weight: 600;">
+                            <a href="{{ route('evaluation.show', $eval->id) }}" style="color: #0284c7; text-decoration: none; font-weight: 700;">
+                                {{ $eval->vehicle?->unit_code ?? '-' }}
+                            </a>
                         </td>
-                        <td style="font-size: 12.5px;">{{ $eval->vehicle?->model ?? $eval->vehicle?->unit_type ?? '-' }}</td>
-                        <td style="font-size: 12px; color: #475569;">
-                            {{ $eval->meter_start !== null ? number_format($eval->meter_start, 0, ',', '.') : '-' }}
-                            →
-                            {{ $eval->meter_end !== null ? number_format($eval->meter_end, 0, ',', '.') : '-' }}
-                        </td>
-                        <td><strong>{{ number_format($eval->total_distance_or_hours, 0, ',', '.') }}</strong> {{ strtoupper($eval->vehicle?->meter_type ?? 'KM') }}</td>
-                        <td><strong>{{ number_format($eval->total_actual_liters, 1, ',', '.') }}</strong> L</td>
-                        <td>{{ number_format($eval->total_standard_liters, 2, ',', '.') }} L</td>
-                        <td>
-                            <span style="font-weight: 700; color: {{ $eval->evaluation_status === 'needs_review' ? '#dc2626' : '#15803d' }};">
-                                {{ number_format($eval->actual_ratio, 2, ',', '.') }}
-                            </span>
-                            / {{ number_format($eval->standard_used, 1, ',', '.') }}
-                            <span style="font-size: 11px; color: #64748b;">{{ $eval->standard_type === 'liter_per_hour' ? 'L/Jam' : 'Km/L' }}</span>
-                        </td>
-                        <td>
+                        <td style="font-size: 13px;">{{ $eval->vehicle?->model ?? $eval->vehicle?->unit_type ?? '-' }}</td>
+                        <td style="text-align: right;">{{ number_format($eval->total_distance_or_hours, 0, ',', '.') }}</td>
+                        <td style="text-align: right;">{{ number_format($eval->total_actual_liters, 1, ',', '.') }}</td>
+                        <td style="text-align: right;">{{ number_format($eval->actual_ratio, 1, ',', '.') }}</td>
+                        <td style="text-align: right;">{{ number_format($eval->standard_used, 1, ',', '.') }}</td>
+                        <td style="text-align: center;">
                             @if($eval->evaluation_status === 'normal')
-                                <span class="digi-badge digi-badge-green">Wajar (Normal)</span>
+                                <span class="digi-badge digi-badge-green" style="min-width: 96px; text-align: center;">Wajar</span>
                             @elseif($eval->evaluation_status === 'needs_review')
-                                <span class="digi-badge digi-badge-red">Tidak Wajar (Review)</span>
+                                <span class="digi-badge digi-badge-red" style="min-width: 96px; text-align: center;">Tidak Wajar</span>
                             @elseif($eval->evaluation_status === 'incomplete')
                                 <span class="digi-badge digi-badge-yellow">Incomplete</span>
                             @else
                                 <span class="digi-badge digi-badge-gray">Invalid Data</span>
                             @endif
                         </td>
-                        <td>Rp {{ number_format($eval->total_actual_cost, 0, ',', '.') }}</td>
-                        <td style="font-weight: 700; color: {{ $eval->waste_liters > 0 ? '#dc2626' : '#64748b' }};">
-                            {{ number_format($eval->waste_liters, 2, ',', '.') }} L
+                        <td style="text-align: right;">Rp {{ number_format($eval->total_actual_cost, 0, ',', '.') }}</td>
+                        <td style="text-align: right; font-weight: {{ $eval->waste_liters > 0 ? '700' : '400' }}; color: {{ $eval->waste_liters > 0 ? '#dc2626' : '#1e293b' }};">
+                            {{ number_format($eval->waste_liters, 1, ',', '.') }}
                         </td>
-                        <td style="font-weight: 700; color: {{ $eval->estimated_cost_loss > 0 ? '#b91c1c' : '#15803d' }};">
+                        <td style="text-align: right; font-weight: {{ $eval->estimated_cost_loss > 0 ? '700' : '400' }}; color: {{ $eval->estimated_cost_loss > 0 ? '#b91c1c' : '#1e293b' }};">
                             Rp {{ number_format($eval->estimated_cost_loss, 0, ',', '.') }}
                         </td>
-                        <td>
+                        <td style="text-align: center;">
                             <a href="{{ route('evaluation.show', $eval->id) }}" class="digi-action-btn digi-action-purple" title="Lihat Rincian Perhitungan Unit">
                                 <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
                                     <circle cx="12" cy="12" r="10"></circle>
@@ -188,12 +175,29 @@
                     </tr>
                 @empty
                     <tr>
-                        <td colspan="13" style="text-align: center; color: #94a3b8; padding: 36px;">
+                        <td colspan="11" style="text-align: center; color: #94a3b8; padding: 36px;">
                             Belum ada data evaluasi pada periode <strong>{{ $period }}</strong>. Klik tombol <strong>Hitung Evaluasi</strong> untuk menjalankan kalkulasi otomatis dari transaksi BBM.
                         </td>
                     </tr>
                 @endforelse
             </tbody>
+            @if($evaluations->count() > 0)
+                <tfoot>
+                    <tr style="background: #f8fafc; font-weight: 800; border-top: 2px solid #cbd5e1;">
+                        <td></td>
+                        <td>Total / Rata-rata Nasional</td>
+                        <td style="text-align: right;">{{ number_format($summary['total_distance'], 0, ',', '.') }}</td>
+                        <td style="text-align: right;">{{ number_format($summary['total_actual_liters'], 1, ',', '.') }}</td>
+                        <td style="text-align: right;">{{ number_format($summary['avg_ratio'], 1, ',', '.') }}</td>
+                        <td style="text-align: right;">{{ number_format($summary['avg_standard_ratio'] ?? 7.6, 1, ',', '.') }}</td>
+                        <td></td>
+                        <td style="text-align: right;">Rp {{ number_format($summary['total_actual_cost'], 0, ',', '.') }}</td>
+                        <td style="text-align: right; color: #dc2626;">{{ number_format($summary['total_waste_liters'], 1, ',', '.') }}</td>
+                        <td style="text-align: right; color: #b91c1c;">Rp {{ number_format($summary['total_cost_loss'], 0, ',', '.') }}</td>
+                        <td></td>
+                    </tr>
+                </tfoot>
+            @endif
         </table>
     </div>
 

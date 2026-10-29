@@ -62,7 +62,7 @@ class EvaluationController extends Controller
             });
         }
 
-        $evaluations = (clone $query)->orderBy('estimated_cost_loss', 'desc')->paginate(15)->withQueryString();
+        $evaluations = (clone $query)->orderBy('id', 'asc')->paginate(20)->withQueryString();
         $allForSummary = (clone $query)->get();
 
         // Valid evaluations only for distance, waste, and cost loss aggregation (never include invalid/incomplete data!)
@@ -80,6 +80,9 @@ class EvaluationController extends Controller
             'avg_ratio' => $validEvaluations->sum('total_actual_liters') > 0
                 ? round($validEvaluations->sum('total_distance_or_hours') / $validEvaluations->sum('total_actual_liters'), 2)
                 : 0,
+            'avg_standard_ratio' => $validEvaluations->count() > 0
+                ? round((float)$validEvaluations->avg('standard_used'), 2)
+                : 8.0,
             'total_actual_cost' => (float)$validEvaluations->sum('total_actual_cost'),
             'total_waste_liters' => (float)$validEvaluations->sum('waste_liters'),
             'total_cost_loss' => (float)$validEvaluations->sum('estimated_cost_loss'),
@@ -181,7 +184,7 @@ class EvaluationController extends Controller
             $query->whereHas('vehicle', fn($q) => $q->where('unit_code', $request->unit_code));
         }
 
-        $data = $query->orderBy('estimated_cost_loss', 'desc')->get();
+        $data = $query->orderBy('id', 'asc')->get();
 
         FuelRequestHistory::record(
             null,
@@ -192,122 +195,70 @@ class EvaluationController extends Controller
             "Mengekspor Laporan Evaluasi Konsumsi BBM periode {$period} ke Excel (.xlsx) sejumlah {$data->count()} unit."
         );
 
+        // Struktur 10 Kolom (A s/d J) identik dengan Dashboard_Monitoring_BBM MEI 2026.xlsx
         $headers = [
-            'No',
-            'Periode',
-            'ID Kendaraan / Unit Code',
-            'Nomor Polisi',
+            'ID Kendaraan',
             'Tipe Unit',
-            'HM/KM Awal',
-            'HM/KM Akhir',
-            'Total Jarak (Km) / Jam (HM)',
-            'Total Pengisian Fuel Aktual (L)',
-            'BBM Standar (L)',
-            'Rasio Aktual',
-            'Rasio Standar',
-            'Satuan Standar',
-            'Harga BBM / Liter (IDR)',
-            'Total Biaya BBM (IDR)',
-            'Selisih Konsumsi (L)',
+            'Total Jarak (Km)',
+            'Total Pengisian Fuel (L)',
+            'Rasio Aktual (Km/L)',
+            'Rasio Standar (Km/L)',
+            'Evaluasi per Unit',
+            'Total Biaya (IDR)',
             'Varian Pemborosan (L)',
-            'Estimasi Biaya Kerugian (IDR)',
-            'Status Evaluasi',
+            'Biaya Kerugian (IDR)',
         ];
 
         $rows = [];
         foreach ($data as $index => $eval) {
-            $r = $index + 2; // Baris Excel (Row 1 adalah Header)
-            $hasMeters = $eval->meter_start !== null && $eval->meter_end !== null;
+            $r = $index + 9; // Baris data di Sheet Dashboard dimulai pada Row 9 (A9:J23)
+            $price = (int)round($eval->price_used > 0 ? $eval->price_used : 27000);
+            $actualRatio = $eval->total_actual_liters > 0
+                ? round($eval->total_distance_or_hours / $eval->total_actual_liters, 2)
+                : 0;
+            $evalLabel = $actualRatio < ($eval->standard_used - 0.5) ? 'Tidak Wajar' : 'Wajar';
 
             $rows[] = [
-                $index + 1,
-                $eval->period,
+                // Col A: ID Kendaraan
                 $eval->vehicle?->unit_code ?? '-',
-                $eval->vehicle?->police_no ?? '-',
+                // Col B: Tipe Unit
                 $eval->vehicle?->model ?? $eval->vehicle?->unit_type ?? '-',
-                $eval->meter_start !== null ? (float)$eval->meter_start : 0,
-                $eval->meter_end !== null ? (float)$eval->meter_end : 0,
-                // Col H: Total Jarak (Km) / Jam (HM) = HM/KM Akhir - HM/KM Awal (atau nilai tersimpan jika meter tidak diinput)
-                $hasMeters
-                    ? ['formula' => "MAX(0,G{$r}-F{$r})", 'value' => (float)$eval->total_distance_or_hours]
-                    : (float)$eval->total_distance_or_hours,
-                // Col I: Total Pengisian Fuel Aktual (L)
+                // Col C: Total Jarak (Km)
+                (float)$eval->total_distance_or_hours,
+                // Col D: Total Pengisian Fuel (L)
                 (float)$eval->total_actual_liters,
-                // Col J: BBM Standar (L) = Jika Liter/Jam maka H*L, jika Km/Liter maka H/L
+                // Col E: Rasio Aktual (Km/L) -> =IF(D9>0, C9/D9, 0)
                 [
-                    'formula' => "IF(L{$r}>0,IF(M{$r}=\"Liter/Jam\",ROUND(H{$r}*L{$r},2),ROUND(H{$r}/L{$r},2)),0)",
-                    'value' => (float)$eval->total_standard_liters,
+                    'formula' => "IF(D{$r}>0, C{$r}/D{$r}, 0)",
+                    'value' => $actualRatio,
                 ],
-                // Col K: Rasio Aktual = Jika Liter/Jam maka I/H, jika Km/Liter maka H/I
-                [
-                    'formula' => "IF(AND(H{$r}>0,I{$r}>0),IF(M{$r}=\"Liter/Jam\",ROUND(I{$r}/H{$r},2),ROUND(H{$r}/I{$r},2)),0)",
-                    'value' => (float)$eval->actual_ratio,
-                ],
-                // Col L: Rasio Standar
+                // Col F: Rasio Standar (Km/L)
                 (float)$eval->standard_used,
-                // Col M: Satuan Standar
-                $eval->standard_type === 'liter_per_hour' ? 'Liter/Jam' : 'Km/Liter',
-                // Col N: Harga BBM / Liter (IDR)
-                (float)$eval->price_used,
-                // Col O: Total Biaya BBM (IDR) = BBM Aktual * Harga BBM/Liter
+                // Col G: Evaluasi per Unit -> =IF(E9<(F9-0.5), "Tidak Wajar", "Wajar")
                 [
-                    'formula' => "ROUND(I{$r}*N{$r},0)",
+                    'formula' => "IF(E{$r}<(F{$r}-0.5), \"Tidak Wajar\", \"Wajar\")",
+                    'value' => $evalLabel,
+                ],
+                // Col H: Total Biaya (IDR) -> =D9*27000
+                [
+                    'formula' => "D{$r}*{$price}",
                     'value' => (float)$eval->total_actual_cost,
                 ],
-                // Col P: Selisih Konsumsi (L) = BBM Aktual - BBM Standar
+                // Col I: Varian Pemborosan (L) -> =IF(E9<F9, D9-(C9/F9), 0)
                 [
-                    'formula' => "ROUND(I{$r}-J{$r},2)",
-                    'value' => (float)$eval->variance_liters,
-                ],
-                // Col Q: Varian Pemborosan (L) = MAX(0, BBM Aktual - BBM Standar)
-                [
-                    'formula' => "MAX(0,ROUND(I{$r}-J{$r},2))",
+                    'formula' => "IF(E{$r}<F{$r}, D{$r}-(C{$r}/F{$r}), 0)",
                     'value' => (float)$eval->waste_liters,
                 ],
-                // Col R: Estimasi Biaya Kerugian (IDR) = Varian Pemborosan * Harga BBM/Liter
+                // Col J: Biaya Kerugian (IDR) -> =I9*27000
                 [
-                    'formula' => "ROUND(Q{$r}*N{$r},0)",
+                    'formula' => "I{$r}*{$price}",
                     'value' => (float)$eval->estimated_cost_loss,
                 ],
-                // Col S: Status Evaluasi = Wajar (Normal) vs Tidak Wajar (Needs Review)
-                [
-                    'formula' => "IF(OR(H{$r}<=0,I{$r}<=0),\"Incomplete / Invalid\",IF(Q{$r}>0,\"Tidak Wajar (Needs Review)\",\"Wajar (Normal)\"))",
-                    'value' => $eval->status_label,
-                ],
             ];
         }
 
-        // Summary Footer Row menggunakan rumus SUM & IF langsung di Excel
-        $valid = $data->whereIn('evaluation_status', ['normal', 'needs_review']);
-        $lastDataRow = count($data) + 1;
-        $sumRow = $lastDataRow + 1;
-
-        if ($lastDataRow >= 2) {
-            $rows[] = [
-                '',
-                'TOTAL / RATA-RATA',
-                '',
-                '',
-                '',
-                '',
-                '',
-                ['formula' => "SUM(H2:H{$lastDataRow})", 'value' => (float)$valid->sum('total_distance_or_hours')],
-                ['formula' => "SUM(I2:I{$lastDataRow})", 'value' => (float)$valid->sum('total_actual_liters')],
-                ['formula' => "SUM(J2:J{$lastDataRow})", 'value' => (float)$valid->sum('total_standard_liters')],
-                ['formula' => "IF(I{$sumRow}>0,ROUND(H{$sumRow}/I{$sumRow},2),0)", 'value' => $valid->sum('total_actual_liters') > 0 ? round($valid->sum('total_distance_or_hours') / $valid->sum('total_actual_liters'), 2) : 0],
-                '',
-                '',
-                ['formula' => "AVERAGE(N2:N{$lastDataRow})", 'value' => (float)($valid->avg('price_used') ?? 27000)],
-                ['formula' => "SUM(O2:O{$lastDataRow})", 'value' => (float)$valid->sum('total_actual_cost')],
-                ['formula' => "SUM(P2:P{$lastDataRow})", 'value' => (float)$valid->sum('variance_liters')],
-                ['formula' => "SUM(Q2:Q{$lastDataRow})", 'value' => (float)$valid->sum('waste_liters')],
-                ['formula' => "SUM(R2:R{$lastDataRow})", 'value' => (float)$valid->sum('estimated_cost_loss')],
-                '',
-            ];
-        }
-
-        $fileName = "Dashboard_Monitoring_Evaluasi_BBM_{$period}_" . date('Ymd_His') . '.xlsx';
-        return $excel->downloadXlsx($fileName, $headers, $rows, "Evaluasi BBM {$period}");
+        $fileName = "Dashboard_Monitoring_BBM_{$period}_" . date('Ymd_His') . '.xlsx';
+        return $excel->downloadEvaluationDashboardXlsx($fileName, $headers, $rows, $period);
     }
 }
 

@@ -99,25 +99,36 @@ class FuelEvaluationService
                     // Rule B: Standar KM per liter -> BBM standar = Jarak tempuh / Standar KM/L
                     $standardLiters = round($distanceOrHours / $standardValue, 2);
                     $actualRatio = round($distanceOrHours / $totalActualLiters, 2);
+
+                    // Varian Pemborosan (L) sesuai Excel Perusahaan: IF(Rasio Aktual < Rasio Standar, Fuel Aktual - (Jarak / Rasio Standar), 0)
+                    $varianceLiters = round($totalActualLiters - ($distanceOrHours / $standardValue), 2);
+                    $wasteLiters = ($actualRatio < $standardValue) ? max(round($totalActualLiters - ($distanceOrHours / $standardValue), 2), 0.0) : 0.0;
+                    $estimatedCostLoss = round($wasteLiters * $pricePerLiter, 2);
+
+                    // Evaluasi per Unit sesuai Excel Perusahaan: IF(Rasio Aktual < (Rasio Standar - 0.5), "Tidak Wajar", "Wajar")
+                    if ($actualRatio < ($standardValue - 0.5)) {
+                        $status = 'needs_review';
+                        $notes = "Tidak Wajar: Rasio aktual ({$actualRatio} Km/L) di bawah batas toleransi (" . ($standardValue - 0.5) . " Km/L). Varian pemborosan {$wasteLiters} L.";
+                    } else {
+                        $status = 'normal';
+                        $notes = "Wajar: Rasio aktual ({$actualRatio} Km/L) memenuhi standar operasional ({$standardValue} Km/L).";
+                    }
                 } else {
                     // Rule C: Standar liter per jam -> BBM standar = Jam operasi * Standar L/jam
                     $standardLiters = round($distanceOrHours * $standardValue, 2);
                     $actualRatio = round($totalActualLiters / $distanceOrHours, 2);
-                }
+                    $varianceLiters = round($totalActualLiters - $standardLiters, 2);
+                    $wasteLiters = max($varianceLiters, 0.0);
+                    $estimatedCostLoss = round($wasteLiters * $pricePerLiter, 2);
 
-                // Rule D: Estimasi pemborosan
-                $varianceLiters = round($totalActualLiters - $standardLiters, 2);
-                $wasteLiters = max($varianceLiters, 0.0);
-                $estimatedCostLoss = round($wasteLiters * $pricePerLiter, 2);
-
-                // Rule E: Status evaluasi berdasarkan batas toleransi
-                $allowedMaxLiters = round($standardLiters * (1 + ($tolerancePct / 100.0)), 2);
-                if ($totalActualLiters > $allowedMaxLiters) {
-                    $status = 'needs_review';
-                    $notes = "Konsumsi aktual ({$totalActualLiters} L) melebihi batas toleransi {$tolerancePct}% ({$allowedMaxLiters} L). Terdeteksi pemborosan {$wasteLiters} L.";
-                } else {
-                    $status = 'normal';
-                    $notes = "Konsumsi BBM berada dalam batas wajar sesuai standar perusahaan.";
+                    $allowedMaxLiters = round($standardLiters * (1 + ($tolerancePct / 100.0)), 2);
+                    if ($totalActualLiters > $allowedMaxLiters) {
+                        $status = 'needs_review';
+                        $notes = "Tidak Wajar: Konsumsi aktual ({$totalActualLiters} L) melebihi batas toleransi ({$allowedMaxLiters} L). Varian pemborosan {$wasteLiters} L.";
+                    } else {
+                        $status = 'normal';
+                        $notes = "Wajar: Konsumsi BBM berada dalam batas standar perusahaan.";
+                    }
                 }
             }
 

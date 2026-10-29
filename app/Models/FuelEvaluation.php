@@ -48,10 +48,10 @@ class FuelEvaluation extends Model
     public function getStatusLabelAttribute(): string
     {
         return match ($this->evaluation_status) {
-            'normal' => 'Normal (Wajar)',
-            'needs_review' => 'Needs Review (Tidak Wajar)',
-            'incomplete' => 'Incomplete (Data Belum Lengkap)',
-            'invalid_data' => 'Invalid Data (Meter Tidak Valid)',
+            'normal' => 'Wajar',
+            'needs_review' => 'Tidak Wajar',
+            'incomplete' => 'Incomplete',
+            'invalid_data' => 'Invalid Data',
             default => ucfirst($this->evaluation_status),
         };
     }
