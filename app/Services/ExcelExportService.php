@@ -49,6 +49,7 @@ class ExcelExportService
     <sheets>
         <sheet name="' . $safeSheetTitle . '" sheetId="1" r:id="rId1"/>
     </sheets>
+    <calcPr calcId="191029" fullCalcOnLoad="1"/>
 </workbook>');
 
         // 5. xl/styles.xml (Header bold white on UT Blue #0284C7, bordered data cells)
@@ -102,7 +103,20 @@ class ExcelExportService
             $sheetXml .= "<row r=\"{$excelRow}\">";
             foreach (array_values($rowData) as $colIdx => $cellVal) {
                 $colLetter = $this->columnLetter($colIdx);
-                if (is_int($cellVal) || is_float($cellVal) || (is_numeric($cellVal) && !preg_match('/^0\d+/', (string)$cellVal))) {
+                if (is_array($cellVal) && isset($cellVal['formula'])) {
+                    $formula = htmlspecialchars(ltrim((string)$cellVal['formula'], '='), ENT_XML1);
+                    $cachedVal = $cellVal['value'] ?? 0;
+                    if (is_string($cachedVal) && !is_numeric($cachedVal)) {
+                        $escapedVal = htmlspecialchars($cachedVal, ENT_XML1);
+                        $sheetXml .= "<c r=\"{$colLetter}{$excelRow}\" s=\"2\" t=\"str\"><f>{$formula}</f><v>{$escapedVal}</v></c>";
+                    } else {
+                        $numVal = (float)$cachedVal;
+                        $sheetXml .= "<c r=\"{$colLetter}{$excelRow}\" s=\"2\"><f>{$formula}</f><v>{$numVal}</v></c>";
+                    }
+                } elseif (is_string($cellVal) && str_starts_with($cellVal, '=') && strlen($cellVal) > 1) {
+                    $formula = htmlspecialchars(ltrim($cellVal, '='), ENT_XML1);
+                    $sheetXml .= "<c r=\"{$colLetter}{$excelRow}\" s=\"2\"><f>{$formula}</f></c>";
+                } elseif (is_int($cellVal) || is_float($cellVal) || (is_numeric($cellVal) && !preg_match('/^0\d+/', (string)$cellVal))) {
                     $num = (float)$cellVal;
                     $sheetXml .= "<c r=\"{$colLetter}{$excelRow}\" s=\"2\"><v>{$num}</v></c>";
                 } else {

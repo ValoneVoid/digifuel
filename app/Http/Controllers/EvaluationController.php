@@ -216,52 +216,95 @@ class EvaluationController extends Controller
 
         $rows = [];
         foreach ($data as $index => $eval) {
+            $r = $index + 2; // Baris Excel (Row 1 adalah Header)
+            $hasMeters = $eval->meter_start !== null && $eval->meter_end !== null;
+
             $rows[] = [
                 $index + 1,
                 $eval->period,
                 $eval->vehicle?->unit_code ?? '-',
                 $eval->vehicle?->police_no ?? '-',
                 $eval->vehicle?->model ?? $eval->vehicle?->unit_type ?? '-',
-                $eval->meter_start !== null ? (float)$eval->meter_start : '-',
-                $eval->meter_end !== null ? (float)$eval->meter_end : '-',
-                (float)$eval->total_distance_or_hours,
+                $eval->meter_start !== null ? (float)$eval->meter_start : 0,
+                $eval->meter_end !== null ? (float)$eval->meter_end : 0,
+                // Col H: Total Jarak (Km) / Jam (HM) = HM/KM Akhir - HM/KM Awal (atau nilai tersimpan jika meter tidak diinput)
+                $hasMeters
+                    ? ['formula' => "MAX(0,G{$r}-F{$r})", 'value' => (float)$eval->total_distance_or_hours]
+                    : (float)$eval->total_distance_or_hours,
+                // Col I: Total Pengisian Fuel Aktual (L)
                 (float)$eval->total_actual_liters,
-                (float)$eval->total_standard_liters,
-                (float)$eval->actual_ratio,
+                // Col J: BBM Standar (L) = Jika Liter/Jam maka H*L, jika Km/Liter maka H/L
+                [
+                    'formula' => "IF(L{$r}>0,IF(M{$r}=\"Liter/Jam\",ROUND(H{$r}*L{$r},2),ROUND(H{$r}/L{$r},2)),0)",
+                    'value' => (float)$eval->total_standard_liters,
+                ],
+                // Col K: Rasio Aktual = Jika Liter/Jam maka I/H, jika Km/Liter maka H/I
+                [
+                    'formula' => "IF(AND(H{$r}>0,I{$r}>0),IF(M{$r}=\"Liter/Jam\",ROUND(I{$r}/H{$r},2),ROUND(H{$r}/I{$r},2)),0)",
+                    'value' => (float)$eval->actual_ratio,
+                ],
+                // Col L: Rasio Standar
                 (float)$eval->standard_used,
+                // Col M: Satuan Standar
                 $eval->standard_type === 'liter_per_hour' ? 'Liter/Jam' : 'Km/Liter',
+                // Col N: Harga BBM / Liter (IDR)
                 (float)$eval->price_used,
-                (float)$eval->total_actual_cost,
-                (float)$eval->variance_liters,
-                (float)$eval->waste_liters,
-                (float)$eval->estimated_cost_loss,
-                $eval->status_label,
+                // Col O: Total Biaya BBM (IDR) = BBM Aktual * Harga BBM/Liter
+                [
+                    'formula' => "ROUND(I{$r}*N{$r},0)",
+                    'value' => (float)$eval->total_actual_cost,
+                ],
+                // Col P: Selisih Konsumsi (L) = BBM Aktual - BBM Standar
+                [
+                    'formula' => "ROUND(I{$r}-J{$r},2)",
+                    'value' => (float)$eval->variance_liters,
+                ],
+                // Col Q: Varian Pemborosan (L) = MAX(0, BBM Aktual - BBM Standar)
+                [
+                    'formula' => "MAX(0,ROUND(I{$r}-J{$r},2))",
+                    'value' => (float)$eval->waste_liters,
+                ],
+                // Col R: Estimasi Biaya Kerugian (IDR) = Varian Pemborosan * Harga BBM/Liter
+                [
+                    'formula' => "ROUND(Q{$r}*N{$r},0)",
+                    'value' => (float)$eval->estimated_cost_loss,
+                ],
+                // Col S: Status Evaluasi = Wajar (Normal) vs Tidak Wajar (Needs Review)
+                [
+                    'formula' => "IF(OR(H{$r}<=0,I{$r}<=0),\"Incomplete / Invalid\",IF(Q{$r}>0,\"Tidak Wajar (Needs Review)\",\"Wajar (Normal)\"))",
+                    'value' => $eval->status_label,
+                ],
             ];
         }
 
-        // Summary Footer Row
+        // Summary Footer Row menggunakan rumus SUM & IF langsung di Excel
         $valid = $data->whereIn('evaluation_status', ['normal', 'needs_review']);
-        $rows[] = [
-            '',
-            'TOTAL / RATA-RATA',
-            '',
-            '',
-            '',
-            '',
-            '',
-            (float)$valid->sum('total_distance_or_hours'),
-            (float)$valid->sum('total_actual_liters'),
-            (float)$valid->sum('total_standard_liters'),
-            $valid->sum('total_actual_liters') > 0 ? round($valid->sum('total_distance_or_hours') / $valid->sum('total_actual_liters'), 2) : 0,
-            '',
-            '',
-            '',
-            (float)$valid->sum('total_actual_cost'),
-            (float)$valid->sum('variance_liters'),
-            (float)$valid->sum('waste_liters'),
-            (float)$valid->sum('estimated_cost_loss'),
-            '',
-        ];
+        $lastDataRow = count($data) + 1;
+        $sumRow = $lastDataRow + 1;
+
+        if ($lastDataRow >= 2) {
+            $rows[] = [
+                '',
+                'TOTAL / RATA-RATA',
+                '',
+                '',
+                '',
+                '',
+                '',
+                ['formula' => "SUM(H2:H{$lastDataRow})", 'value' => (float)$valid->sum('total_distance_or_hours')],
+                ['formula' => "SUM(I2:I{$lastDataRow})", 'value' => (float)$valid->sum('total_actual_liters')],
+                ['formula' => "SUM(J2:J{$lastDataRow})", 'value' => (float)$valid->sum('total_standard_liters')],
+                ['formula' => "IF(I{$sumRow}>0,ROUND(H{$sumRow}/I{$sumRow},2),0)", 'value' => $valid->sum('total_actual_liters') > 0 ? round($valid->sum('total_distance_or_hours') / $valid->sum('total_actual_liters'), 2) : 0],
+                '',
+                '',
+                ['formula' => "AVERAGE(N2:N{$lastDataRow})", 'value' => (float)($valid->avg('price_used') ?? 27000)],
+                ['formula' => "SUM(O2:O{$lastDataRow})", 'value' => (float)$valid->sum('total_actual_cost')],
+                ['formula' => "SUM(P2:P{$lastDataRow})", 'value' => (float)$valid->sum('variance_liters')],
+                ['formula' => "SUM(Q2:Q{$lastDataRow})", 'value' => (float)$valid->sum('waste_liters')],
+                ['formula' => "SUM(R2:R{$lastDataRow})", 'value' => (float)$valid->sum('estimated_cost_loss')],
+                '',
+            ];
+        }
 
         $fileName = "Dashboard_Monitoring_Evaluasi_BBM_{$period}_" . date('Ymd_His') . '.xlsx';
         return $excel->downloadXlsx($fileName, $headers, $rows, "Evaluasi BBM {$period}");

@@ -133,8 +133,9 @@ class HistoryController extends Controller
 
         $rows = [];
         foreach ($data as $index => $row) {
+            $r = $index + 2;
             $actualLiters = $row->actual_liters ?? $row->latestTransaction?->actual_liters;
-            $variance = $actualLiters !== null ? round((float)$actualLiters - (float)$row->total_liters, 2) : '';
+            $variance = $actualLiters !== null ? round((float)$actualLiters - (float)$row->total_liters, 2) : 0;
             $fueledAt = $row->fueled_at ?? $row->latestTransaction?->fueled_at;
             $actualMeter = $row->actual_hm_km ?? $row->latestTransaction?->meter_at_fueling;
 
@@ -152,7 +153,11 @@ class HistoryController extends Controller
                 $row->hm_km,
                 (float)$row->total_liters,
                 $actualLiters !== null ? (float)$actualLiters : '-',
-                $variance !== '' ? (float)$variance : '-',
+                // Kolom N: Selisih BBM = BBM Aktual (M) - BBM Diminta (L)
+                [
+                    'formula' => "IF(ISNUMBER(M{$r}),ROUND(M{$r}-L{$r},2),\"-\")",
+                    'value' => $actualLiters !== null ? (float)$variance : '-',
+                ],
                 $actualMeter !== null ? (float)$actualMeter : '-',
                 $fueledAt ? $fueledAt->format('d/m/Y H:i') : '-',
                 $row->vendor_name,
@@ -160,7 +165,42 @@ class HistoryController extends Controller
                 strtoupper($row->status_depthead),
                 strtoupper($row->status_fuelman),
                 $row->stage_label,
-                strtoupper($row->overall_status),
+                [
+                    'formula' => "IF(T{$r}=\"DISETUJUI\",\"DISETUJUI\",IF(OR(R{$r}=\"DITOLAK\",S{$r}=\"DITOLAK\",T{$r}=\"DITOLAK\"),\"DITOLAK\",\"MENUNGGU\"))",
+                    'value' => strtoupper($row->overall_status),
+                ],
+            ];
+        }
+
+        // Baris Total / Ringkasan Rumus Excel di Bawah Tabel
+        $lastRow = count($data) + 1;
+        $sumRow = $lastRow + 1;
+        if ($lastRow >= 2) {
+            $totalReq = (float)$data->sum('total_liters');
+            $totalAct = (float)$data->sum(fn($d) => (float)($d->actual_liters ?? $d->latestTransaction?->actual_liters ?? 0));
+            $rows[] = [
+                '',
+                'TOTAL KESELURUHAN',
+                '',
+                '',
+                '',
+                '',
+                '',
+                '',
+                '',
+                '',
+                '',
+                ['formula' => "SUM(L2:L{$lastRow})", 'value' => $totalReq],
+                ['formula' => "SUM(M2:M{$lastRow})", 'value' => $totalAct],
+                ['formula' => "ROUND(M{$sumRow}-L{$sumRow},2)", 'value' => round($totalAct - $totalReq, 2)],
+                '',
+                '',
+                '',
+                '',
+                '',
+                '',
+                '',
+                '',
             ];
         }
 
