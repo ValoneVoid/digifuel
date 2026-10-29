@@ -1,0 +1,898 @@
+/* DigiFuel - PT United Tractors Tbk Site Satui */
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap');
+
+:root {
+  --ut-blue: #0099ff;
+  --ut-blue-dark: #0284c7;
+  --ut-blue-light: #e0f2fe;
+  --ut-blue-border: #7dd3fc;
+  --ut-yellow: #f59e0b;
+  --ut-yellow-accent: #fbbf24;
+  --ut-green: #22c55e;
+  --ut-red: #ef4444;
+  --ut-text: #1e293b;
+  --ut-muted: #64748b;
+  --ut-border: #e2e8f0;
+}
+
+* {
+  box-sizing: border-box;
+}
+
+body {
+  margin: 0;
+  padding: 0;
+  font-family: 'Inter', 'Segoe UI', -apple-system, BlinkMacSystemFont, Roboto, sans-serif;
+  color: var(--ut-text);
+  background-image: url('/images/mining_bg.jpg');
+  background-size: cover;
+  background-position: center top;
+  background-repeat: no-repeat;
+  background-attachment: fixed;
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+}
+
+/* NAVBAR */
+.digi-navbar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 16px 48px;
+  background: transparent;
+  position: relative;
+  z-index: 50;
+}
+
+.digi-logo-badge {
+  background: #ffffff;
+  padding: 4px 14px;
+  border-radius: 8px;
+  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.15);
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  text-decoration: none;
+  height: 38px;
+}
+
+.digi-logo-badge img {
+  height: 28px;
+  width: auto;
+  display: block;
+}
+
+.digi-nav-links {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.digi-nav-link {
+  color: #ffffff;
+  font-weight: 500;
+  font-size: 15px;
+  text-decoration: none;
+  padding: 7px 18px;
+  border-radius: 6px;
+  transition: all 0.2s ease;
+  text-shadow: 0 1px 2px rgba(0,0,0,0.35);
+}
+
+.digi-nav-link:hover {
+  background: rgba(255, 255, 255, 0.2);
+  color: #ffffff;
+}
+
+.digi-nav-link.active {
+  background: rgba(255, 255, 255, 0.28);
+  backdrop-filter: blur(6px);
+  color: #ffffff;
+  font-weight: 600;
+  box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.35);
+}
+
+.digi-nav-right {
+  display: flex;
+  align-items: center;
+  gap: 20px;
+}
+
+.digi-online-status {
+  text-align: right;
+  line-height: 1.25;
+}
+
+.digi-company-name {
+  color: #ffffff;
+  font-weight: 700;
+  font-size: 14px;
+  text-shadow: 0 1px 3px rgba(0,0,0,0.5);
+  display: block;
+}
+
+.digi-status-indicator {
+  color: #4ade80;
+  font-size: 12px;
+  font-weight: 600;
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  text-shadow: 0 1px 2px rgba(0,0,0,0.5);
+}
+
+.digi-status-dot {
+  width: 7px;
+  height: 7px;
+  background-color: #22c55e;
+  border-radius: 50%;
+  display: inline-block;
+  box-shadow: 0 0 8px #22c55e;
+}
+
+/* User Role Badge / Quick Switcher in Navbar */
+.digi-role-switcher {
+  background: rgba(255, 255, 255, 0.95);
+  border: 1px solid rgba(255, 255, 255, 0.8);
+  border-radius: 6px;
+  padding: 4px 10px;
+  font-size: 12px;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  box-shadow: 0 2px 6px rgba(0,0,0,0.12);
+}
+
+.digi-role-switcher select {
+  border: none;
+  background: transparent;
+  font-size: 12px;
+  font-weight: 600;
+  color: #0f172a;
+  outline: none;
+  cursor: pointer;
+}
+
+/* MAIN CONTENT CONTAINER */
+.digi-main-container {
+  flex: 1;
+  width: 100%;
+  max-width: 1140px;
+  margin: 10px auto 40px auto;
+  padding: 0 20px;
+  position: relative;
+  z-index: 10;
+}
+
+/* CARD */
+.digi-card {
+  background: #ffffff;
+  border-radius: 18px;
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.08);
+  padding: 36px 42px;
+  position: relative;
+}
+
+/* FORM HEADER */
+.digi-form-header {
+  text-align: center;
+  margin-bottom: 24px;
+}
+
+.digi-form-icon {
+  width: 52px;
+  height: 52px;
+  margin: 0 auto 12px auto;
+  display: block;
+}
+
+.digi-form-title {
+  font-size: 24px;
+  font-weight: 700;
+  color: var(--ut-blue-dark);
+  margin: 0 0 8px 0;
+}
+
+.digi-form-subtitle {
+  font-size: 14px;
+  color: var(--ut-muted);
+  margin: 0 auto;
+  max-width: 650px;
+}
+
+/* SIGNATURE WARNING BANNER */
+.digi-warning-banner {
+  background-color: #fef9c3;
+  border: 1px solid #fef08a;
+  color: #854d0e;
+  border-radius: 8px;
+  padding: 12px 18px;
+  font-size: 13.5px;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin-bottom: 22px;
+}
+
+.digi-warning-banner a {
+  color: #0284c7;
+  font-weight: 600;
+  text-decoration: underline;
+}
+
+/* FLASH ALERTS */
+.digi-alert {
+  padding: 12px 18px;
+  border-radius: 8px;
+  font-size: 14px;
+  margin-bottom: 20px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.digi-alert-success {
+  background-color: #dcfce7;
+  border: 1px solid #bbf7d0;
+  color: #166534;
+}
+
+.digi-alert-error {
+  background-color: #fee2e2;
+  border: 1px solid #fecaca;
+  color: #991b1b;
+}
+
+/* FORM STYLES */
+.digi-section-title {
+  font-size: 17px;
+  font-weight: 700;
+  color: #0284c7;
+  margin: 0 0 16px 0;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.digi-form-box {
+  border: 1.5px solid #7dd3fc;
+  border-radius: 12px;
+  padding: 24px 28px;
+  background: #ffffff;
+  margin-bottom: 20px;
+}
+
+.digi-form-grid-2 {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 18px 24px;
+  margin-bottom: 18px;
+}
+
+.digi-form-grid-3 {
+  display: grid;
+  grid-template-columns: 1fr 1fr 1.2fr;
+  gap: 18px 24px;
+  margin-bottom: 18px;
+}
+
+.digi-form-group {
+  display: flex;
+  flex-direction: column;
+}
+
+.digi-form-label {
+  font-size: 13px;
+  font-weight: 600;
+  color: #334155;
+  margin-bottom: 6px;
+}
+
+.digi-required {
+  color: #ef4444;
+  margin-left: 2px;
+}
+
+.digi-input, .digi-select {
+  border: 1px solid #cbd5e1;
+  border-radius: 7px;
+  padding: 9px 13px;
+  font-size: 14px;
+  color: #1e293b;
+  background-color: #ffffff;
+  outline: none;
+  width: 100%;
+  font-family: inherit;
+  transition: all 0.15s ease;
+}
+
+.digi-input:focus, .digi-select:focus {
+  border-color: #0284c7;
+  box-shadow: 0 0 0 3px rgba(2, 132, 199, 0.12);
+}
+
+.digi-input[readonly], .digi-input:disabled {
+  background-color: #f1f5f9;
+  color: #475569;
+  cursor: not-allowed;
+  border-color: #e2e8f0;
+}
+
+/* MEMILIH APPROVAL SUBSECTION */
+.digi-approval-badge {
+  background-color: #0284c7;
+  color: #ffffff;
+  font-size: 12px;
+  font-weight: 600;
+  padding: 4px 14px;
+  border-radius: 9999px;
+  display: inline-block;
+  margin-bottom: 16px;
+}
+
+/* BUTTONS */
+.btn-digi {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  font-weight: 600;
+  font-size: 14px;
+  padding: 9px 22px;
+  border-radius: 6px;
+  border: none;
+  cursor: pointer;
+  text-decoration: none;
+  transition: all 0.15s ease;
+}
+
+.btn-digi-blue {
+  background-color: #0099ff;
+  color: #ffffff;
+}
+
+.btn-digi-blue:hover {
+  background-color: #0284c7;
+  color: #ffffff;
+}
+
+.btn-digi-green {
+  background-color: #22c55e;
+  color: #ffffff;
+}
+
+.btn-digi-green:hover {
+  background-color: #16a34a;
+  color: #ffffff;
+}
+
+.btn-digi-yellow {
+  background-color: #f59e0b;
+  color: #ffffff;
+}
+
+.btn-digi-yellow:hover {
+  background-color: #d97706;
+  color: #ffffff;
+}
+
+.btn-digi-red {
+  background-color: #ef4444;
+  color: #ffffff;
+}
+
+.btn-digi-red:hover {
+  background-color: #dc2626;
+  color: #ffffff;
+}
+
+.btn-digi-gray {
+  background-color: #e2e8f0;
+  color: #475569;
+}
+
+.btn-digi-gray:hover {
+  background-color: #cbd5e1;
+}
+
+/* TABLE & HISTORY STYLES */
+.digi-table-top {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  margin-bottom: 24px;
+  gap: 20px;
+}
+
+.digi-table-title {
+  font-size: 20px;
+  font-weight: 700;
+  color: #1e293b;
+  margin: 0;
+}
+
+.digi-table-filters {
+  display: flex;
+  align-items: flex-end;
+  gap: 12px;
+  flex-wrap: wrap;
+}
+
+.digi-filter-group {
+  display: flex;
+  flex-direction: column;
+}
+
+.digi-filter-label {
+  font-size: 12px;
+  font-weight: 600;
+  color: #475569;
+  margin-bottom: 4px;
+}
+
+.digi-table-controls {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 16px;
+  font-size: 13.5px;
+  color: #475569;
+}
+
+.digi-table-controls select {
+  padding: 5px 8px;
+  border-radius: 6px;
+  border: 1px solid #cbd5e1;
+  outline: none;
+}
+
+.digi-table-controls input {
+  padding: 5px 12px;
+  border-radius: 6px;
+  border: 1px solid #cbd5e1;
+  outline: none;
+}
+
+.digi-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 13.5px;
+  margin-bottom: 20px;
+}
+
+.digi-table th {
+  text-align: left;
+  padding: 12px 14px;
+  color: #334155;
+  font-weight: 600;
+  border-bottom: 1px solid #e2e8f0;
+  white-space: nowrap;
+}
+
+.digi-table th .sort-icon {
+  font-size: 11px;
+  color: #94a3b8;
+  margin-left: 4px;
+}
+
+.digi-table td {
+  padding: 14px 14px;
+  border-bottom: 1px solid #f1f5f9;
+  color: #1e293b;
+  vertical-align: middle;
+}
+
+.digi-table tr:hover td {
+  background-color: #f8fafc;
+}
+
+/* BADGES */
+.digi-badge {
+  display: inline-block;
+  padding: 4px 12px;
+  border-radius: 9999px;
+  font-size: 12px;
+  font-weight: 600;
+  white-space: nowrap;
+}
+
+.digi-badge-yellow {
+  background-color: #fef08a;
+  color: #854d0e;
+}
+
+.digi-badge-green {
+  background-color: #dcfce7;
+  color: #15803d;
+}
+
+.digi-badge-red {
+  background-color: #fee2e2;
+  color: #b91c1c;
+}
+
+.digi-badge-gray {
+  background-color: #f1f5f9;
+  color: #64748b;
+}
+
+.digi-badge-blue {
+  background-color: #0284c7;
+  color: #ffffff;
+}
+
+/* TABLE ACTIONS */
+.digi-action-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 32px;
+  height: 32px;
+  border-radius: 6px;
+  border: none;
+  cursor: pointer;
+  text-decoration: none;
+  transition: all 0.15s ease;
+}
+
+.digi-action-purple {
+  background-color: #7c3aed;
+  color: #ffffff;
+}
+
+.digi-action-purple:hover {
+  background-color: #6d28d9;
+  color: #ffffff;
+}
+
+.digi-action-green {
+  background-color: #ecfdf5;
+  color: #059669;
+  border: 1px solid #a7f3d0;
+}
+
+.digi-action-green:hover {
+  background-color: #10b981;
+  color: #ffffff;
+}
+
+.digi-action-orange {
+  background-color: #fffbeb;
+  color: #d97706;
+  border: 1px solid #fde68a;
+}
+
+.digi-action-orange:hover {
+  background-color: #f59e0b;
+  color: #ffffff;
+}
+
+/* PAGINATION */
+.digi-pagination-bar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  font-size: 13px;
+  color: #64748b;
+  margin-top: 14px;
+}
+
+.digi-page-btns {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+}
+
+.digi-page-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 30px;
+  height: 30px;
+  border-radius: 6px;
+  border: 1px solid #e2e8f0;
+  background: #ffffff;
+  color: #475569;
+  font-size: 13px;
+  font-weight: 500;
+  text-decoration: none;
+  cursor: pointer;
+}
+
+.digi-page-btn.active {
+  background-color: #0099ff;
+  border-color: #0099ff;
+  color: #ffffff;
+  font-weight: 700;
+}
+
+/* PROFILE PAGE */
+.digi-profile-layout {
+  display: grid;
+  grid-template-columns: 280px 1fr;
+  gap: 28px;
+}
+
+.digi-profile-left {
+  background: #ffffff;
+  border-radius: 18px;
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.08);
+  padding: 36px 24px;
+  text-align: center;
+  height: fit-content;
+}
+
+.digi-profile-name {
+  font-size: 18px;
+  font-weight: 800;
+  color: #1e293b;
+  text-transform: uppercase;
+  margin: 0 0 14px 0;
+}
+
+.digi-profile-right {
+  background: #ffffff;
+  border-radius: 18px;
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.08);
+  padding: 36px 42px;
+}
+
+.digi-profile-header {
+  font-size: 20px;
+  font-weight: 700;
+  color: #1e293b;
+  border-bottom: 1px solid #f1f5f9;
+  padding-bottom: 16px;
+  margin: 0 0 28px 0;
+}
+
+.digi-profile-row {
+  display: grid;
+  grid-template-columns: 220px 1fr;
+  align-items: center;
+  padding: 14px 0;
+  border-bottom: 1px solid #f8fafc;
+}
+
+.digi-profile-label {
+  font-size: 14px;
+  font-weight: 600;
+  color: #64748b;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.digi-profile-value {
+  font-size: 14px;
+  font-weight: 500;
+  color: #1e293b;
+}
+
+.digi-signature-preview {
+  max-width: 140px;
+  max-height: 100px;
+  border: 1px solid #e2e8f0;
+  border-radius: 6px;
+  padding: 4px;
+  background: #f8fafc;
+  display: block;
+  margin-bottom: 10px;
+}
+
+/* MODAL */
+.digi-modal-backdrop {
+  position: fixed;
+  inset: 0;
+  background-color: rgba(15, 23, 42, 0.5);
+  backdrop-filter: blur(2px);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 1000;
+  padding: 20px;
+}
+
+.digi-modal {
+  background: #ffffff;
+  border-radius: 14px;
+  box-shadow: 0 20px 40px rgba(0, 0, 0, 0.2);
+  width: 100%;
+  max-width: 480px;
+  overflow: hidden;
+  animation: modalFadeIn 0.2s ease-out;
+}
+
+@keyframes modalFadeIn {
+  from { opacity: 0; transform: scale(0.96); }
+  to { opacity: 1; transform: scale(1); }
+}
+
+.digi-modal-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 18px 24px;
+  border-bottom: 1px solid #f1f5f9;
+}
+
+.digi-modal-title {
+  font-size: 16px;
+  font-weight: 700;
+  color: #0f172a;
+  margin: 0;
+}
+
+.digi-modal-close {
+  background: transparent;
+  border: none;
+  font-size: 20px;
+  line-height: 1;
+  color: #94a3b8;
+  cursor: pointer;
+}
+
+.digi-modal-body {
+  padding: 24px;
+  font-size: 14.5px;
+  color: #334155;
+  line-height: 1.5;
+}
+
+.digi-modal-footer {
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 12px;
+  padding: 16px 24px;
+  background-color: #f8fafc;
+  border-top: 1px solid #f1f5f9;
+}
+
+/* DOCUMENT PRINTABLE VIEW (Slide 11) */
+.fuel-document-sheet {
+  background: #ffffff;
+  border: 2px solid #000000;
+  padding: 30px 36px;
+  max-width: 760px;
+  margin: 0 auto;
+  font-family: Arial, Helvetica, sans-serif;
+  color: #000000;
+}
+
+.fuel-doc-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  margin-bottom: 24px;
+}
+
+.fuel-doc-brand {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.fuel-doc-brand-text {
+  font-weight: 800;
+  font-size: 13.5px;
+  line-height: 1.25;
+}
+
+.fuel-doc-title {
+  text-align: center;
+  font-size: 20px;
+  font-weight: 800;
+  letter-spacing: 0.5px;
+  text-decoration: underline;
+  margin: 10px 0 20px 0;
+}
+
+.fuel-doc-no {
+  font-size: 13.5px;
+  font-weight: 700;
+}
+
+.fuel-doc-table {
+  width: 100%;
+  border-collapse: collapse;
+  margin-bottom: 24px;
+  font-size: 13px;
+}
+
+.fuel-doc-table td {
+  padding: 7px 4px;
+  vertical-align: top;
+}
+
+.fuel-doc-table .lbl {
+  font-weight: 800;
+  width: 250px;
+}
+
+.fuel-doc-table .col {
+  width: 15px;
+  text-align: center;
+  font-weight: 800;
+}
+
+.fuel-doc-table .val {
+  font-weight: 700;
+}
+
+.fuel-doc-date {
+  font-size: 12.5px;
+  font-weight: 600;
+  margin-bottom: 20px;
+}
+
+.fuel-doc-signatures {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 16px;
+  text-align: center;
+  margin-top: 20px;
+}
+
+.fuel-doc-sig-box {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+
+.fuel-doc-sig-title {
+  font-size: 12px;
+  font-weight: 700;
+  margin-bottom: 8px;
+}
+
+.fuel-doc-sig-img {
+  height: 90px;
+  max-width: 100px;
+  object-fit: contain;
+  margin-bottom: 6px;
+}
+
+.fuel-doc-sig-line {
+  width: 100%;
+  border-bottom: 1.5px solid #000000;
+  margin-bottom: 4px;
+}
+
+.fuel-doc-sig-name {
+  font-size: 11px;
+  font-weight: 800;
+}
+
+.fuel-doc-sig-role {
+  font-size: 10.5px;
+}
+
+/* FOOTER */
+.digi-footer {
+  text-align: left;
+  padding: 16px 48px;
+  font-size: 12px;
+  color: rgba(255, 255, 255, 0.85);
+  text-shadow: 0 1px 2px rgba(0,0,0,0.5);
+}
+
+/* RESPONSIVE */
+@media (max-width: 900px) {
+  .digi-navbar {
+    padding: 14px 20px;
+    flex-wrap: wrap;
+    gap: 12px;
+  }
+  .digi-form-grid-2, .digi-form-grid-3 {
+    grid-template-columns: 1fr;
+  }
+  .digi-profile-layout {
+    grid-template-columns: 1fr;
+  }
+  .fuel-doc-signatures {
+    grid-template-columns: repeat(2, 1fr);
+    gap: 24px;
+  }
+}
