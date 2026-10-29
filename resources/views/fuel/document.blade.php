@@ -22,8 +22,8 @@
     </style>
 </head>
 <body>
-    <div class="no-print" style="max-width: 760px; margin: 0 auto 20px auto; display: flex; justify-content: space-between; align-items: center;">
-        <a href="{{ route('history.index') }}" class="btn-digi btn-digi-gray">← Kembali ke History</a>
+    <div class="no-print" style="width: 100%; max-width: 760px; margin: 0 auto 24px auto; display: flex; justify-content: space-between; align-items: center; gap: 16px;">
+        <a href="{{ route('history.index') }}" class="btn-digi btn-digi-gray">Kembali ke History</a>
         <button onclick="window.print()" class="btn-digi btn-digi-blue">
             <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
                 <polyline points="6 9 6 2 18 2 18 9"></polyline>

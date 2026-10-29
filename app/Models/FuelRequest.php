@@ -7,7 +7,7 @@ use Illuminate\Database\Eloquent\Model;
 class FuelRequest extends Model
 {
     protected $guarded = [];
-
+    
     protected $casts = [
         'request_date' => 'datetime',
         'planned_fuel_time' => 'datetime',

@@ -126,7 +126,7 @@ class HistoryController extends Controller
             'Vendor',
             'Status SPV',
             'Status Dept Head',
-            'Status Vendor/Fuelman',
+            'Status Vendor',
             'Tahap Proses',
             'Status Akhir',
         ];

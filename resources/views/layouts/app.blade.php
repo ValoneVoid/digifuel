@@ -48,11 +48,13 @@
         <div class="digi-nav-right">
             <!-- Notification Dropdown -->
             @if($currentUser)
-                <div style="position: relative;">
-                    <button type="button" onclick="toggleNotifMenu()" style="background: rgba(255,255,255,0.92); border: 1px solid rgba(255,255,255,0.8); border-radius: 6px; padding: 5px 10px; cursor: pointer; display: flex; align-items: center; gap: 5px; font-size: 12px; font-weight: 600; color: #0f172a; box-shadow: 0 2px 6px rgba(0,0,0,0.12);" title="Notifikasi Pengajuan & Approval">
-                        <span>🔔</span>
+                <div style="position: relative; display: flex; align-items: center;">
+                    <button type="button" onclick="toggleNotifMenu()" class="digi-notif-btn" title="Notifikasi Pengajuan & Approval">
+                        <svg width="24" height="24" viewBox="0 0 24 24" fill="currentColor" xmlns="http://www.w3.org/2000/svg">
+                            <path d="M12 22c1.1 0 2-.9 2-2h-4c0 1.1.9 2 2 2zm6-6v-5c0-3.07-1.63-5.64-4.5-6.32V4c0-.83-.67-1.5-1.5-1.5s-1.5.67-1.5 1.5v.68C7.64 5.36 6 7.92 6 11v5l-2 2v1h16v-1l-2-2z"/>
+                        </svg>
                         @if($unreadNotifs->count() > 0)
-                            <span style="background: #ef4444; color: #fff; border-radius: 999px; padding: 1px 6px; font-size: 10px; font-weight: 700;">{{ $unreadNotifs->count() }}</span>
+                            <span class="digi-notif-badge">{{ $unreadNotifs->count() }}</span>
                         @endif
                     </button>
                     <div id="digiNotifMenu" style="display: none; position: absolute; right: 0; top: 38px; width: 320px; background: #fff; border-radius: 10px; box-shadow: 0 12px 28px rgba(0,0,0,0.18); border: 1px solid #e2e8f0; z-index: 200; overflow: hidden;">

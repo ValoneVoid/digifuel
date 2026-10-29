@@ -79,7 +79,7 @@
                     <th>Jumlah (L) <span class="sort-icon">↕</span></th>
                     <th>Status SPV <span class="sort-icon">↕</span></th>
                     <th>Status DeptHead <span class="sort-icon">↕</span></th>
-                    <th>Status Vendor/Fuelman <span class="sort-icon">↕</span></th>
+                    <th>Status Vendor <span class="sort-icon">↕</span></th>
                     <th>Action <span class="sort-icon">↕</span></th>
                 </tr>
             </thead>
