@@ -61,12 +61,26 @@ class AuthController extends Controller
 
     public function switchUser(Request $request)
     {
+        if (!Auth::check()) {
+            abort(401, 'Silakan login terlebih dahulu.');
+        }
+
+        if (!app()->environment(['local', 'testing'])) {
+            abort(403, 'Fitur Role Switcher hanya diizinkan pada lingkungan lokal atau pengujian.');
+        }
+
         $request->validate([
             'user_id' => 'required|exists:users,id',
         ]);
 
         $user = User::findOrFail($request->user_id);
+
+        if (!$user->is_active) {
+            abort(403, 'Akun tujuan sedang dinonaktifkan.');
+        }
+
         Auth::login($user);
+        $request->session()->regenerate();
 
         return $this->redirectByRole($user, "Beralih ke akun {$user->name} ({$user->jabatan})");
     }
@@ -82,11 +96,19 @@ class AuthController extends Controller
 
     public function readNotification(Request $request, $id)
     {
-        $user = Auth::user() ?? User::where('username', 'adji')->first();
-        $notif = UserNotification::where('id', $id)->where('user_id', $user?->id)->firstOrFail();
+        /** @var \App\Models\User|null $user */
+        $user = Auth::user();
+        if (!$user) {
+            abort(401, 'Silakan login terlebih dahulu.');
+        }
+
+        $notif = UserNotification::where('id', $id)->where('user_id', $user->id)->firstOrFail();
         $notif->update(['is_read' => true]);
 
         if ($notif->fuel_request_id) {
+            if ($user->isDriver() && !$user->isAdmin()) {
+                return redirect()->route('history.index');
+            }
             return redirect()->route('approval.show', $notif->fuel_request_id);
         }
 

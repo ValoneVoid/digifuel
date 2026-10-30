@@ -238,5 +238,117 @@ class DigiFuelWorkflowTest extends TestCase
             $this->assertTrue($roleValid, "User {$assignment->user->username} role does not match {$assignment->role_type}.");
         }
     }
+
+    public function test_guest_is_redirected_to_login_on_all_protected_routes(): void
+    {
+        $this->assertGuest();
+
+        $this->get('/')->assertRedirect(route('login'));
+        $this->get('/dashboard')->assertRedirect(route('login'));
+        $this->get('/fuel')->assertRedirect(route('login'));
+        $this->get('/approval')->assertRedirect(route('login'));
+        $this->get('/admin/master')->assertRedirect(route('login'));
+        $this->get('/evaluation')->assertRedirect(route('login'));
+        $this->get('/history')->assertRedirect(route('login'));
+        $this->get('/profile')->assertRedirect(route('login'));
+
+        // Guest cannot bypass login via switch-user endpoint
+        $admin = User::where('username', 'admin')->first();
+        $this->post('/switch-user', ['user_id' => $admin->id])->assertRedirect(route('login'));
+        $this->assertGuest();
+    }
+
+    public function test_role_middleware_enforces_access_matrix_and_blocks_unauthorized_roles(): void
+    {
+        $driver = User::where('username', 'adji')->first();
+        $spv = User::where('username', 'aklis')->first();
+        $depthead = User::where('username', 'Pdh-kusan')->first();
+        $vendor = User::where('username', 'vendor_sudan')->first();
+        $fuelman = User::where('username', 'adya')->first();
+        $admin = User::where('username', 'admin')->first();
+
+        $ownFuelRequest = FuelRequest::where('user_id', $driver->id)->first();
+        $otherVendorFuelRequest = FuelRequest::where('request_no', 'FR-2025-03-001')->first(); // CV. Prima Pertama
+
+        // 1. Driver access checks
+        $this->actingAs($driver);
+        $this->get('/admin/master')->assertStatus(403);
+        $this->get('/evaluation')->assertStatus(403);
+        $this->get('/approval')->assertStatus(403);
+        $this->get('/fuel')->assertStatus(200);
+        $this->get('/history')->assertStatus(200);
+        $this->get(route('fuel.document', $ownFuelRequest->id))->assertStatus(200);
+
+        // 2. Vendor access checks
+        $this->actingAs($vendor);
+        $this->get('/admin/master')->assertStatus(403);
+        $this->get('/evaluation')->assertStatus(403);
+        $this->get('/fuel')->assertStatus(403);
+        $this->get('/approval')->assertStatus(200);
+        $this->get(route('approval.show', $ownFuelRequest->id))->assertStatus(200); // Cv. Sudan Mandiri
+        $this->get(route('approval.show', $otherVendorFuelRequest->id))->assertStatus(403); // CV. Prima Pertama (IDOR blocked)
+
+        // 3. SPV access checks
+        $this->actingAs($spv);
+        $this->get('/admin/master')->assertStatus(403);
+        $this->get('/evaluation')->assertStatus(403);
+        $this->get('/fuel')->assertStatus(403);
+        $this->get('/approval')->assertStatus(200);
+        $this->get(route('approval.show', $ownFuelRequest->id))->assertStatus(200);
+        $this->post(route('approval.realization', $ownFuelRequest->id), [])->assertStatus(403);
+
+        // 4. Dept Head / Manager access checks
+        $this->actingAs($depthead);
+        $this->get('/admin/master')->assertStatus(403);
+        $this->get('/evaluation')->assertStatus(403);
+        $this->get('/fuel')->assertStatus(403);
+        $this->get('/approval')->assertStatus(200);
+        $this->get(route('approval.show', $ownFuelRequest->id))->assertStatus(200);
+
+        // 5. Fuel Man access checks
+        $this->actingAs($fuelman);
+        $this->get('/admin/master')->assertStatus(403);
+        $this->get('/evaluation')->assertStatus(403);
+        $this->get('/fuel')->assertStatus(403);
+        $this->get('/approval')->assertStatus(200);
+        $this->get(route('approval.show', $ownFuelRequest->id))->assertStatus(200);
+
+        // 6. Admin access checks
+        $this->actingAs($admin);
+        $this->get('/admin/master')->assertStatus(200);
+        $this->get('/evaluation')->assertStatus(200);
+    }
+
+    public function test_authentication_with_username_email_nrp_inactive_user_and_logout(): void
+    {
+        // Login via Email
+        $this->post('/login', [
+            'login' => 'adji@satui.unitedtractors.com',
+            'password' => 'password123',
+        ])->assertRedirect(route('dashboard'));
+        $this->assertAuthenticated();
+
+        // Logout invalidates session
+        $this->post('/logout')->assertRedirect(route('login'));
+        $this->assertGuest();
+
+        // Login via NRP
+        $this->post('/login', [
+            'login' => '80124024',
+            'password' => 'password123',
+        ])->assertRedirect(route('dashboard'));
+        $this->assertAuthenticated();
+        $this->post('/logout');
+
+        // Inactive user cannot login
+        $driver = User::where('username', 'adji')->first();
+        $driver->update(['is_active' => false]);
+
+        $this->post('/login', [
+            'login' => 'adji',
+            'password' => 'password123',
+        ])->assertSessionHasErrors('login');
+        $this->assertGuest();
+    }
 }
 

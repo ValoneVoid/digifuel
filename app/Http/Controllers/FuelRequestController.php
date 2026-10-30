@@ -19,13 +19,12 @@ class FuelRequestController extends Controller
 {
     protected function getActiveUser(): User
     {
-        if (!Auth::check()) {
-            $default = User::where('username', 'adji')->first() ?? User::first();
-            if ($default) {
-                Auth::login($default);
-            }
+        /** @var \App\Models\User|null $user */
+        $user = Auth::user();
+        if (!$user) {
+            abort(401, 'Silakan login terlebih dahulu.');
         }
-        return Auth::user();
+        return $user;
     }
 
     public function create()
@@ -195,12 +194,12 @@ class FuelRequestController extends Controller
             ->with('success', "Permintaan Fuel {$fuelRequest->request_no} berhasil dikirim dan menunggu persetujuan SPV!");
     }
 
-    public function submitDraft($id, FuelRequestService $service)
+    public function submitDraft($id, FuelRequestService $service, FuelRequestPolicy $policy)
     {
         $user = $this->getActiveUser();
         $fuelRequest = FuelRequest::findOrFail($id);
 
-        if ((int)$fuelRequest->user_id !== (int)$user->id && !$user->isAdmin()) {
+        if (!$policy->update($user, $fuelRequest)) {
             abort(403, 'Anda tidak memiliki akses untuk mengajukan draft ini.');
         }
 
@@ -210,12 +209,12 @@ class FuelRequestController extends Controller
             ->with('success', "Fuel Request {$fuelRequest->request_no} berhasil diajukan ke SPV!");
     }
 
-    public function cancel($id)
+    public function cancel($id, FuelRequestPolicy $policy)
     {
         $user = $this->getActiveUser();
         $fuelRequest = FuelRequest::findOrFail($id);
 
-        if ((int)$fuelRequest->user_id !== (int)$user->id && !$user->isAdmin()) {
+        if (!$policy->cancel($user, $fuelRequest)) {
             abort(403, 'Anda tidak memiliki akses untuk membatalkan pengajuan ini.');
         }
 

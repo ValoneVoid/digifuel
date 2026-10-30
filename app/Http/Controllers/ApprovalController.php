@@ -14,13 +14,12 @@ class ApprovalController extends Controller
 {
     protected function getActiveUser(): User
     {
-        if (!Auth::check()) {
-            $default = User::where('role', 'spv')->first() ?? User::first();
-            if ($default) {
-                Auth::login($default);
-            }
+        /** @var \App\Models\User|null $user */
+        $user = Auth::user();
+        if (!$user) {
+            abort(401, 'Silakan login terlebih dahulu.');
         }
-        return Auth::user();
+        return $user;
     }
 
     public function index(Request $request)
@@ -118,10 +117,14 @@ class ApprovalController extends Controller
         return view('approval.show', compact('fuelRequest', 'user'));
     }
 
-    public function approve(Request $request, $id, FuelRequestService $service)
+    public function approve(Request $request, $id, FuelRequestService $service, FuelRequestPolicy $policy)
     {
         $user = $this->getActiveUser();
         $fuelRequest = FuelRequest::findOrFail($id);
+
+        if (!$policy->approve($user, $fuelRequest)) {
+            abort(403, 'Akses Ditolak: Anda tidak memiliki izin untuk menyetujui pengajuan ini.');
+        }
 
         $result = $service->approve($fuelRequest, $user, $request->input('note'));
 
@@ -132,10 +135,15 @@ class ApprovalController extends Controller
         return redirect()->route('approval.show', $fuelRequest->id)->with('success', $result['message']);
     }
 
-    public function reject(Request $request, $id, FuelRequestService $service)
+    public function reject(Request $request, $id, FuelRequestService $service, FuelRequestPolicy $policy)
     {
         $user = $this->getActiveUser();
         $fuelRequest = FuelRequest::findOrFail($id);
+
+        if (!$policy->approve($user, $fuelRequest)) {
+            abort(403, 'Akses Ditolak: Anda tidak memiliki izin untuk menolak pengajuan ini.');
+        }
+
         $note = trim($request->input('note', '')) ?: 'Permintaan ditolak oleh Approver.';
 
         $result = $service->reject($fuelRequest, $user, $note);

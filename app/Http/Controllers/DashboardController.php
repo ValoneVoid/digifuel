@@ -17,13 +17,12 @@ class DashboardController extends Controller
 {
     protected function getActiveUser(): User
     {
-        if (!Auth::check()) {
-            $default = User::where('username', 'adji')->first() ?? User::first();
-            if ($default) {
-                Auth::login($default);
-            }
+        /** @var \App\Models\User|null $user */
+        $user = Auth::user();
+        if (!$user) {
+            abort(401, 'Silakan login terlebih dahulu.');
         }
-        return Auth::user();
+        return $user;
     }
 
     public function index(Request $request)
