@@ -28,6 +28,7 @@ Route::middleware(['auth'])->group(function () {
     // Common Authenticated Modules (All Active Roles, Scoped by Role/Policy inside Controller)
     Route::middleware(['role:admin,driver,spv,depthead,vendor,fuelman'])->group(function () {
         Route::get('/dashboard', [DashboardController::class, 'index'])->name('dashboard');
+        Route::get('/dashboard/charts', [DashboardController::class, 'charts'])->name('dashboard.charts');
 
         // History & Excel (.xlsx) Export
         Route::get('/history', [HistoryController::class, 'index'])->name('history.index');
