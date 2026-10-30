@@ -30,13 +30,13 @@ class DigiFuelWorkflowTest extends TestCase
             'login' => 'adji',
             'password' => 'password123',
         ]);
-        $loginResp->assertRedirect(route('fuel.create'));
+        $loginResp->assertRedirect(route('dashboard'));
 
         $adminResp = $this->post('/login', [
             'login' => 'admin',
             'password' => 'password123',
         ]);
-        $adminResp->assertRedirect(route('evaluation.index'));
+        $adminResp->assertRedirect(route('dashboard'));
     }
 
     public function test_ajax_vehicle_lookup_and_area_approvers_work(): void
@@ -180,6 +180,63 @@ class DigiFuelWorkflowTest extends TestCase
 
         $evalExport = $this->get('/evaluation/export?period=2026-05');
         $evalExport->assertStatus(200);
+    }
+
+    public function test_seeder_is_idempotent_and_foreign_key_relations_are_valid(): void
+    {
+        $initialCounts = [
+            'roles' => \App\Models\Role::count(),
+            'areas' => \App\Models\Area::count(),
+            'vendors' => \App\Models\Vendor::count(),
+            'employees' => \App\Models\Employee::count(),
+            'vehicles' => \App\Models\Vehicle::count(),
+            'users' => \App\Models\User::count(),
+            'user_roles' => \Illuminate\Support\Facades\DB::table('user_roles')->count(),
+            'area_approvers' => \App\Models\AreaApprover::count(),
+            'fuel_standards' => \App\Models\FuelStandard::count(),
+            'fuel_prices' => \App\Models\FuelPrice::count(),
+            'fuel_requests' => \App\Models\FuelRequest::count(),
+            'fuel_request_approvals' => \App\Models\FuelRequestApproval::count(),
+            'fuel_transactions' => \App\Models\FuelTransaction::count(),
+            'fuel_evaluations' => \App\Models\FuelEvaluation::count(),
+        ];
+
+        // Run DigiFuelSeeder a second time to verify idempotency (no duplicates)
+        $this->seed(DigiFuelSeeder::class);
+
+        $this->assertEquals($initialCounts['roles'], \App\Models\Role::count());
+        $this->assertEquals($initialCounts['areas'], \App\Models\Area::count());
+        $this->assertEquals($initialCounts['vendors'], \App\Models\Vendor::count());
+        $this->assertEquals($initialCounts['employees'], \App\Models\Employee::count());
+        $this->assertEquals($initialCounts['vehicles'], \App\Models\Vehicle::count());
+        $this->assertEquals($initialCounts['users'], \App\Models\User::count());
+        $this->assertEquals($initialCounts['user_roles'], \Illuminate\Support\Facades\DB::table('user_roles')->count());
+        $this->assertEquals($initialCounts['area_approvers'], \App\Models\AreaApprover::count());
+        $this->assertEquals($initialCounts['fuel_standards'], \App\Models\FuelStandard::count());
+        $this->assertEquals($initialCounts['fuel_prices'], \App\Models\FuelPrice::count());
+        $this->assertEquals($initialCounts['fuel_requests'], \App\Models\FuelRequest::count());
+        $this->assertEquals($initialCounts['fuel_request_approvals'], \App\Models\FuelRequestApproval::count());
+        $this->assertEquals($initialCounts['fuel_transactions'], \App\Models\FuelTransaction::count());
+        $this->assertEquals($initialCounts['fuel_evaluations'], \App\Models\FuelEvaluation::count());
+
+        // Verify all AreaApprover rows have valid User and Area foreign keys and matching business roles
+        $approvers = \App\Models\AreaApprover::with(['area', 'user'])->get();
+        $this->assertGreaterThan(0, $approvers->count());
+
+        foreach ($approvers as $assignment) {
+            $this->assertNotNull($assignment->area, "AreaApprover ID {$assignment->id} has missing Area.");
+            $this->assertNotNull($assignment->user, "AreaApprover ID {$assignment->id} has missing User.");
+            $this->assertTrue($assignment->is_active);
+
+            $roleValid = match ($assignment->role_type) {
+                'spv' => $assignment->user->isSpv(),
+                'manager' => $assignment->user->isManager(),
+                'vendor' => $assignment->user->isVendor(),
+                'fuelman' => $assignment->user->isFuelman(),
+                default => false,
+            };
+            $this->assertTrue($roleValid, "User {$assignment->user->username} role does not match {$assignment->role_type}.");
+        }
     }
 }
 
