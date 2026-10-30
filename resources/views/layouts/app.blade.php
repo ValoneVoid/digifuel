@@ -7,6 +7,11 @@
     <meta name="description" content="Sistem Pengajuan, Persetujuan Digital, dan Evaluasi Konsumsi BBM PT United Tractors Tbk Site Satui">
     <link rel="stylesheet" href="{{ asset('css/digifuel.css') }}">
     <link rel="icon" type="image/svg+xml" href="{{ asset('images/ut_logo_badge.svg') }}">
+    <style>
+        body {
+            background-image: url('{{ \App\Models\SystemBackground::getActiveImageUrl() }}');
+        }
+    </style>
 </head>
 <body>
     @php
@@ -19,11 +24,15 @@
 
     <!-- NAVBAR -->
     <nav class="digi-navbar">
-        <a href="{{ $isAdmin ? route('evaluation.index') : ($isApprover ? route('approval.index') : route('fuel.create')) }}" class="digi-logo-badge" title="United Tractors Satui">
-            <img src="{{ asset('images/ut_logo_badge.svg') }}" alt="United Tractors">
-        </a>
+        <div class="digi-brand-left">
+            <a href="{{ route('dashboard') }}" class="digi-logo-badge" title="United Tractors Satui">
+                <img src="{{ asset('images/ut_logo_badge.svg') }}" alt="United Tractors">
+            </a>
+            <span class="digi-status-indicator"><span class="digi-status-dot"></span> online</span>
+        </div>
 
         <div class="digi-nav-links">
+            <a href="{{ route('dashboard') }}" class="digi-nav-link {{ request()->routeIs('dashboard') ? 'active' : '' }}">Dashboard</a>
             @if($isAdmin)
                 <a href="{{ route('fuel.create') }}" class="digi-nav-link {{ request()->routeIs('fuel.create') ? 'active' : '' }}">Form Request</a>
                 <a href="{{ route('approval.index') }}" class="digi-nav-link {{ request()->routeIs('approval.*') ? 'active' : '' }}">Pengajuan</a>
@@ -92,11 +101,6 @@
                         @endforeach
                     </select>
                 </form>
-            </div>
-
-            <div class="digi-online-status">
-                <span class="digi-company-name">United Tractors</span>
-                <span class="digi-status-indicator"><span class="digi-status-dot"></span> online</span>
             </div>
         </div>
     </nav>

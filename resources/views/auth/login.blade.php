@@ -6,6 +6,11 @@
     <title>Login - DigiFuel PT United Tractors Tbk Site Satui</title>
     <link rel="stylesheet" href="{{ asset('css/digifuel.css') }}">
     <link rel="icon" type="image/svg+xml" href="{{ asset('images/ut_logo_badge.svg') }}">
+    <style>
+        body {
+            background-image: url('{{ \App\Models\SystemBackground::getActiveImageUrl() }}');
+        }
+    </style>
 </head>
 <body style="justify-content: center; align-items: center; padding: 20px;">
     <div class="digi-card" style="width: 100%; max-width: 460px; min-height: auto; padding: 38px 36px;">

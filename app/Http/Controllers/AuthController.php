@@ -95,14 +95,6 @@ class AuthController extends Controller
 
     protected function redirectByRole(User $user, string $message)
     {
-        if ($user->isAdmin()) {
-            return redirect()->route('evaluation.index')->with('success', $message);
-        }
-
-        if ($user->isApprover()) {
-            return redirect()->route('approval.index')->with('success', $message);
-        }
-
-        return redirect()->route('fuel.create')->with('success', $message);
+        return redirect()->route('dashboard')->with('success', $message);
     }
 }

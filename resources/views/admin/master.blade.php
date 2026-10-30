@@ -20,10 +20,11 @@
             'employees' => 'Data Employee (' . $employees->count() . ')',
             'areas' => 'Data Area (' . $areas->count() . ')',
             'vendors' => 'Data Vendor (' . $vendors->count() . ')',
-            'approvers' => 'Approver per Area (' . $areaApprovers->count() . ')',
+            'approvers' => 'Approver Area (' . $areaApprovers->count() . ')',
             'standards' => 'Standar BBM (' . $fuelStandards->count() . ')',
             'prices' => 'Harga BBM (' . $fuelPrices->count() . ')',
             'users' => 'User & Role (' . $users->count() . ')',
+            'backgrounds' => 'Background Sistem (' . (isset($backgrounds) ? $backgrounds->count() : 0) . ')',
             'audit' => 'Audit Trail (' . $auditLogs->count() . ')',
         ];
     @endphp
@@ -35,241 +36,368 @@
         @endforeach
     </div>
 
-    <!-- TAB 1: UNITS / VEHICLES -->
+    <!-- ============================================================ -->
+    <!-- TAB 1: UNITS / VEHICLES                                      -->
+    <!-- ============================================================ -->
     @if($tab === 'units')
-        <form action="{{ route('admin.master.vehicle') }}" method="POST" class="digi-form-box">
+        <form id="unitForm" action="{{ route('admin.master.vehicle') }}" method="POST" class="digi-form-box">
             @csrf
-            <h3 class="digi-section-title">Tambah / Perbarui Data Unit Kendaraan & Alat Berat</h3>
+            <input type="hidden" name="id" id="unit_id" value="">
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 14px;">
+                <h3 class="digi-section-title" id="unitFormTitle" style="margin: 0;">Tambah Data Unit Kendaraan & Alat Berat</h3>
+                <button type="button" id="unitCancelBtn" class="btn-digi btn-digi-gray" style="display: none; padding: 5px 14px; font-size: 12px;" onclick="resetUnitForm()">
+                    Batal Edit
+                </button>
+            </div>
             <div class="digi-form-grid-3">
                 <div class="digi-form-group">
                     <label class="digi-form-label">Unit Code (Unik) <span class="digi-required">*</span></label>
-                    <input type="text" name="unit_code" class="digi-input" placeholder="Contoh: UT 208 DA 8191" required>
+                    <input type="text" name="unit_code" id="unit_code" class="digi-input" placeholder="Contoh: UT 208 DA 8191" required>
                 </div>
                 <div class="digi-form-group">
                     <label class="digi-form-label">Nomor Polisi <span class="digi-required">*</span></label>
-                    <input type="text" name="police_no" class="digi-input" placeholder="Contoh: DA 8191 UT" required>
+                    <input type="text" name="police_no" id="unit_police_no" class="digi-input" placeholder="Contoh: DA 8191 UT" required>
                 </div>
                 <div class="digi-form-group">
                     <label class="digi-form-label">Model / Tipe Unit <span class="digi-required">*</span></label>
-                    <input type="text" name="model" class="digi-input" placeholder="Contoh: B/U FMC JB HDX TRITON" required>
+                    <input type="text" name="model" id="unit_model" class="digi-input" placeholder="Contoh: B/U FMC JB HDX TRITON" required>
                 </div>
             </div>
             <div class="digi-form-grid-3" style="margin-bottom: 0; align-items: flex-end;">
                 <div class="digi-form-group">
                     <label class="digi-form-label">Tipe Meter (KM / HM)</label>
-                    <select name="meter_type" class="digi-select">
+                    <select name="meter_type" id="unit_meter_type" class="digi-select">
                         <option value="km">KM (Light Vehicle / Bus / Truck)</option>
                         <option value="hm">HM (Heavy Equipment / Alat Berat)</option>
                     </select>
                 </div>
                 <div class="digi-form-group">
                     <label class="digi-form-label">Kapasitas Tangki (Liter)</label>
-                    <input type="number" name="tank_capacity" class="digi-input" value="80">
+                    <input type="number" name="tank_capacity" id="unit_tank_capacity" class="digi-input" value="80">
                 </div>
                 <div>
-                    <button type="submit" class="btn-digi btn-digi-blue">Simpan Unit</button>
+                    <button type="submit" id="unitSubmitBtn" class="btn-digi btn-digi-blue">Simpan Unit</button>
                 </div>
             </div>
         </form>
 
-        <table class="digi-table">
-            <thead>
-                <tr>
-                    <th>Unit Code</th>
-                    <th>Nomor Polisi</th>
-                    <th>Tipe / Model Unit</th>
-                    <th>Meter</th>
-                    <th>Kapasitas Tangki</th>
-                    <th>Standar Aktif</th>
-                    <th>Status</th>
-                </tr>
-            </thead>
-            <tbody>
-                @foreach($vehicles as $v)
+        <div style="overflow-x: auto;">
+            <table class="digi-table">
+                <thead>
                     <tr>
-                        <td style="font-weight: 700; color: #0284c7;">{{ $v->unit_code }}</td>
-                        <td>{{ $v->police_no }}</td>
-                        <td>{{ $v->model ?? $v->unit_type }}</td>
-                        <td>{{ strtoupper($v->meter_type) }}</td>
-                        <td>{{ (float)($v->tank_capacity ?? 80) }} L</td>
-                        <td>
-                            @if($v->activeFuelStandard)
-                                <strong>{{ (float)$v->activeFuelStandard->standard_value }}</strong> {{ $v->activeFuelStandard->standard_type === 'liter_per_hour' ? 'L/Jam' : 'Km/L' }}
-                            @else
-                                -
-                            @endif
-                        </td>
-                        <td><span class="digi-badge {{ $v->is_active ? 'digi-badge-green' : 'digi-badge-red' }}">{{ $v->is_active ? 'Aktif' : 'Nonaktif' }}</span></td>
+                        <th>No</th>
+                        <th>Unit Code</th>
+                        <th>Nomor Polisi</th>
+                        <th>Tipe / Model Unit</th>
+                        <th>Meter</th>
+                        <th>Kapasitas Tangki</th>
+                        <th>Standar Aktif</th>
+                        <th>Status</th>
+                        <th>Aksi</th>
                     </tr>
-                @endforeach
-            </tbody>
-        </table>
+                </thead>
+                <tbody>
+                    @foreach($vehicles as $idx => $v)
+                        <tr>
+                            <td>{{ $idx + 1 }}</td>
+                            <td style="font-weight: 700; color: #0284c7;">{{ $v->unit_code }}</td>
+                            <td>{{ $v->police_no }}</td>
+                            <td>{{ $v->model ?? $v->unit_type }}</td>
+                            <td>{{ strtoupper($v->meter_type) }}</td>
+                            <td>{{ (float)($v->tank_capacity ?? 80) }} L</td>
+                            <td>
+                                @if($v->activeFuelStandard)
+                                    <strong>{{ (float)$v->activeFuelStandard->standard_value }}</strong> {{ $v->activeFuelStandard->standard_type === 'liter_per_hour' ? 'L/Jam' : 'Km/L' }}
+                                @else
+                                    -
+                                @endif
+                            </td>
+                            <td>
+                                <span class="digi-badge {{ $v->is_active ? 'digi-badge-green' : 'digi-badge-red' }}">
+                                    {{ $v->is_active ? 'Aktif' : 'Nonaktif' }}
+                                </span>
+                            </td>
+                            <td>
+                                <div style="display: flex; gap: 6px; align-items: center;">
+                                    <button type="button" class="btn-digi btn-digi-yellow" style="padding: 5px 12px; font-size: 12px;"
+                                        onclick='editUnit(@json($v))'>
+                                        Edit
+                                    </button>
+                                    <button type="button" class="btn-digi {{ $v->is_active ? 'btn-digi-red' : 'btn-digi-green' }}" style="padding: 5px 12px; font-size: 12px;"
+                                        onclick="openToggleModal('unit', {{ $v->id }}, 'units', '{{ addslashes($v->unit_code) }}', {{ $v->is_active ? 'true' : 'false' }})">
+                                        {{ $v->is_active ? 'Nonaktifkan' : 'Aktifkan' }}
+                                    </button>
+                                </div>
+                            </td>
+                        </tr>
+                    @endforeach
+                </tbody>
+            </table>
+        </div>
     @endif
 
-    <!-- TAB 2: EMPLOYEES (DIGISIM READY) -->
+    <!-- ============================================================ -->
+    <!-- TAB 2: EMPLOYEES (DIGISIM READY)                             -->
+    <!-- ============================================================ -->
     @if($tab === 'employees')
-        <form action="{{ route('admin.master.employee') }}" method="POST" class="digi-form-box">
+        <form id="employeeForm" action="{{ route('admin.master.employee') }}" method="POST" class="digi-form-box">
             @csrf
-            <h3 class="digi-section-title">Tambah / Perbarui Data Employee (Lokal & Kesiapan Integrasi DIGISIM)</h3>
+            <input type="hidden" name="id" id="emp_id" value="">
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 14px;">
+                <h3 class="digi-section-title" id="empFormTitle" style="margin: 0;">Tambah Data Employee (Lokal & Integrasi DIGISIM)</h3>
+                <button type="button" id="empCancelBtn" class="btn-digi btn-digi-gray" style="display: none; padding: 5px 14px; font-size: 12px;" onclick="resetEmployeeForm()">
+                    Batal Edit
+                </button>
+            </div>
             <div class="digi-form-grid-3">
                 <div class="digi-form-group">
                     <label class="digi-form-label">NRP / Nomor Karyawan <span class="digi-required">*</span></label>
-                    <input type="text" name="nrp" class="digi-input" placeholder="Contoh: 80124024" required>
+                    <input type="text" name="nrp" id="emp_nrp" class="digi-input" placeholder="Contoh: 80124024" required>
                 </div>
                 <div class="digi-form-group">
                     <label class="digi-form-label">Nama Lengkap <span class="digi-required">*</span></label>
-                    <input type="text" name="name" class="digi-input" placeholder="Nama Karyawan" required>
+                    <input type="text" name="name" id="emp_name" class="digi-input" placeholder="Nama Karyawan" required>
                 </div>
                 <div class="digi-form-group">
                     <label class="digi-form-label">Jabatan & Departemen</label>
-                    <input type="text" name="position" class="digi-input" placeholder="Driver / Operator">
+                    <input type="text" name="position" id="emp_position" class="digi-input" placeholder="Driver / Operator">
                 </div>
             </div>
             <div class="digi-form-grid-3" style="margin-bottom: 0; align-items: flex-end;">
                 <div class="digi-form-group">
                     <label class="digi-form-label">Perusahaan Asal</label>
-                    <input type="text" name="company" class="digi-input" value="PT UNITED TRACTORS Tbk - SITE SATUI" required>
+                    <input type="text" name="company" id="emp_company" class="digi-input" value="PT UNITED TRACTORS Tbk - SITE SATUI" required>
                 </div>
                 <div class="digi-form-group">
                     <label class="digi-form-label">Sumber Data & Ref Eksternal (DIGISIM)</label>
                     <div style="display:flex; gap:6px;">
-                        <select name="source" class="digi-select" style="width:120px;">
+                        <select name="source" id="emp_source" class="digi-select" style="width:120px;">
                             <option value="local">Lokal</option>
                             <option value="digisim">DIGISIM</option>
                         </select>
-                        <input type="text" name="external_reference" class="digi-input" placeholder="Ref ID simpers">
+                        <input type="text" name="external_reference" id="emp_ext_ref" class="digi-input" placeholder="Ref ID simpers">
                     </div>
                 </div>
                 <div>
-                    <button type="submit" class="btn-digi btn-digi-blue">Simpan Employee</button>
+                    <button type="submit" id="empSubmitBtn" class="btn-digi btn-digi-blue">Simpan Employee</button>
                 </div>
             </div>
         </form>
 
-        <table class="digi-table">
-            <thead>
-                <tr>
-                    <th>NRP</th>
-                    <th>Nama Employee</th>
-                    <th>Jabatan</th>
-                    <th>Perusahaan</th>
-                    <th>Sumber Integrasi</th>
-                    <th>Referensi Eksternal</th>
-                    <th>Status</th>
-                </tr>
-            </thead>
-            <tbody>
-                @foreach($employees as $emp)
+        <div style="overflow-x: auto;">
+            <table class="digi-table">
+                <thead>
                     <tr>
-                        <td style="font-weight:700;">{{ $emp->nrp }}</td>
-                        <td>{{ $emp->name }}</td>
-                        <td>{{ $emp->position }}</td>
-                        <td>{{ $emp->company }}</td>
-                        <td><span class="digi-badge digi-badge-blue">{{ strtoupper($emp->source) }}</span></td>
-                        <td>{{ $emp->external_reference ?? '-' }}</td>
-                        <td><span class="digi-badge {{ $emp->is_active ? 'digi-badge-green' : 'digi-badge-red' }}">{{ $emp->is_active ? 'Aktif' : 'Nonaktif' }}</span></td>
+                        <th>No</th>
+                        <th>NRP</th>
+                        <th>Nama Employee</th>
+                        <th>Jabatan</th>
+                        <th>Perusahaan</th>
+                        <th>Sumber Integrasi</th>
+                        <th>Referensi Eksternal</th>
+                        <th>Status</th>
+                        <th>Aksi</th>
                     </tr>
-                @endforeach
-            </tbody>
-        </table>
+                </thead>
+                <tbody>
+                    @foreach($employees as $idx => $emp)
+                        <tr>
+                            <td>{{ $idx + 1 }}</td>
+                            <td style="font-weight:700; color: #0284c7;">{{ $emp->nrp }}</td>
+                            <td style="font-weight:600;">{{ $emp->name }}</td>
+                            <td>{{ $emp->position }}</td>
+                            <td>{{ $emp->company }}</td>
+                            <td><span class="digi-badge digi-badge-blue">{{ strtoupper($emp->source) }}</span></td>
+                            <td>{{ $emp->external_reference ?? '-' }}</td>
+                            <td>
+                                <span class="digi-badge {{ $emp->is_active ? 'digi-badge-green' : 'digi-badge-red' }}">
+                                    {{ $emp->is_active ? 'Aktif' : 'Nonaktif' }}
+                                </span>
+                            </td>
+                            <td>
+                                <div style="display: flex; gap: 6px; align-items: center;">
+                                    <button type="button" class="btn-digi btn-digi-yellow" style="padding: 5px 12px; font-size: 12px;"
+                                        onclick='editEmployee(@json($emp))'>
+                                        Edit
+                                    </button>
+                                    <button type="button" class="btn-digi {{ $emp->is_active ? 'btn-digi-red' : 'btn-digi-green' }}" style="padding: 5px 12px; font-size: 12px;"
+                                        onclick="openToggleModal('employee', {{ $emp->id }}, 'employees', '{{ addslashes($emp->name) }}', {{ $emp->is_active ? 'true' : 'false' }})">
+                                        {{ $emp->is_active ? 'Nonaktifkan' : 'Aktifkan' }}
+                                    </button>
+                                </div>
+                            </td>
+                        </tr>
+                    @endforeach
+                </tbody>
+            </table>
+        </div>
     @endif
 
-    <!-- TAB 3: AREAS -->
+    <!-- ============================================================ -->
+    <!-- TAB 3: AREAS                                                 -->
+    <!-- ============================================================ -->
     @if($tab === 'areas')
-        <form action="{{ route('admin.master.area') }}" method="POST" class="digi-form-box">
+        <form id="areaForm" action="{{ route('admin.master.area') }}" method="POST" class="digi-form-box">
             @csrf
-            <h3 class="digi-section-title">Tambah / Perbarui Area Operasional</h3>
+            <input type="hidden" name="id" id="area_id" value="">
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 14px;">
+                <h3 class="digi-section-title" id="areaFormTitle" style="margin: 0;">Tambah Area Operasional</h3>
+                <button type="button" id="areaCancelBtn" class="btn-digi btn-digi-gray" style="display: none; padding: 5px 14px; font-size: 12px;" onclick="resetAreaForm()">
+                    Batal Edit
+                </button>
+            </div>
             <div class="digi-form-grid-3" style="margin-bottom: 0; align-items: flex-end;">
                 <div class="digi-form-group">
                     <label class="digi-form-label">Kode Area</label>
-                    <input type="text" name="code" class="digi-input" placeholder="Contoh: SDU-01">
+                    <input type="text" name="code" id="area_code" class="digi-input" placeholder="Contoh: SDU-01">
                 </div>
                 <div class="digi-form-group">
                     <label class="digi-form-label">Nama Area Operasional <span class="digi-required">*</span></label>
-                    <input type="text" name="name" class="digi-input" placeholder="Contoh: SDU (Sungai Danau)" required>
+                    <input type="text" name="name" id="area_name" class="digi-input" placeholder="Contoh: SDU (Sungai Danau)" required>
                 </div>
                 <div>
-                    <button type="submit" class="btn-digi btn-digi-blue">Simpan Area</button>
+                    <button type="submit" id="areaSubmitBtn" class="btn-digi btn-digi-blue">Simpan Area</button>
                 </div>
             </div>
         </form>
 
-        <table class="digi-table">
-            <thead>
-                <tr>
-                    <th>Kode Area</th>
-                    <th>Nama Area Operasional</th>
-                    <th>Status</th>
-                </tr>
-            </thead>
-            <tbody>
-                @foreach($areas as $a)
+        <div style="overflow-x: auto;">
+            <table class="digi-table">
+                <thead>
                     <tr>
-                        <td style="font-weight:700;">{{ $a->code ?? 'AREA-' . $a->id }}</td>
-                        <td>{{ $a->name }}</td>
-                        <td><span class="digi-badge digi-badge-green">{{ $a->is_active ? 'Aktif' : 'Nonaktif' }}</span></td>
+                        <th>No</th>
+                        <th>Kode Area</th>
+                        <th>Nama Area Operasional</th>
+                        <th>Status</th>
+                        <th>Aksi</th>
                     </tr>
-                @endforeach
-            </tbody>
-        </table>
+                </thead>
+                <tbody>
+                    @foreach($areas as $idx => $a)
+                        <tr>
+                            <td>{{ $idx + 1 }}</td>
+                            <td style="font-weight:700; color: #0284c7;">{{ $a->code ?? 'AREA-' . $a->id }}</td>
+                            <td style="font-weight:600;">{{ $a->name }}</td>
+                            <td>
+                                <span class="digi-badge {{ $a->is_active ? 'digi-badge-green' : 'digi-badge-red' }}">
+                                    {{ $a->is_active ? 'Aktif' : 'Nonaktif' }}
+                                </span>
+                            </td>
+                            <td>
+                                <div style="display: flex; gap: 6px; align-items: center;">
+                                    <button type="button" class="btn-digi btn-digi-yellow" style="padding: 5px 12px; font-size: 12px;"
+                                        onclick='editArea(@json($a))'>
+                                        Edit
+                                    </button>
+                                    <button type="button" class="btn-digi {{ $a->is_active ? 'btn-digi-red' : 'btn-digi-green' }}" style="padding: 5px 12px; font-size: 12px;"
+                                        onclick="openToggleModal('area', {{ $a->id }}, 'areas', '{{ addslashes($a->name) }}', {{ $a->is_active ? 'true' : 'false' }})">
+                                        {{ $a->is_active ? 'Nonaktifkan' : 'Aktifkan' }}
+                                    </button>
+                                </div>
+                            </td>
+                        </tr>
+                    @endforeach
+                </tbody>
+            </table>
+        </div>
     @endif
 
-    <!-- TAB 4: VENDORS -->
+    <!-- ============================================================ -->
+    <!-- TAB 4: VENDORS                                               -->
+    <!-- ============================================================ -->
     @if($tab === 'vendors')
-        <form action="{{ route('admin.master.vendor') }}" method="POST" class="digi-form-box">
+        <form id="vendorForm" action="{{ route('admin.master.vendor') }}" method="POST" class="digi-form-box">
             @csrf
-            <h3 class="digi-section-title">Tambah / Perbarui Perusahaan Vendor BBM</h3>
+            <input type="hidden" name="id" id="vendor_id" value="">
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 14px;">
+                <h3 class="digi-section-title" id="vendorFormTitle" style="margin: 0;">Tambah Perusahaan Vendor BBM</h3>
+                <button type="button" id="vendorCancelBtn" class="btn-digi btn-digi-gray" style="display: none; padding: 5px 14px; font-size: 12px;" onclick="resetVendorForm()">
+                    Batal Edit
+                </button>
+            </div>
             <div class="digi-form-grid-3" style="margin-bottom: 0; align-items: flex-end;">
                 <div class="digi-form-group">
-                    <label class="digi-form-label">Nama Perusahaan Vendor <span class="digi-required">*</span></label>
-                    <input type="text" name="name" class="digi-input" placeholder="Contoh: Cv. Sudan Mandiri" required>
+                    <label class="digi-form-label">Kode & Nama Perusahaan Vendor <span class="digi-required">*</span></label>
+                    <div style="display: flex; gap: 6px;">
+                        <input type="text" name="code" id="vendor_code" class="digi-input" placeholder="Kode" style="width: 105px;">
+                        <input type="text" name="name" id="vendor_name" class="digi-input" placeholder="Contoh: Cv. Sudan Mandiri" required>
+                    </div>
                 </div>
                 <div class="digi-form-group">
                     <label class="digi-form-label">Kontak Petugas & No. Telepon</label>
                     <div style="display:flex; gap:6px;">
-                        <input type="text" name="contact_person" class="digi-input" placeholder="Nama Kontak">
-                        <input type="text" name="phone" class="digi-input" placeholder="0812xxxx">
+                        <input type="text" name="contact_person" id="vendor_contact" class="digi-input" placeholder="Nama Kontak">
+                        <input type="text" name="phone" id="vendor_phone" class="digi-input" placeholder="0812xxxx">
                     </div>
                 </div>
                 <div>
-                    <button type="submit" class="btn-digi btn-digi-blue">Simpan Vendor</button>
+                    <button type="submit" id="vendorSubmitBtn" class="btn-digi btn-digi-blue">Simpan Vendor</button>
                 </div>
             </div>
         </form>
 
-        <table class="digi-table">
-            <thead>
-                <tr>
-                    <th>Kode Vendor</th>
-                    <th>Nama Perusahaan Vendor</th>
-                    <th>Kontak Petugas</th>
-                    <th>Telepon</th>
-                    <th>Status</th>
-                </tr>
-            </thead>
-            <tbody>
-                @foreach($vendors as $ven)
+        <div style="overflow-x: auto;">
+            <table class="digi-table">
+                <thead>
                     <tr>
-                        <td style="font-weight:700;">{{ $ven->code ?? 'VND-0' . $ven->id }}</td>
-                        <td>{{ $ven->name }}</td>
-                        <td>{{ $ven->contact_person ?? 'Petugas Operasional' }}</td>
-                        <td>{{ $ven->phone ?? '-' }}</td>
-                        <td><span class="digi-badge digi-badge-green">{{ $ven->is_active ? 'Aktif' : 'Nonaktif' }}</span></td>
+                        <th>No</th>
+                        <th>Kode Vendor</th>
+                        <th>Nama Perusahaan Vendor</th>
+                        <th>Kontak Petugas</th>
+                        <th>Telepon</th>
+                        <th>Status</th>
+                        <th>Aksi</th>
                     </tr>
-                @endforeach
-            </tbody>
-        </table>
+                </thead>
+                <tbody>
+                    @foreach($vendors as $idx => $ven)
+                        <tr>
+                            <td>{{ $idx + 1 }}</td>
+                            <td style="font-weight:700; color: #0284c7;">{{ $ven->code ?? 'VND-0' . $ven->id }}</td>
+                            <td style="font-weight:600;">{{ $ven->name }}</td>
+                            <td>{{ $ven->contact_person ?? 'Petugas Operasional' }}</td>
+                            <td>{{ $ven->phone ?? '-' }}</td>
+                            <td>
+                                <span class="digi-badge {{ $ven->is_active ? 'digi-badge-green' : 'digi-badge-red' }}">
+                                    {{ $ven->is_active ? 'Aktif' : 'Nonaktif' }}
+                                </span>
+                            </td>
+                            <td>
+                                <div style="display: flex; gap: 6px; align-items: center;">
+                                    <button type="button" class="btn-digi btn-digi-yellow" style="padding: 5px 12px; font-size: 12px;"
+                                        onclick='editVendor(@json($ven))'>
+                                        Edit
+                                    </button>
+                                    <button type="button" class="btn-digi {{ $ven->is_active ? 'btn-digi-red' : 'btn-digi-green' }}" style="padding: 5px 12px; font-size: 12px;"
+                                        onclick="openToggleModal('vendor', {{ $ven->id }}, 'vendors', '{{ addslashes($ven->name) }}', {{ $ven->is_active ? 'true' : 'false' }})">
+                                        {{ $ven->is_active ? 'Nonaktifkan' : 'Aktifkan' }}
+                                    </button>
+                                </div>
+                            </td>
+                        </tr>
+                    @endforeach
+                </tbody>
+            </table>
+        </div>
     @endif
 
-    <!-- TAB 5: AREA APPROVERS -->
+    <!-- ============================================================ -->
+    <!-- TAB 5: AREA APPROVERS                                        -->
+    <!-- ============================================================ -->
     @if($tab === 'approvers')
-        <form action="{{ route('admin.master.approver') }}" method="POST" class="digi-form-box">
+        <form id="approverForm" action="{{ route('admin.master.approver') }}" method="POST" class="digi-form-box">
             @csrf
-            <h3 class="digi-section-title">Penugasan Approver & Petugas Berdasarkan Area (Dependent Dropdown)</h3>
+            <input type="hidden" name="id" id="aa_id" value="">
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 14px;">
+                <h3 class="digi-section-title" id="aaFormTitle" style="margin: 0;">Penugasan Approver & Petugas Berdasarkan Area</h3>
+                <button type="button" id="aaCancelBtn" class="btn-digi btn-digi-gray" style="display: none; padding: 5px 14px; font-size: 12px;" onclick="resetApproverForm()">
+                    Batal Edit
+                </button>
+            </div>
             <div class="digi-form-grid-3" style="margin-bottom: 0; align-items: flex-end;">
                 <div class="digi-form-group">
                     <label class="digi-form-label">Area Operasional <span class="digi-required">*</span></label>
-                    <select name="area_id" class="digi-select" required>
+                    <select name="area_id" id="aa_area_id" class="digi-select" required>
                         @foreach($areas as $a)
                             <option value="{{ $a->id }}">{{ $a->name }}</option>
                         @endforeach
@@ -278,12 +406,12 @@
                 <div class="digi-form-group">
                     <label class="digi-form-label">Pengguna & Peran Tanggung Jawab <span class="digi-required">*</span></label>
                     <div style="display:flex; gap:6px;">
-                        <select name="user_id" class="digi-select" required>
+                        <select name="user_id" id="aa_user_id" class="digi-select" required>
                             @foreach($users as $u)
                                 <option value="{{ $u->id }}">{{ $u->name }} ({{ $u->jabatan }})</option>
                             @endforeach
                         </select>
-                        <select name="role_type" class="digi-select" style="width: 140px;" required>
+                        <select name="role_type" id="aa_role_type" class="digi-select" style="width: 145px;" required>
                             <option value="spv">SPV</option>
                             <option value="manager">Dept Head/Mgr</option>
                             <option value="vendor">Vendor</option>
@@ -292,44 +420,73 @@
                     </div>
                 </div>
                 <div>
-                    <button type="submit" class="btn-digi btn-digi-blue">Simpan Penugasan</button>
+                    <button type="submit" id="aaSubmitBtn" class="btn-digi btn-digi-blue">Simpan Penugasan</button>
                 </div>
             </div>
         </form>
 
-        <table class="digi-table">
-            <thead>
-                <tr>
-                    <th>Area Operasional</th>
-                    <th>Nama Petugas / Approver</th>
-                    <th>Tanggung Jawab</th>
-                    <th>Mulai Penugasan</th>
-                    <th>Status</th>
-                </tr>
-            </thead>
-            <tbody>
-                @foreach($areaApprovers as $aa)
+        <div style="overflow-x: auto;">
+            <table class="digi-table">
+                <thead>
                     <tr>
-                        <td style="font-weight:700;">{{ $aa->area?->name }}</td>
-                        <td>{{ $aa->user?->name }} ({{ $aa->user?->username }})</td>
-                        <td><span class="digi-badge digi-badge-blue">{{ strtoupper($aa->role_type) }}</span></td>
-                        <td>{{ $aa->start_date?->format('d/m/Y') ?? '2025-01-01' }}</td>
-                        <td><span class="digi-badge digi-badge-green">Aktif</span></td>
+                        <th>No</th>
+                        <th>Area Operasional</th>
+                        <th>Nama Petugas / Approver</th>
+                        <th>Tanggung Jawab</th>
+                        <th>Mulai Penugasan</th>
+                        <th>Status</th>
+                        <th>Aksi</th>
                     </tr>
-                @endforeach
-            </tbody>
-        </table>
+                </thead>
+                <tbody>
+                    @foreach($areaApprovers as $idx => $aa)
+                        <tr>
+                            <td>{{ $idx + 1 }}</td>
+                            <td style="font-weight:700; color: #0284c7;">{{ $aa->area?->name }}</td>
+                            <td style="font-weight:600;">{{ $aa->user?->name }} ({{ $aa->user?->username }})</td>
+                            <td><span class="digi-badge digi-badge-blue">{{ strtoupper($aa->role_type) }}</span></td>
+                            <td>{{ $aa->start_date?->format('d/m/Y') ?? '01/01/2025' }}</td>
+                            <td>
+                                <span class="digi-badge {{ $aa->is_active ? 'digi-badge-green' : 'digi-badge-red' }}">
+                                    {{ $aa->is_active ? 'Aktif' : 'Nonaktif' }}
+                                </span>
+                            </td>
+                            <td>
+                                <div style="display: flex; gap: 6px; align-items: center;">
+                                    <button type="button" class="btn-digi btn-digi-yellow" style="padding: 5px 12px; font-size: 12px;"
+                                        onclick='editApprover(@json($aa))'>
+                                        Edit
+                                    </button>
+                                    <button type="button" class="btn-digi {{ $aa->is_active ? 'btn-digi-red' : 'btn-digi-green' }}" style="padding: 5px 12px; font-size: 12px;"
+                                        onclick="openToggleModal('approver', {{ $aa->id }}, 'approvers', '{{ addslashes(($aa->area?->name ?? "") . " - " . ($aa->user?->name ?? "")) }}', {{ $aa->is_active ? 'true' : 'false' }})">
+                                        {{ $aa->is_active ? 'Nonaktifkan' : 'Aktifkan' }}
+                                    </button>
+                                </div>
+                            </td>
+                        </tr>
+                    @endforeach
+                </tbody>
+            </table>
+        </div>
     @endif
 
-    <!-- TAB 6: FUEL STANDARDS -->
+    <!-- ============================================================ -->
+    <!-- TAB 6: FUEL STANDARDS                                        -->
+    <!-- ============================================================ -->
     @if($tab === 'standards')
-        <form action="{{ route('admin.master.standard') }}" method="POST" class="digi-form-box">
+        <form id="standardForm" action="{{ route('admin.master.standard') }}" method="POST" class="digi-form-box">
             @csrf
-            <h3 class="digi-section-title">Tambah Standar Konsumsi BBM Baru (Menyimpan Riwayat Historis)</h3>
+            <input type="hidden" name="id" id="std_id" value="">
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 14px;">
+                <h3 class="digi-section-title" id="stdFormTitle" style="margin: 0;">Tambah Standar Konsumsi BBM (Menyimpan Riwayat Historis)</h3>
+                <button type="button" id="stdCancelBtn" class="btn-digi btn-digi-gray" style="display: none; padding: 5px 14px; font-size: 12px;" onclick="resetStandardForm()">
+                    Batal Edit
+                </button>
+            </div>
             <div class="digi-form-grid-3">
                 <div class="digi-form-group">
                     <label class="digi-form-label">Pilih Unit <span class="digi-required">*</span></label>
-                    <select name="vehicle_id" class="digi-select" required>
+                    <select name="vehicle_id" id="std_vehicle_id" class="digi-select" required>
                         @foreach($vehicles as $v)
                             <option value="{{ $v->id }}">{{ $v->unit_code }} ({{ $v->model }})</option>
                         @endforeach
@@ -337,7 +494,7 @@
                 </div>
                 <div class="digi-form-group">
                     <label class="digi-form-label">Jenis Standar <span class="digi-required">*</span></label>
-                    <select name="standard_type" class="digi-select" required>
+                    <select name="standard_type" id="std_type" class="digi-select" required>
                         <option value="km_per_liter">KM per Liter (Kendaraan LV / Bus)</option>
                         <option value="liter_per_hour">Liter per Jam (Alat Berat / HM)</option>
                     </select>
@@ -345,119 +502,177 @@
                 <div class="digi-form-group">
                     <label class="digi-form-label">Nilai Standar & Toleransi (%) <span class="digi-required">*</span></label>
                     <div style="display:flex; gap:6px;">
-                        <input type="number" step="0.01" name="standard_value" class="digi-input" placeholder="Contoh: 8.0" required>
-                        <input type="number" step="0.1" name="tolerance_percentage" class="digi-input" value="5.0" style="width:90px;" required>
+                        <input type="number" step="0.01" name="standard_value" id="std_value" class="digi-input" placeholder="Contoh: 8.0" required>
+                        <input type="number" step="0.1" name="tolerance_percentage" id="std_tolerance" class="digi-input" value="5.0" style="width:90px;" required>
                     </div>
                 </div>
             </div>
             <div class="digi-form-grid-2" style="margin-bottom: 0; align-items: flex-end;">
                 <div class="digi-form-group">
                     <label class="digi-form-label">Tanggal Mulai Berlaku <span class="digi-required">*</span></label>
-                    <input type="date" name="effective_start" class="digi-input" value="{{ now()->toDateString() }}" required>
+                    <input type="date" name="effective_start" id="std_start" class="digi-input" value="{{ now()->toDateString() }}" required>
                 </div>
                 <div>
-                    <button type="submit" class="btn-digi btn-digi-blue">Simpan Standar BBM</button>
+                    <button type="submit" id="stdSubmitBtn" class="btn-digi btn-digi-blue">Simpan Standar BBM</button>
                 </div>
             </div>
         </form>
 
-        <table class="digi-table">
-            <thead>
-                <tr>
-                    <th>Unit Code</th>
-                    <th>Jenis Standar</th>
-                    <th>Nilai Target</th>
-                    <th>Toleransi</th>
-                    <th>Periode Berlaku</th>
-                    <th>Status</th>
-                </tr>
-            </thead>
-            <tbody>
-                @foreach($fuelStandards as $std)
+        <div style="overflow-x: auto;">
+            <table class="digi-table">
+                <thead>
                     <tr>
-                        <td style="font-weight:700;">{{ $std->vehicle?->unit_code }}</td>
-                        <td>{{ $std->standard_type === 'liter_per_hour' ? 'Liter per Jam (HM)' : 'KM per Liter (KM)' }}</td>
-                        <td><strong>{{ (float)$std->standard_value }}</strong> {{ $std->standard_type === 'liter_per_hour' ? 'L/Jam' : 'Km/L' }}</td>
-                        <td>{{ (float)$std->tolerance_percentage }}%</td>
-                        <td>{{ $std->effective_start?->format('d/m/Y') }} — {{ $std->effective_end ? $std->effective_end->format('d/m/Y') : 'Sekarang' }}</td>
-                        <td><span class="digi-badge {{ $std->is_active ? 'digi-badge-green' : 'digi-badge-gray' }}">{{ $std->is_active ? 'Aktif' : 'Historis' }}</span></td>
+                        <th>No</th>
+                        <th>Unit Code</th>
+                        <th>Jenis Standar</th>
+                        <th>Nilai Target</th>
+                        <th>Toleransi</th>
+                        <th>Periode Berlaku</th>
+                        <th>Status</th>
+                        <th>Aksi</th>
                     </tr>
-                @endforeach
-            </tbody>
-        </table>
+                </thead>
+                <tbody>
+                    @foreach($fuelStandards as $idx => $std)
+                        <tr>
+                            <td>{{ $idx + 1 }}</td>
+                            <td style="font-weight:700; color: #0284c7;">{{ $std->vehicle?->unit_code }}</td>
+                            <td>{{ $std->standard_type === 'liter_per_hour' ? 'Liter per Jam (HM)' : 'KM per Liter (KM)' }}</td>
+                            <td><strong>{{ (float)$std->standard_value }}</strong> {{ $std->standard_type === 'liter_per_hour' ? 'L/Jam' : 'Km/L' }}</td>
+                            <td>{{ (float)$std->tolerance_percentage }}%</td>
+                            <td>{{ $std->effective_start?->format('d/m/Y') }} — {{ $std->effective_end ? $std->effective_end->format('d/m/Y') : 'Sekarang' }}</td>
+                            <td>
+                                <span class="digi-badge {{ $std->is_active ? 'digi-badge-green' : 'digi-badge-gray' }}">
+                                    {{ $std->is_active ? 'Aktif' : 'Nonaktif / Historis' }}
+                                </span>
+                            </td>
+                            <td>
+                                <div style="display: flex; gap: 6px; align-items: center;">
+                                    <button type="button" class="btn-digi btn-digi-yellow" style="padding: 5px 12px; font-size: 12px;"
+                                        onclick='editStandard(@json($std), "{{ $std->effective_start?->format("Y-m-d") }}")'>
+                                        Edit
+                                    </button>
+                                    <button type="button" class="btn-digi {{ $std->is_active ? 'btn-digi-red' : 'btn-digi-green' }}" style="padding: 5px 12px; font-size: 12px;"
+                                        onclick="openToggleModal('standard', {{ $std->id }}, 'standards', '{{ addslashes(($std->vehicle?->unit_code ?? "") . " (" . (float)$std->standard_value . ")") }}', {{ $std->is_active ? 'true' : 'false' }})">
+                                        {{ $std->is_active ? 'Nonaktifkan' : 'Aktifkan' }}
+                                    </button>
+                                </div>
+                            </td>
+                        </tr>
+                    @endforeach
+                </tbody>
+            </table>
+        </div>
     @endif
 
-    <!-- TAB 7: FUEL PRICES -->
+    <!-- ============================================================ -->
+    <!-- TAB 7: FUEL PRICES                                           -->
+    <!-- ============================================================ -->
     @if($tab === 'prices')
-        <form action="{{ route('admin.master.price') }}" method="POST" class="digi-form-box">
+        <form id="priceForm" action="{{ route('admin.master.price') }}" method="POST" class="digi-form-box">
             @csrf
-            <h3 class="digi-section-title">Tambah Riwayat Harga BBM per Liter</h3>
+            <input type="hidden" name="id" id="price_id" value="">
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 14px;">
+                <h3 class="digi-section-title" id="priceFormTitle" style="margin: 0;">Tambah Riwayat Harga BBM per Liter</h3>
+                <button type="button" id="priceCancelBtn" class="btn-digi btn-digi-gray" style="display: none; padding: 5px 14px; font-size: 12px;" onclick="resetPriceForm()">
+                    Batal Edit
+                </button>
+            </div>
             <div class="digi-form-grid-3" style="margin-bottom: 0; align-items: flex-end;">
                 <div class="digi-form-group">
                     <label class="digi-form-label">Jenis BBM & Harga per Liter (IDR) <span class="digi-required">*</span></label>
                     <div style="display:flex; gap:6px;">
-                        <input type="text" name="fuel_type" class="digi-input" value="Solar Industri B35" required>
-                        <input type="number" step="1" name="price_per_liter" class="digi-input" value="27000" required>
+                        <input type="text" name="fuel_type" id="price_fuel_type" class="digi-input" value="Solar Industri B35" required>
+                        <input type="number" step="1" name="price_per_liter" id="price_per_liter" class="digi-input" value="27000" required>
                     </div>
                 </div>
                 <div class="digi-form-group">
                     <label class="digi-form-label">Tanggal Mulai Berlaku <span class="digi-required">*</span></label>
-                    <input type="date" name="effective_start" class="digi-input" value="{{ now()->toDateString() }}" required>
+                    <input type="date" name="effective_start" id="price_start" class="digi-input" value="{{ now()->toDateString() }}" required>
                 </div>
                 <div>
-                    <button type="submit" class="btn-digi btn-digi-blue">Simpan Harga BBM</button>
+                    <button type="submit" id="priceSubmitBtn" class="btn-digi btn-digi-blue">Simpan Harga BBM</button>
                 </div>
             </div>
         </form>
 
-        <table class="digi-table">
-            <thead>
-                <tr>
-                    <th>Jenis BBM</th>
-                    <th>Harga per Liter</th>
-                    <th>Mulai Berlaku</th>
-                    <th>Akhir Berlaku</th>
-                    <th>Status</th>
-                </tr>
-            </thead>
-            <tbody>
-                @foreach($fuelPrices as $fp)
+        <div style="overflow-x: auto;">
+            <table class="digi-table">
+                <thead>
                     <tr>
-                        <td style="font-weight:700;">{{ $fp->fuel_type }}</td>
-                        <td><strong>Rp {{ number_format($fp->price_per_liter, 0, ',', '.') }}</strong> / Liter</td>
-                        <td>{{ $fp->effective_start?->format('d/m/Y') }}</td>
-                        <td>{{ $fp->effective_end ? $fp->effective_end->format('d/m/Y') : 'Sekarang' }}</td>
-                        <td><span class="digi-badge {{ $fp->is_active ? 'digi-badge-green' : 'digi-badge-gray' }}">{{ $fp->is_active ? 'Berlaku Aktif' : 'Historis' }}</span></td>
+                        <th>No</th>
+                        <th>Jenis BBM</th>
+                        <th>Harga per Liter</th>
+                        <th>Mulai Berlaku</th>
+                        <th>Akhir Berlaku</th>
+                        <th>Status</th>
+                        <th>Aksi</th>
                     </tr>
-                @endforeach
-            </tbody>
-        </table>
+                </thead>
+                <tbody>
+                    @foreach($fuelPrices as $idx => $fp)
+                        <tr>
+                            <td>{{ $idx + 1 }}</td>
+                            <td style="font-weight:700; color: #0284c7;">{{ $fp->fuel_type }}</td>
+                            <td><strong>Rp {{ number_format($fp->price_per_liter, 0, ',', '.') }}</strong> / Liter</td>
+                            <td>{{ $fp->effective_start?->format('d/m/Y') }}</td>
+                            <td>{{ $fp->effective_end ? $fp->effective_end->format('d/m/Y') : 'Sekarang' }}</td>
+                            <td>
+                                <span class="digi-badge {{ $fp->is_active ? 'digi-badge-green' : 'digi-badge-gray' }}">
+                                    {{ $fp->is_active ? 'Aktif' : 'Nonaktif / Historis' }}
+                                </span>
+                            </td>
+                            <td>
+                                <div style="display: flex; gap: 6px; align-items: center;">
+                                    <button type="button" class="btn-digi btn-digi-yellow" style="padding: 5px 12px; font-size: 12px;"
+                                        onclick='editPrice(@json($fp), "{{ $fp->effective_start?->format("Y-m-d") }}")'>
+                                        Edit
+                                    </button>
+                                    <button type="button" class="btn-digi {{ $fp->is_active ? 'btn-digi-red' : 'btn-digi-green' }}" style="padding: 5px 12px; font-size: 12px;"
+                                        onclick="openToggleModal('price', {{ $fp->id }}, 'prices', '{{ addslashes($fp->fuel_type . " (Rp " . number_format($fp->price_per_liter, 0, ",", ".") . ")") }}', {{ $fp->is_active ? 'true' : 'false' }})">
+                                        {{ $fp->is_active ? 'Nonaktifkan' : 'Aktifkan' }}
+                                    </button>
+                                </div>
+                            </td>
+                        </tr>
+                    @endforeach
+                </tbody>
+            </table>
+        </div>
     @endif
 
-    <!-- TAB 8: USERS & ROLES -->
+    <!-- ============================================================ -->
+    <!-- TAB 8: USERS & ROLES                                         -->
+    <!-- ============================================================ -->
     @if($tab === 'users')
-        <form action="{{ route('admin.master.user') }}" method="POST" class="digi-form-box">
+        <form id="userForm" action="{{ route('admin.master.user') }}" method="POST" class="digi-form-box">
             @csrf
-            <h3 class="digi-section-title">Tambah / Kelola Akun Pengguna & Role</h3>
+            <input type="hidden" name="id" id="usr_id" value="">
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 14px;">
+                <h3 class="digi-section-title" id="usrFormTitle" style="margin: 0;">Tambah / Kelola Akun Pengguna & Role</h3>
+                <button type="button" id="usrCancelBtn" class="btn-digi btn-digi-gray" style="display: none; padding: 5px 14px; font-size: 12px;" onclick="resetUserForm()">
+                    Batal Edit
+                </button>
+            </div>
             <div class="digi-form-grid-3">
                 <div class="digi-form-group">
                     <label class="digi-form-label">Nama Lengkap & NRP <span class="digi-required">*</span></label>
                     <div style="display:flex; gap:6px;">
-                        <input type="text" name="name" class="digi-input" placeholder="Nama" required>
-                        <input type="text" name="nrp" class="digi-input" placeholder="NRP" style="width:110px;">
+                        <input type="text" name="name" id="usr_name" class="digi-input" placeholder="Nama" required>
+                        <input type="text" name="nrp" id="usr_nrp" class="digi-input" placeholder="NRP" style="width:110px;">
                     </div>
                 </div>
                 <div class="digi-form-group">
                     <label class="digi-form-label">Username & Email <span class="digi-required">*</span></label>
                     <div style="display:flex; gap:6px;">
-                        <input type="text" name="username" class="digi-input" placeholder="Username" required>
-                        <input type="email" name="email" class="digi-input" placeholder="Email" required>
+                        <input type="text" name="username" id="usr_username" class="digi-input" placeholder="Username" required>
+                        <input type="email" name="email" id="usr_email" class="digi-input" placeholder="Email" required>
                     </div>
                 </div>
                 <div class="digi-form-group">
                     <label class="digi-form-label">Role & Jabatan <span class="digi-required">*</span></label>
                     <div style="display:flex; gap:6px;">
-                        <select name="role" class="digi-select" required>
+                        <select name="role" id="usr_role" class="digi-select" required>
                             <option value="driver">Employee / Driver</option>
                             <option value="spv">SPV / Dept Head</option>
                             <option value="depthead">Dept Head / Manager</option>
@@ -465,14 +680,14 @@
                             <option value="fuelman">Fuel Man</option>
                             <option value="admin">Admin</option>
                         </select>
-                        <input type="text" name="jabatan" class="digi-input" placeholder="Jabatan" required>
+                        <input type="text" name="jabatan" id="usr_jabatan" class="digi-input" placeholder="Jabatan" required>
                     </div>
                 </div>
             </div>
             <div class="digi-form-grid-3" style="margin-bottom:0; align-items:flex-end;">
                 <div class="digi-form-group">
                     <label class="digi-form-label">Perusahaan Vendor Terkait (Khusus Role Vendor)</label>
-                    <select name="vendor_id" class="digi-select">
+                    <select name="vendor_id" id="usr_vendor_id" class="digi-select">
                         <option value="">- Internal PT United Tractors -</option>
                         @foreach($vendors as $ven)
                             <option value="{{ $ven->id }}">{{ $ven->name }}</option>
@@ -481,80 +696,458 @@
                 </div>
                 <div class="digi-form-group">
                     <label class="digi-form-label">Password Baru (Default: password123)</label>
-                    <input type="password" name="password" class="digi-input" placeholder="Kosongkan untuk default">
+                    <input type="password" name="password" id="usr_password" class="digi-input" placeholder="Kosongkan jika tidak diubah">
                 </div>
                 <div>
-                    <button type="submit" class="btn-digi btn-digi-blue">Simpan Akun Pengguna</button>
+                    <button type="submit" id="usrSubmitBtn" class="btn-digi btn-digi-blue">Simpan Akun Pengguna</button>
                 </div>
             </div>
         </form>
 
-        <table class="digi-table">
-            <thead>
-                <tr>
-                    <th>Nama Pengguna</th>
-                    <th>Username</th>
-                    <th>NRP</th>
-                    <th>Role Sistem</th>
-                    <th>Jabatan</th>
-                    <th>Vendor Terkait</th>
-                    <th>Status</th>
-                </tr>
-            </thead>
-            <tbody>
-                @foreach($users as $u)
+        <div style="overflow-x: auto;">
+            <table class="digi-table">
+                <thead>
                     <tr>
-                        <td style="font-weight:700;">{{ $u->name }}</td>
-                        <td>{{ $u->username }}</td>
-                        <td>{{ $u->nrp ?? '-' }}</td>
-                        <td><span class="digi-badge digi-badge-blue">{{ strtoupper($u->role) }}</span></td>
-                        <td>{{ $u->jabatan }}</td>
-                        <td>{{ $u->vendor?->name ?? 'Internal UT' }}</td>
-                        <td><span class="digi-badge {{ $u->is_active ? 'digi-badge-green' : 'digi-badge-red' }}">{{ $u->is_active ? 'Aktif' : 'Nonaktif' }}</span></td>
+                        <th>No</th>
+                        <th>Nama Pengguna</th>
+                        <th>Username</th>
+                        <th>NRP</th>
+                        <th>Role Sistem</th>
+                        <th>Jabatan</th>
+                        <th>Vendor Terkait</th>
+                        <th>Status</th>
+                        <th>Aksi</th>
                     </tr>
-                @endforeach
-            </tbody>
-        </table>
+                </thead>
+                <tbody>
+                    @foreach($users as $idx => $u)
+                        <tr>
+                            <td>{{ $idx + 1 }}</td>
+                            <td style="font-weight:700; color: #0284c7;">{{ $u->name }}</td>
+                            <td style="font-weight:600;">{{ $u->username }}</td>
+                            <td>{{ $u->nrp ?? '-' }}</td>
+                            <td><span class="digi-badge digi-badge-blue">{{ strtoupper($u->role) }}</span></td>
+                            <td>{{ $u->jabatan }}</td>
+                            <td>{{ $u->vendor?->name ?? 'Internal UT' }}</td>
+                            <td>
+                                <span class="digi-badge {{ $u->is_active ? 'digi-badge-green' : 'digi-badge-red' }}">
+                                    {{ $u->is_active ? 'Aktif' : 'Nonaktif' }}
+                                </span>
+                            </td>
+                            <td>
+                                <div style="display: flex; gap: 6px; align-items: center;">
+                                    <button type="button" class="btn-digi btn-digi-yellow" style="padding: 5px 12px; font-size: 12px;"
+                                        onclick='editUser(@json($u))'>
+                                        Edit
+                                    </button>
+                                    <button type="button" class="btn-digi {{ $u->is_active ? 'btn-digi-red' : 'btn-digi-green' }}" style="padding: 5px 12px; font-size: 12px;"
+                                        onclick="openToggleModal('user', {{ $u->id }}, 'users', '{{ addslashes($u->name . " (" . $u->username . ")") }}', {{ $u->is_active ? 'true' : 'false' }})">
+                                        {{ $u->is_active ? 'Nonaktifkan' : 'Aktifkan' }}
+                                    </button>
+                                </div>
+                            </td>
+                        </tr>
+                    @endforeach
+                </tbody>
+            </table>
+        </div>
     @endif
 
-    <!-- TAB 9: AUDIT TRAIL -->
+    <!-- ============================================================ -->
+    <!-- TAB 8B: SYSTEM BACKGROUNDS (CRUD BACKGROUND UT)              -->
+    <!-- ============================================================ -->
+    @if($tab === 'backgrounds')
+        <form id="bgForm" action="{{ route('admin.master.background') }}" method="POST" enctype="multipart/form-data" class="digi-form-box">
+            @csrf
+            <input type="hidden" name="id" id="bg_id" value="">
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 14px;">
+                <h3 class="digi-section-title" id="bgFormTitle" style="margin: 0;">Upload / Kelola Gambar Background Sistem Sesuai Ketentuan UT</h3>
+                <button type="button" id="bgCancelBtn" class="btn-digi btn-digi-gray" style="display: none; padding: 5px 14px; font-size: 12px;" onclick="resetBgForm()">
+                    Batal Edit
+                </button>
+            </div>
+            <div style="background: #f0f9ff; border: 1px solid #bae6fd; border-radius: 8px; padding: 10px 14px; margin-bottom: 16px; font-size: 12.5px; color: #0369a1;">
+                <strong>Ketentuan Gambar Background PT United Tractors Tbk:</strong> Gunakan foto area operasional tambang / alat berat resolusi tinggi (rasio landscape 16:9, format <strong>JPG, PNG, atau WEBP</strong>, ukuran maksimal <strong>5 MB</strong>) dengan bagian atas cerah agar navigasi utama tetap terbaca jelas.
+            </div>
+            <div class="digi-form-grid-3">
+                <div class="digi-form-group">
+                    <label class="digi-form-label">Judul / Nama Background <span class="digi-required">*</span></label>
+                    <input type="text" name="title" id="bg_title" class="digi-input" placeholder="Contoh: Dokumentasi Alat Berat Site Satui 2026" required>
+                </div>
+                <div class="digi-form-group">
+                    <label class="digi-form-label">File Gambar Background <span class="digi-required" id="bg_file_req">*</span></label>
+                    <input type="file" name="image" id="bg_image" accept="image/jpeg,image/png,image/webp" class="digi-input" style="padding: 6px;">
+                </div>
+                <div class="digi-form-group">
+                    <label class="digi-form-label">Keterangan / Ketentuan UT</label>
+                    <input type="text" name="notes" id="bg_notes" class="digi-input" placeholder="Catatan tema operasional / periode penggunaan">
+                </div>
+            </div>
+            <div style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 12px;">
+                <label style="display: inline-flex; align-items: center; gap: 8px; font-size: 13px; font-weight: 600; color: #334155; cursor: pointer;">
+                    <input type="checkbox" name="set_active" id="bg_set_active" value="1" checked style="width: 16px; height: 16px;">
+                    <span>Langsung terapkan sebagai Background Aktif di seluruh halaman DigiFuel</span>
+                </label>
+                <button type="submit" id="bgSubmitBtn" class="btn-digi btn-digi-blue">
+                    Simpan & Terapkan Background
+                </button>
+            </div>
+        </form>
+
+        <div style="overflow-x: auto;">
+            <table class="digi-table">
+                <thead>
+                    <tr>
+                        <th>No</th>
+                        <th>Pratinjau Gambar</th>
+                        <th>Judul Background</th>
+                        <th>Keterangan / Ketentuan UT</th>
+                        <th>Waktu Diunggah</th>
+                        <th>Status</th>
+                        <th>Aksi</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @forelse($backgrounds as $idx => $bg)
+                        <tr>
+                            <td>{{ $idx + 1 }}</td>
+                            <td>
+                                <a href="{{ asset($bg->image_path) }}" target="_blank" title="Klik untuk melihat ukuran penuh">
+                                    <img src="{{ asset($bg->image_path) }}" alt="{{ $bg->title }}" style="width: 125px; height: 68px; object-fit: cover; border-radius: 8px; border: 2px solid {{ $bg->is_active ? '#22c55e' : '#cbd5e1' }}; display: block;">
+                                </a>
+                            </td>
+                            <td>
+                                <div style="font-weight: 700; color: #0284c7;">{{ $bg->title }}</div>
+                                <div style="font-size: 11px; color: #64748b;"><code>{{ $bg->image_path }}</code></div>
+                            </td>
+                            <td>{{ $bg->notes ?? '-' }}</td>
+                            <td>
+                                <div>{{ $bg->created_at?->format('d/m/Y H:i') }}</div>
+                                <div style="font-size: 11px; color: #64748b;">Oleh: {{ $bg->uploader?->name ?? 'Admin Sistem' }}</div>
+                            </td>
+                            <td>
+                                @if($bg->is_active)
+                                    <span class="digi-badge digi-badge-green">Sedang Digunakan (Aktif)</span>
+                                @else
+                                    <span class="digi-badge digi-badge-gray">Tersimpan (Nonaktif)</span>
+                                @endif
+                            </td>
+                            <td>
+                                <div style="display: flex; gap: 6px; align-items: center; flex-wrap: wrap;">
+                                    <button type="button" class="btn-digi btn-digi-yellow" style="padding: 5px 12px; font-size: 12px;"
+                                        onclick='editBackground(@json($bg))'>
+                                        Edit
+                                    </button>
+                                    @if(!$bg->is_active)
+                                        <button type="button" class="btn-digi btn-digi-green" style="padding: 5px 12px; font-size: 12px;"
+                                            onclick="openToggleModal('background', {{ $bg->id }}, 'backgrounds', '{{ addslashes($bg->title) }}', false)">
+                                            Gunakan Background Ini
+                                        </button>
+                                    @endif
+                                    @if($bg->image_path !== 'images/mining_bg.jpg')
+                                        <form action="{{ route('admin.master.background.delete', $bg->id) }}" method="POST" style="margin: 0;" onsubmit="return confirm('Apakah Anda yakin ingin menghapus gambar background ini?')">
+                                            @csrf
+                                            <button type="submit" class="btn-digi btn-digi-red" style="padding: 5px 12px; font-size: 12px;">
+                                                Hapus
+                                            </button>
+                                        </form>
+                                    @endif
+                                </div>
+                            </td>
+                        </tr>
+                    @empty
+                        <tr>
+                            <td colspan="7" style="text-align: center; padding: 28px; color: #94a3b8;">
+                                Belum ada data gambar background yang tersimpan.
+                            </td>
+                        </tr>
+                    @endforelse
+                </tbody>
+            </table>
+        </div>
+    @endif
+
+    <!-- ============================================================ -->
+    <!-- TAB 9: AUDIT TRAIL                                           -->
+    <!-- ============================================================ -->
     @if($tab === 'audit')
         <h3 class="digi-section-title">Log Aktivitas & Audit Trail Sistem (100 Aktivitas Terbaru)</h3>
-        <table class="digi-table">
-            <thead>
-                <tr>
-                    <th>Waktu</th>
-                    <th>Pengguna</th>
-                    <th>Aksi</th>
-                    <th>No. Pengajuan</th>
-                    <th>Transisi Status</th>
-                    <th>Keterangan Detail</th>
-                </tr>
-            </thead>
-            <tbody>
-                @forelse($auditLogs as $log)
+        <div style="overflow-x: auto;">
+            <table class="digi-table">
+                <thead>
                     <tr>
-                        <td style="white-space:nowrap;">{{ $log->created_at?->format('d/m/Y H:i:s') }}</td>
-                        <td style="font-weight:600;">{{ $log->user?->name ?? 'Sistem' }}</td>
-                        <td><span class="digi-badge digi-badge-blue">{{ strtoupper($log->action) }}</span></td>
-                        <td>
-                            @if($log->fuelRequest)
-                                <a href="{{ route('approval.show', $log->fuelRequest->id) }}" style="color:#0284c7; font-weight:700;">{{ $log->fuelRequest->request_no }}</a>
-                            @else
-                                -
-                            @endif
-                        </td>
-                        <td>{{ $log->from_status ?? '-' }} → {{ $log->to_status ?? '-' }}</td>
-                        <td>{{ $log->note }}</td>
+                        <th>No</th>
+                        <th>Waktu</th>
+                        <th>Pengguna</th>
+                        <th>Aksi</th>
+                        <th>No. Pengajuan</th>
+                        <th>Transisi Status</th>
+                        <th>Keterangan Detail</th>
                     </tr>
-                @empty
-                    <tr>
-                        <td colspan="6" style="text-align:center; padding:24px; color:#94a3b8;">Belum ada catatan audit trail.</td>
-                    </tr>
-                @endforelse
-            </tbody>
-        </table>
+                </thead>
+                <tbody>
+                    @forelse($auditLogs as $idx => $log)
+                        <tr>
+                            <td>{{ $idx + 1 }}</td>
+                            <td style="white-space:nowrap;">{{ $log->created_at?->format('d/m/Y H:i:s') }}</td>
+                            <td style="font-weight:600;">{{ $log->user?->name ?? 'Sistem' }}</td>
+                            <td><span class="digi-badge digi-badge-blue">{{ strtoupper($log->action) }}</span></td>
+                            <td>
+                                @if($log->fuelRequest)
+                                    <a href="{{ route('approval.show', $log->fuelRequest->id) }}" style="color:#0284c7; font-weight:700;">{{ $log->fuelRequest->request_no }}</a>
+                                @else
+                                    -
+                                @endif
+                            </td>
+                            <td>{{ $log->from_status ?? '-' }} → {{ $log->to_status ?? '-' }}</td>
+                            <td>{{ $log->note }}</td>
+                        </tr>
+                    @empty
+                        <tr>
+                            <td colspan="7" style="text-align:center; padding:24px; color:#94a3b8;">Belum ada catatan audit trail.</td>
+                        </tr>
+                    @endforelse
+                </tbody>
+            </table>
+        </div>
     @endif
+</div>
+
+<!-- MODAL KONFIRMASI AKTIFKAN / NONAKTIFKAN STATUS MASTER DATA -->
+<div id="toggleStatusModal" class="digi-modal-backdrop" style="display: none;">
+    <div class="digi-modal" style="max-width: 460px;">
+        <div class="digi-modal-header">
+            <h3 class="digi-modal-title" id="toggleModalTitle">Konfirmasi Perubahan Status</h3>
+            <button type="button" class="digi-modal-close" onclick="closeToggleModal()">&times;</button>
+        </div>
+        <form action="{{ route('admin.master.toggle') }}" method="POST" style="margin: 0;">
+            @csrf
+            <input type="hidden" name="entity" id="toggle_entity" value="">
+            <input type="hidden" name="id" id="toggle_id" value="">
+            <input type="hidden" name="tab" id="toggle_tab" value="">
+            <div class="digi-modal-body">
+                <p id="toggleModalMessage" style="margin: 0; font-size: 14px; color: #334155; line-height: 1.5;"></p>
+            </div>
+            <div class="digi-modal-footer">
+                <button type="button" class="btn-digi btn-digi-gray" onclick="closeToggleModal()">Batal</button>
+                <button type="submit" id="toggleConfirmBtn" class="btn-digi btn-digi-red">Ya, Ubah Status</button>
+            </div>
+        </form>
+    </div>
 </div>
 @endsection
 
+@section('scripts')
+<script>
+// 1. Unit Form Auto-Fill & Reset
+function editUnit(v) {
+    document.getElementById('unit_id').value = v.id;
+    document.getElementById('unit_code').value = v.unit_code || '';
+    document.getElementById('unit_police_no').value = v.police_no || '';
+    document.getElementById('unit_model').value = v.model || v.unit_type || '';
+    document.getElementById('unit_meter_type').value = v.meter_type || 'km';
+    document.getElementById('unit_tank_capacity').value = v.tank_capacity || 80;
+    document.getElementById('unitFormTitle').textContent = 'Edit Data Unit: ' + v.unit_code;
+    document.getElementById('unitSubmitBtn').textContent = 'Perbarui Unit';
+    document.getElementById('unitCancelBtn').style.display = 'inline-flex';
+    document.getElementById('unitForm').scrollIntoView({ behavior: 'smooth', block: 'center' });
+}
+function resetUnitForm() {
+    document.getElementById('unitForm').reset();
+    document.getElementById('unit_id').value = '';
+    document.getElementById('unitFormTitle').textContent = 'Tambah Data Unit Kendaraan & Alat Berat';
+    document.getElementById('unitSubmitBtn').textContent = 'Simpan Unit';
+    document.getElementById('unitCancelBtn').style.display = 'none';
+}
+
+// 2. Employee Form Auto-Fill & Reset
+function editEmployee(emp) {
+    document.getElementById('emp_id').value = emp.id;
+    document.getElementById('emp_nrp').value = emp.nrp || '';
+    document.getElementById('emp_name').value = emp.name || '';
+    document.getElementById('emp_position').value = emp.position || '';
+    document.getElementById('emp_company').value = emp.company || 'PT UNITED TRACTORS Tbk - SITE SATUI';
+    document.getElementById('emp_source').value = emp.source || 'local';
+    document.getElementById('emp_ext_ref').value = emp.external_reference || '';
+    document.getElementById('empFormTitle').textContent = 'Edit Data Employee: ' + emp.name;
+    document.getElementById('empSubmitBtn').textContent = 'Perbarui Employee';
+    document.getElementById('empCancelBtn').style.display = 'inline-flex';
+    document.getElementById('employeeForm').scrollIntoView({ behavior: 'smooth', block: 'center' });
+}
+function resetEmployeeForm() {
+    document.getElementById('employeeForm').reset();
+    document.getElementById('emp_id').value = '';
+    document.getElementById('empFormTitle').textContent = 'Tambah Data Employee (Lokal & Integrasi DIGISIM)';
+    document.getElementById('empSubmitBtn').textContent = 'Simpan Employee';
+    document.getElementById('empCancelBtn').style.display = 'none';
+}
+
+// 3. Area Form Auto-Fill & Reset
+function editArea(a) {
+    document.getElementById('area_id').value = a.id;
+    document.getElementById('area_code').value = a.code || '';
+    document.getElementById('area_name').value = a.name || '';
+    document.getElementById('areaFormTitle').textContent = 'Edit Area Operasional: ' + a.name;
+    document.getElementById('areaSubmitBtn').textContent = 'Perbarui Area';
+    document.getElementById('areaCancelBtn').style.display = 'inline-flex';
+    document.getElementById('areaForm').scrollIntoView({ behavior: 'smooth', block: 'center' });
+}
+function resetAreaForm() {
+    document.getElementById('areaForm').reset();
+    document.getElementById('area_id').value = '';
+    document.getElementById('areaFormTitle').textContent = 'Tambah Area Operasional';
+    document.getElementById('areaSubmitBtn').textContent = 'Simpan Area';
+    document.getElementById('areaCancelBtn').style.display = 'none';
+}
+
+// 4. Vendor Form Auto-Fill & Reset
+function editVendor(ven) {
+    document.getElementById('vendor_id').value = ven.id;
+    document.getElementById('vendor_code').value = ven.code || '';
+    document.getElementById('vendor_name').value = ven.name || '';
+    document.getElementById('vendor_contact').value = ven.contact_person || '';
+    document.getElementById('vendor_phone').value = ven.phone || '';
+    document.getElementById('vendorFormTitle').textContent = 'Edit Perusahaan Vendor: ' + ven.name;
+    document.getElementById('vendorSubmitBtn').textContent = 'Perbarui Vendor';
+    document.getElementById('vendorCancelBtn').style.display = 'inline-flex';
+    document.getElementById('vendorForm').scrollIntoView({ behavior: 'smooth', block: 'center' });
+}
+function resetVendorForm() {
+    document.getElementById('vendorForm').reset();
+    document.getElementById('vendor_id').value = '';
+    document.getElementById('vendorFormTitle').textContent = 'Tambah Perusahaan Vendor BBM';
+    document.getElementById('vendorSubmitBtn').textContent = 'Simpan Vendor';
+    document.getElementById('vendorCancelBtn').style.display = 'none';
+}
+
+// 5. Area Approver Form Auto-Fill & Reset
+function editApprover(aa) {
+    document.getElementById('aa_id').value = aa.id;
+    document.getElementById('aa_area_id').value = aa.area_id;
+    document.getElementById('aa_user_id').value = aa.user_id;
+    document.getElementById('aa_role_type').value = aa.role_type;
+    document.getElementById('aaFormTitle').textContent = 'Edit Penugasan Approver Area #' + aa.id;
+    document.getElementById('aaSubmitBtn').textContent = 'Perbarui Penugasan';
+    document.getElementById('aaCancelBtn').style.display = 'inline-flex';
+    document.getElementById('approverForm').scrollIntoView({ behavior: 'smooth', block: 'center' });
+}
+function resetApproverForm() {
+    document.getElementById('approverForm').reset();
+    document.getElementById('aa_id').value = '';
+    document.getElementById('aaFormTitle').textContent = 'Penugasan Approver & Petugas Berdasarkan Area';
+    document.getElementById('aaSubmitBtn').textContent = 'Simpan Penugasan';
+    document.getElementById('aaCancelBtn').style.display = 'none';
+}
+
+// 6. Fuel Standard Form Auto-Fill & Reset
+function editStandard(std, startDate) {
+    document.getElementById('std_id').value = std.id;
+    document.getElementById('std_vehicle_id').value = std.vehicle_id;
+    document.getElementById('std_type').value = std.standard_type;
+    document.getElementById('std_value').value = parseFloat(std.standard_value);
+    document.getElementById('std_tolerance').value = parseFloat(std.tolerance_percentage);
+    if (startDate) document.getElementById('std_start').value = startDate;
+    document.getElementById('stdFormTitle').textContent = 'Edit Standar Konsumsi BBM #' + std.id;
+    document.getElementById('stdSubmitBtn').textContent = 'Perbarui Standar BBM';
+    document.getElementById('stdCancelBtn').style.display = 'inline-flex';
+    document.getElementById('standardForm').scrollIntoView({ behavior: 'smooth', block: 'center' });
+}
+function resetStandardForm() {
+    document.getElementById('standardForm').reset();
+    document.getElementById('std_id').value = '';
+    document.getElementById('stdFormTitle').textContent = 'Tambah Standar Konsumsi BBM (Menyimpan Riwayat Historis)';
+    document.getElementById('stdSubmitBtn').textContent = 'Simpan Standar BBM';
+    document.getElementById('stdCancelBtn').style.display = 'none';
+}
+
+// 7. Fuel Price Form Auto-Fill & Reset
+function editPrice(fp, startDate) {
+    document.getElementById('price_id').value = fp.id;
+    document.getElementById('price_fuel_type').value = fp.fuel_type || '';
+    document.getElementById('price_per_liter').value = parseFloat(fp.price_per_liter);
+    if (startDate) document.getElementById('price_start').value = startDate;
+    document.getElementById('priceFormTitle').textContent = 'Edit Harga BBM: ' + fp.fuel_type;
+    document.getElementById('priceSubmitBtn').textContent = 'Perbarui Harga BBM';
+    document.getElementById('priceCancelBtn').style.display = 'inline-flex';
+    document.getElementById('priceForm').scrollIntoView({ behavior: 'smooth', block: 'center' });
+}
+function resetPriceForm() {
+    document.getElementById('priceForm').reset();
+    document.getElementById('price_id').value = '';
+    document.getElementById('priceFormTitle').textContent = 'Tambah Riwayat Harga BBM per Liter';
+    document.getElementById('priceSubmitBtn').textContent = 'Simpan Harga BBM';
+    document.getElementById('priceCancelBtn').style.display = 'none';
+}
+
+// 8. User Form Auto-Fill & Reset
+function editUser(u) {
+    document.getElementById('usr_id').value = u.id;
+    document.getElementById('usr_name').value = u.name || '';
+    document.getElementById('usr_nrp').value = u.nrp || '';
+    document.getElementById('usr_username').value = u.username || '';
+    document.getElementById('usr_email').value = u.email || '';
+    document.getElementById('usr_role').value = u.role || 'driver';
+    document.getElementById('usr_jabatan').value = u.jabatan || '';
+    document.getElementById('usr_vendor_id').value = u.vendor_id || '';
+    document.getElementById('usr_password').value = '';
+    document.getElementById('usrFormTitle').textContent = 'Edit Akun Pengguna: ' + u.name;
+    document.getElementById('usrSubmitBtn').textContent = 'Perbarui Akun Pengguna';
+    document.getElementById('usrCancelBtn').style.display = 'inline-flex';
+    document.getElementById('userForm').scrollIntoView({ behavior: 'smooth', block: 'center' });
+}
+function resetUserForm() {
+    document.getElementById('userForm').reset();
+    document.getElementById('usr_id').value = '';
+    document.getElementById('usrFormTitle').textContent = 'Tambah / Kelola Akun Pengguna & Role';
+    document.getElementById('usrSubmitBtn').textContent = 'Simpan Akun Pengguna';
+    document.getElementById('usrCancelBtn').style.display = 'none';
+}
+
+// 8B. Background Form Auto-Fill & Reset
+function editBackground(bg) {
+    document.getElementById('bg_id').value = bg.id;
+    document.getElementById('bg_title').value = bg.title || '';
+    document.getElementById('bg_notes').value = bg.notes || '';
+    document.getElementById('bg_set_active').checked = !!bg.is_active;
+    document.getElementById('bg_file_req').style.display = 'none';
+    document.getElementById('bgFormTitle').textContent = 'Edit Background Sistem: ' + bg.title;
+    document.getElementById('bgSubmitBtn').textContent = 'Perbarui Background';
+    document.getElementById('bgCancelBtn').style.display = 'inline-flex';
+    document.getElementById('bgForm').scrollIntoView({ behavior: 'smooth', block: 'center' });
+}
+function resetBgForm() {
+    document.getElementById('bgForm').reset();
+    document.getElementById('bg_id').value = '';
+    document.getElementById('bg_file_req').style.display = 'inline';
+    document.getElementById('bgFormTitle').textContent = 'Upload / Kelola Gambar Background Sistem Sesuai Ketentuan UT';
+    document.getElementById('bgSubmitBtn').textContent = 'Simpan & Terapkan Background';
+    document.getElementById('bgCancelBtn').style.display = 'none';
+}
+
+// 9. Confirmation Modal for Activate / Deactivate Status
+function openToggleModal(entity, id, tab, label, isCurrentlyActive) {
+    document.getElementById('toggle_entity').value = entity;
+    document.getElementById('toggle_id').value = id;
+    document.getElementById('toggle_tab').value = tab;
+
+    const actionWord = isCurrentlyActive ? 'menonaktifkan' : 'mengaktifkan kembali';
+    const btn = document.getElementById('toggleConfirmBtn');
+
+    document.getElementById('toggleModalTitle').textContent = isCurrentlyActive
+        ? 'Konfirmasi Nonaktifkan Data'
+        : 'Konfirmasi Aktifkan Data';
+
+    document.getElementById('toggleModalMessage').innerHTML =
+        `Apakah Anda yakin ingin <strong>${actionWord}</strong> data <strong>${label}</strong>?<br><span style="font-size:12.5px; color:#64748b;">Perubahan status ini akan dicatat pada Audit Trail sistem.</span>`;
+
+    btn.textContent = isCurrentlyActive ? 'Ya, Nonaktifkan' : 'Ya, Aktifkan';
+    btn.className = isCurrentlyActive ? 'btn-digi btn-digi-red' : 'btn-digi btn-digi-green';
+
+    document.getElementById('toggleStatusModal').style.display = 'flex';
+}
+
+function closeToggleModal() {
+    document.getElementById('toggleStatusModal').style.display = 'none';
+}
+</script>
+@endsection

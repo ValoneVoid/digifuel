@@ -8,20 +8,13 @@ use App\Http\Controllers\ProfileController;
 use App\Http\Controllers\AuthController;
 use App\Http\Controllers\EvaluationController;
 use App\Http\Controllers\AdminMasterController;
+use App\Http\Controllers\DashboardController;
 
-// Root redirects dynamically based on active user role
+// Root & /dashboard route
 Route::get('/', function () {
-    $user = auth()->user() ?? \App\Models\User::where('username', 'adji')->first();
-    if ($user) {
-        if ($user->isAdmin()) {
-            return redirect()->route('evaluation.index');
-        }
-        if ($user->isApprover()) {
-            return redirect()->route('approval.index');
-        }
-    }
-    return redirect()->route('fuel.create');
+    return redirect()->route('dashboard');
 });
+Route::get('/dashboard', [DashboardController::class, 'index'])->name('dashboard');
 
 // Authentication & Login
 Route::get('/login', [AuthController::class, 'showLogin'])->name('login');
@@ -74,3 +67,6 @@ Route::post('/admin/master/user', [AdminMasterController::class, 'storeUser'])->
 Route::post('/admin/master/area-approver', [AdminMasterController::class, 'storeAreaApprover'])->name('admin.master.approver');
 Route::post('/admin/master/fuel-standard', [AdminMasterController::class, 'storeFuelStandard'])->name('admin.master.standard');
 Route::post('/admin/master/fuel-price', [AdminMasterController::class, 'storeFuelPrice'])->name('admin.master.price');
+Route::post('/admin/master/background', [AdminMasterController::class, 'storeBackground'])->name('admin.master.background');
+Route::post('/admin/master/background/{id}/delete', [AdminMasterController::class, 'deleteBackground'])->name('admin.master.background.delete');
+Route::post('/admin/master/toggle-status', [AdminMasterController::class, 'toggleStatus'])->name('admin.master.toggle');
