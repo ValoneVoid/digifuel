@@ -352,15 +352,15 @@ class DashboardService
         $monthlyRaw = (clone $scopedQuery)
             ->where('request_date', '>=', $sixMonthsAgo)
             ->selectRaw("
-                {$dateExpr} as year_month,
+                {$dateExpr} as period_key,
                 COUNT(*) as count_requests,
                 COALESCE(SUM(total_liters), 0) as sum_requested_liters,
                 COALESCE(SUM(actual_liters), 0) as sum_actual_liters
             ")
-            ->groupBy('year_month')
-            ->orderBy('year_month', 'asc')
+            ->groupBy('period_key')
+            ->orderBy('period_key', 'asc')
             ->get()
-            ->keyBy('year_month');
+            ->keyBy('period_key');
 
         $monthLabels = [];
         $requestedLitersSeries = [];
