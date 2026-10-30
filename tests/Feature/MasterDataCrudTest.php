@@ -480,5 +480,29 @@ class MasterDataCrudTest extends TestCase
             ->assertRedirect(route('admin.master', ['tab' => 'employees']));
 
         $this->assertSoftDeleted('employees', ['id' => $tempEmp->id]);
+
+        // Two-Step Verification test: wrong keyword is rejected
+        $tempArea = Area::create([
+            'code' => 'AREA-DEL',
+            'name' => 'Area Uji Hapus 2 Langkah',
+            'is_active' => true,
+        ]);
+
+        $this->actingAs($this->admin)
+            ->delete(route('admin.master.areas.destroy', $tempArea->id), [
+                'verification_step' => '2',
+                'confirm_keyword' => 'BATAL',
+            ])
+            ->assertSessionHasErrors(['confirm_keyword']);
+        $this->assertDatabaseHas('areas', ['id' => $tempArea->id]);
+
+        // Two-Step Verification test: step 2 + 'HAPUS' keyword succeeds
+        $this->actingAs($this->admin)
+            ->delete(route('admin.master.areas.destroy', $tempArea->id), [
+                'verification_step' => '2',
+                'confirm_keyword' => 'HAPUS',
+            ])
+            ->assertRedirect(route('admin.master', ['tab' => 'areas']));
+        $this->assertDatabaseMissing('areas', ['id' => $tempArea->id]);
     }
 }

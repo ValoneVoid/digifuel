@@ -127,6 +127,10 @@
                                         onclick="openToggleModal('unit', {{ $v->id }}, 'units', '{{ addslashes($v->unit_code) }}', {{ $v->is_active ? 'true' : 'false' }})">
                                         {{ $v->is_active ? 'Nonaktifkan' : 'Aktifkan' }}
                                     </button>
+                                    <button type="button" class="btn-digi btn-digi-gray" style="padding: 5px 12px; font-size: 12px; background: #fee2e2; color: #b91c1c; border: 1px solid #fecaca;"
+                                        onclick="openDeleteModal('{{ route('admin.master.units.destroy', $v->id) }}', 'Data Unit / Kendaraan', '{{ addslashes($v->unit_code . ' (' . $v->police_no . ')') }}')">
+                                        Hapus
+                                    </button>
                                 </div>
                             </td>
                         </tr>
@@ -224,6 +228,10 @@
                                         onclick="openToggleModal('employee', {{ $emp->id }}, 'employees', '{{ addslashes($emp->name) }}', {{ $emp->is_active ? 'true' : 'false' }})">
                                         {{ $emp->is_active ? 'Nonaktifkan' : 'Aktifkan' }}
                                     </button>
+                                    <button type="button" class="btn-digi btn-digi-gray" style="padding: 5px 12px; font-size: 12px; background: #fee2e2; color: #b91c1c; border: 1px solid #fecaca;"
+                                        onclick="openDeleteModal('{{ route('admin.master.employees.destroy', $emp->id) }}', 'Data Employee', '{{ addslashes($emp->nrp . ' - ' . $emp->name) }}')">
+                                        Hapus
+                                    </button>
                                 </div>
                             </td>
                         </tr>
@@ -292,6 +300,10 @@
                                     <button type="button" class="btn-digi {{ $a->is_active ? 'btn-digi-red' : 'btn-digi-green' }}" style="padding: 5px 12px; font-size: 12px;"
                                         onclick="openToggleModal('area', {{ $a->id }}, 'areas', '{{ addslashes($a->name) }}', {{ $a->is_active ? 'true' : 'false' }})">
                                         {{ $a->is_active ? 'Nonaktifkan' : 'Aktifkan' }}
+                                    </button>
+                                    <button type="button" class="btn-digi btn-digi-gray" style="padding: 5px 12px; font-size: 12px; background: #fee2e2; color: #b91c1c; border: 1px solid #fecaca;"
+                                        onclick="openDeleteModal('{{ route('admin.master.areas.destroy', $a->id) }}', 'Area Operasional', '{{ addslashes(($a->code ? $a->code . ' - ' : '') . $a->name) }}')">
+                                        Hapus
                                     </button>
                                 </div>
                             </td>
@@ -371,6 +383,10 @@
                                     <button type="button" class="btn-digi {{ $ven->is_active ? 'btn-digi-red' : 'btn-digi-green' }}" style="padding: 5px 12px; font-size: 12px;"
                                         onclick="openToggleModal('vendor', {{ $ven->id }}, 'vendors', '{{ addslashes($ven->name) }}', {{ $ven->is_active ? 'true' : 'false' }})">
                                         {{ $ven->is_active ? 'Nonaktifkan' : 'Aktifkan' }}
+                                    </button>
+                                    <button type="button" class="btn-digi btn-digi-gray" style="padding: 5px 12px; font-size: 12px; background: #fee2e2; color: #b91c1c; border: 1px solid #fecaca;"
+                                        onclick="openDeleteModal('{{ route('admin.master.vendors.destroy', $ven->id) }}', 'Data Vendor BBM', '{{ addslashes(($ven->code ? $ven->code . ' - ' : '') . $ven->name) }}')">
+                                        Hapus
                                     </button>
                                 </div>
                             </td>
@@ -460,6 +476,10 @@
                                     <button type="button" class="btn-digi {{ $aa->is_active ? 'btn-digi-red' : 'btn-digi-green' }}" style="padding: 5px 12px; font-size: 12px;"
                                         onclick="openToggleModal('approver', {{ $aa->id }}, 'approvers', '{{ addslashes(($aa->area?->name ?? "") . " - " . ($aa->user?->name ?? "")) }}', {{ $aa->is_active ? 'true' : 'false' }})">
                                         {{ $aa->is_active ? 'Nonaktifkan' : 'Aktifkan' }}
+                                    </button>
+                                    <button type="button" class="btn-digi btn-digi-gray" style="padding: 5px 12px; font-size: 12px; background: #fee2e2; color: #b91c1c; border: 1px solid #fecaca;"
+                                        onclick="openDeleteModal('{{ route('admin.master.approvers.destroy', $aa->id) }}', 'Penugasan Approver Area', '{{ addslashes(($aa->area?->name ?? "") . " - " . ($aa->user?->name ?? "") . " (" . strtoupper($aa->role_type) . ")") }}')">
+                                        Hapus
                                     </button>
                                 </div>
                             </td>
@@ -556,6 +576,10 @@
                                         onclick="openToggleModal('standard', {{ $std->id }}, 'standards', '{{ addslashes(($std->vehicle?->unit_code ?? "") . " (" . (float)$std->standard_value . ")") }}', {{ $std->is_active ? 'true' : 'false' }})">
                                         {{ $std->is_active ? 'Nonaktifkan' : 'Aktifkan' }}
                                     </button>
+                                    <button type="button" class="btn-digi btn-digi-gray" style="padding: 5px 12px; font-size: 12px; background: #fee2e2; color: #b91c1c; border: 1px solid #fecaca;"
+                                        onclick="openDeleteModal('{{ route('admin.master.standards.destroy', $std->id) }}', 'Standar Konsumsi BBM', '{{ addslashes(($std->vehicle?->unit_code ?? "") . " (" . (float)$std->standard_value . ")") }}')">
+                                        Hapus
+                                    </button>
                                 </div>
                             </td>
                         </tr>
@@ -631,6 +655,10 @@
                                     <button type="button" class="btn-digi {{ $fp->is_active ? 'btn-digi-red' : 'btn-digi-green' }}" style="padding: 5px 12px; font-size: 12px;"
                                         onclick="openToggleModal('price', {{ $fp->id }}, 'prices', '{{ addslashes($fp->fuel_type . " (Rp " . number_format($fp->price_per_liter, 0, ",", ".") . ")") }}', {{ $fp->is_active ? 'true' : 'false' }})">
                                         {{ $fp->is_active ? 'Nonaktifkan' : 'Aktifkan' }}
+                                    </button>
+                                    <button type="button" class="btn-digi btn-digi-gray" style="padding: 5px 12px; font-size: 12px; background: #fee2e2; color: #b91c1c; border: 1px solid #fecaca;"
+                                        onclick="openDeleteModal('{{ route('admin.master.prices.destroy', $fp->id) }}', 'Harga BBM per Liter', '{{ addslashes($fp->fuel_type . " (Rp " . number_format($fp->price_per_liter, 0, ",", ".") . "/L)") }}')">
+                                        Hapus
                                     </button>
                                 </div>
                             </td>
@@ -744,6 +772,12 @@
                                         onclick="openToggleModal('user', {{ $u->id }}, 'users', '{{ addslashes($u->name . " (" . $u->username . ")") }}', {{ $u->is_active ? 'true' : 'false' }})">
                                         {{ $u->is_active ? 'Nonaktifkan' : 'Aktifkan' }}
                                     </button>
+                                    @if((int)$u->id !== (int)$user->id)
+                                        <button type="button" class="btn-digi btn-digi-gray" style="padding: 5px 12px; font-size: 12px; background: #fee2e2; color: #b91c1c; border: 1px solid #fecaca;"
+                                            onclick="openDeleteModal('{{ route('admin.master.users.destroy', $u->id) }}', 'Akun Pengguna', '{{ addslashes($u->name . " (" . $u->username . ")") }}')">
+                                            Hapus
+                                        </button>
+                                    @endif
                                 </div>
                             </td>
                         </tr>
@@ -931,6 +965,81 @@
             <div class="digi-modal-footer">
                 <button type="button" class="btn-digi btn-digi-gray" onclick="closeToggleModal()">Batal</button>
                 <button type="submit" id="toggleConfirmBtn" class="btn-digi btn-digi-red">Ya, Ubah Status</button>
+            </div>
+        </form>
+    </div>
+</div>
+
+<!-- MODAL VERIFIKASI 2 LANGKAH PENGHAPUSAN MASTER DATA -->
+<div id="deleteMasterModal" class="digi-modal-backdrop" style="display: none;">
+    <div class="digi-modal" style="max-width: 510px;">
+        <div class="digi-modal-header" style="background: #fef2f2; border-bottom: 1px solid #fecaca;">
+            <div style="display: flex; align-items: center; gap: 10px;">
+                <span id="deleteStepBadge" class="digi-badge digi-badge-red" style="font-size: 11px; padding: 3px 9px;">LANGKAH 1 / 2</span>
+                <h3 class="digi-modal-title" id="deleteModalTitle" style="color: #991b1b;">Konfirmasi Hapus Master Data</h3>
+            </div>
+            <button type="button" class="digi-modal-close" onclick="closeDeleteModal()">&times;</button>
+        </div>
+
+        <form id="deleteMasterForm" action="" method="POST" style="margin: 0;">
+            @csrf
+            @method('DELETE')
+            <input type="hidden" name="verification_step" id="delete_verification_step" value="1">
+
+            <!-- STEP 1: PERINGATAN AWAL -->
+            <div id="deleteStep1Body" class="digi-modal-body">
+                <div style="background: #fff7ed; border: 1px solid #fed7aa; border-radius: 8px; padding: 12px 14px; margin-bottom: 14px; font-size: 13px; color: #9a3412; line-height: 1.5;">
+                    <strong>Peringatan Penghapusan Data:</strong><br>
+                    Anda akan menghapus <strong id="deleteEntityCategory">Master Data</strong> berikut dari sistem DigiFuel:
+                </div>
+                <div style="background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 8px; padding: 12px 14px; margin-bottom: 12px;">
+                    <div style="font-size: 11.5px; color: #64748b; text-transform: uppercase; font-weight: 700;">Target Data yang Akan Dihapus</div>
+                    <div id="deleteTargetLabel" style="font-size: 15px; font-weight: 700; color: #0f172a; margin-top: 4px;">-</div>
+                </div>
+                <p style="margin: 0; font-size: 13px; color: #475569; line-height: 1.5;">
+                    Jika Anda hanya ingin menghentikan penggunaan data ini untuk pengajuan baru tanpa menghapusnya, disarankan menggunakan tombol <strong>Nonaktifkan</strong>. Apakah Anda tetap ingin melanjutkan ke tahap verifikasi penghapusan?
+                </p>
+            </div>
+
+            <!-- STEP 2: VERIFIKASI KATA KUNCI & CHECKBOX -->
+            <div id="deleteStep2Body" class="digi-modal-body" style="display: none;">
+                <div style="background: #fef2f2; border: 1px solid #fecaca; border-radius: 8px; padding: 12px 14px; margin-bottom: 14px; font-size: 13px; color: #991b1b; line-height: 1.5;">
+                    <strong>Verifikasi Keamanan Tahap Akhir (Langkah 2 / 2):</strong><br>
+                    Untuk mencegah ketidaksengajaan penghapusan pada <strong id="deleteTargetLabelStep2">-</strong>, silakan centang pernyataan di bawah dan ketik kata kunci <strong>HAPUS</strong>.
+                </div>
+
+                <label style="display: flex; align-items: flex-start; gap: 9px; font-size: 13px; color: #1e293b; cursor: pointer; margin-bottom: 14px; user-select: none;">
+                    <input type="checkbox" id="deleteConfirmCheckbox" onchange="validateDeleteStep2()" style="margin-top: 3px; width: 16px; height: 16px;">
+                    <span>Saya memahami konsekuensi penghapusan data ini dan bertanggung jawab atas perubahan pada Master Data.</span>
+                </label>
+
+                <div class="digi-form-group" style="margin-bottom: 4px;">
+                    <label class="digi-form-label" style="color: #991b1b;">
+                        Ketik kata kunci <code style="background: #fee2e2; padding: 2px 6px; border-radius: 4px; font-weight: 800; color: #b91c1c;">HAPUS</code> untuk membuka kunci tombol:
+                    </label>
+                    <input type="text" name="confirm_keyword" id="deleteConfirmKeyword" class="digi-input"
+                        placeholder="Ketik HAPUS dengan huruf kapital" autocomplete="off"
+                        oninput="validateDeleteStep2()" style="border-color: #fca5a5; font-weight: 700; letter-spacing: 1px;">
+                </div>
+            </div>
+
+            <!-- FOOTER STEP 1 -->
+            <div id="deleteStep1Footer" class="digi-modal-footer">
+                <button type="button" class="btn-digi btn-digi-gray" onclick="closeDeleteModal()">Batal</button>
+                <button type="button" class="btn-digi btn-digi-yellow" onclick="proceedToDeleteStep2()" style="font-weight: 700;">
+                    Lanjut ke Verifikasi Langkah 2 &rarr;
+                </button>
+            </div>
+
+            <!-- FOOTER STEP 2 -->
+            <div id="deleteStep2Footer" class="digi-modal-footer" style="display: none; justify-content: space-between;">
+                <button type="button" class="btn-digi btn-digi-gray" onclick="backToDeleteStep1()">&larr; Kembali</button>
+                <div style="display: flex; gap: 8px;">
+                    <button type="button" class="btn-digi btn-digi-gray" onclick="closeDeleteModal()">Batal</button>
+                    <button type="submit" id="deleteFinalSubmitBtn" class="btn-digi btn-digi-red" disabled style="opacity: 0.5; cursor: not-allowed;">
+                        Hapus Data Sekarang
+                    </button>
+                </div>
             </div>
         </form>
     </div>
@@ -1148,6 +1257,71 @@ function openToggleModal(entity, id, tab, label, isCurrentlyActive) {
 
 function closeToggleModal() {
     document.getElementById('toggleStatusModal').style.display = 'none';
+}
+
+// 10. Two-Step Verification Modal for Deleting Master Data
+function openDeleteModal(actionUrl, categoryLabel, targetLabel) {
+    const form = document.getElementById('deleteMasterForm');
+    form.action = actionUrl;
+
+    document.getElementById('deleteEntityCategory').textContent = categoryLabel;
+    document.getElementById('deleteTargetLabel').textContent = targetLabel;
+    document.getElementById('deleteTargetLabelStep2').textContent = targetLabel;
+
+    backToDeleteStep1();
+    document.getElementById('deleteMasterModal').style.display = 'flex';
+}
+
+function proceedToDeleteStep2() {
+    document.getElementById('delete_verification_step').value = '2';
+    document.getElementById('deleteStepBadge').textContent = 'LANGKAH 2 / 2';
+    document.getElementById('deleteModalTitle').textContent = 'Verifikasi Akhir Penghapusan Data';
+
+    document.getElementById('deleteStep1Body').style.display = 'none';
+    document.getElementById('deleteStep1Footer').style.display = 'none';
+    document.getElementById('deleteStep2Body').style.display = 'block';
+    document.getElementById('deleteStep2Footer').style.display = 'flex';
+
+    document.getElementById('deleteConfirmCheckbox').checked = false;
+    const kwInput = document.getElementById('deleteConfirmKeyword');
+    kwInput.value = '';
+    validateDeleteStep2();
+    setTimeout(() => kwInput.focus(), 80);
+}
+
+function backToDeleteStep1() {
+    document.getElementById('delete_verification_step').value = '1';
+    document.getElementById('deleteStepBadge').textContent = 'LANGKAH 1 / 2';
+    document.getElementById('deleteModalTitle').textContent = 'Konfirmasi Hapus Master Data';
+
+    document.getElementById('deleteStep1Body').style.display = 'block';
+    document.getElementById('deleteStep1Footer').style.display = 'flex';
+    document.getElementById('deleteStep2Body').style.display = 'none';
+    document.getElementById('deleteStep2Footer').style.display = 'none';
+
+    document.getElementById('deleteConfirmCheckbox').checked = false;
+    document.getElementById('deleteConfirmKeyword').value = '';
+    validateDeleteStep2();
+}
+
+function validateDeleteStep2() {
+    const isChecked = document.getElementById('deleteConfirmCheckbox').checked;
+    const keyword = (document.getElementById('deleteConfirmKeyword').value || '').trim().toUpperCase();
+    const submitBtn = document.getElementById('deleteFinalSubmitBtn');
+
+    if (isChecked && keyword === 'HAPUS') {
+        submitBtn.disabled = false;
+        submitBtn.style.opacity = '1';
+        submitBtn.style.cursor = 'pointer';
+    } else {
+        submitBtn.disabled = true;
+        submitBtn.style.opacity = '0.5';
+        submitBtn.style.cursor = 'not-allowed';
+    }
+}
+
+function closeDeleteModal() {
+    document.getElementById('deleteMasterModal').style.display = 'none';
 }
 </script>
 @endsection

@@ -131,5 +131,9 @@ Route::middleware(['auth'])->group(function () {
         Route::match(['put', 'patch', 'post'], '/admin/master/area-approvers/{id}', [AdminMasterController::class, 'updateAreaApprover'])->name('admin.master.approvers.update');
         Route::match(['patch', 'post'], '/admin/master/area-approvers/{id}/toggle-active', [AdminMasterController::class, 'toggleAreaApprover'])->name('admin.master.approvers.toggle');
         Route::delete('/admin/master/area-approvers/{id}', [AdminMasterController::class, 'destroyAreaApprover'])->name('admin.master.approvers.destroy');
+
+        // 7. Fuel Standard & Fuel Price Delete Routes
+        Route::delete('/admin/master/fuel-standards/{id}', [AdminMasterController::class, 'destroyFuelStandard'])->name('admin.master.standards.destroy');
+        Route::delete('/admin/master/fuel-prices/{id}', [AdminMasterController::class, 'destroyFuelPrice'])->name('admin.master.prices.destroy');
     });
 });

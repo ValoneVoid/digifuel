@@ -46,6 +46,28 @@ class AdminMasterController extends Controller
         return redirect()->route('admin.master', ['tab' => $tab])->with('success', $message);
     }
 
+    /**
+     * Validate 2-Step Deletion Confirmation when submitted via the 2-step verification modal or API.
+     * Returns true if explicit 2-step verification ('HAPUS') was completed.
+     */
+    protected function verifyTwoStepDeleteConfirmation(Request $request): bool
+    {
+        if ($request->has('confirm_keyword') || $request->has('verification_step')) {
+            $keyword = strtoupper(trim((string) $request->input('confirm_keyword', '')));
+            $step = (string) $request->input('verification_step', '2');
+
+            if ($step !== '2' || $keyword !== 'HAPUS') {
+                throw ValidationException::withMessages([
+                    'confirm_keyword' => 'Verifikasi 2 Langkah gagal: Anda wajib menyelesaikan Langkah 2 dan mengetik kata kunci HAPUS dengan benar.',
+                ]);
+            }
+
+            return true;
+        }
+
+        return false;
+    }
+
     public function index(Request $request)
     {
         $user = $this->getActiveUser();
@@ -180,9 +202,10 @@ class AdminMasterController extends Controller
     {
         $admin = $this->getActiveUser();
         $emp = Employee::findOrFail($id);
+        $twoStepVerified = $this->verifyTwoStepDeleteConfirmation($request);
 
-        if ($emp->fuelRequests()->exists()) {
-            $msg = "Data Employee {$emp->name} ({$emp->nrp}) memiliki riwayat transaksi Fuel Request dan tidak dapat dihapus permanen. Silakan nonaktifkan statusnya.";
+        if ($emp->fuelRequests()->exists() && !$twoStepVerified) {
+            $msg = "Data Employee {$emp->name} ({$emp->nrp}) memiliki riwayat transaksi Fuel Request. Gunakan Verifikasi 2 Langkah untuk menghapus (Soft Delete) atau nonaktifkan statusnya.";
             if ($request->expectsJson() || $request->ajax()) {
                 return response()->json(['success' => false, 'message' => $msg], 422);
             }
@@ -192,7 +215,8 @@ class AdminMasterController extends Controller
         $emp->update(['is_active' => false]);
         $emp->delete();
 
-        FuelRequestHistory::record(null, $admin->id, 'master_deleted', 'active', 'deleted', "Menghapus (Soft Delete) data Employee ID #{$emp->id}: {$emp->nrp} - {$emp->name}.");
+        $verifyNote = $twoStepVerified ? ' [Terverifikasi 2 Langkah]' : '';
+        FuelRequestHistory::record(null, $admin->id, 'master_deleted', 'active', 'deleted', "Menghapus (Soft Delete) data Employee ID #{$emp->id}: {$emp->nrp} - {$emp->name}{$verifyNote}.");
 
         return $this->respondSuccess($request, 'employees', "Data Employee {$emp->name} berhasil dihapus.");
     }
@@ -289,9 +313,10 @@ class AdminMasterController extends Controller
     {
         $admin = $this->getActiveUser();
         $veh = Vehicle::findOrFail($id);
+        $twoStepVerified = $this->verifyTwoStepDeleteConfirmation($request);
 
-        if ($veh->fuelRequests()->exists()) {
-            $msg = "Data Unit {$veh->unit_code} memiliki riwayat transaksi Fuel Request dan tidak dapat dihapus permanen. Silakan nonaktifkan statusnya.";
+        if ($veh->fuelRequests()->exists() && !$twoStepVerified) {
+            $msg = "Data Unit {$veh->unit_code} memiliki riwayat transaksi Fuel Request dan tidak dapat dihapus tanpa Verifikasi 2 Langkah. Silakan gunakan Verifikasi 2 Langkah atau nonaktifkan statusnya.";
             if ($request->expectsJson() || $request->ajax()) {
                 return response()->json(['success' => false, 'message' => $msg], 422);
             }
@@ -301,7 +326,8 @@ class AdminMasterController extends Controller
         $unitCode = $veh->unit_code;
         $veh->delete();
 
-        FuelRequestHistory::record(null, $admin->id, 'master_deleted', 'active', 'deleted', "Menghapus data Unit ID #{$id}: {$unitCode}.");
+        $verifyNote = $twoStepVerified ? ' [Terverifikasi 2 Langkah]' : '';
+        FuelRequestHistory::record(null, $admin->id, 'master_deleted', 'active', 'deleted', "Menghapus data Unit ID #{$id}: {$unitCode}{$verifyNote}.");
 
         return $this->respondSuccess($request, 'units', "Data Unit {$unitCode} berhasil dihapus.");
     }
@@ -384,9 +410,10 @@ class AdminMasterController extends Controller
     {
         $admin = $this->getActiveUser();
         $area = Area::findOrFail($id);
+        $twoStepVerified = $this->verifyTwoStepDeleteConfirmation($request);
 
-        if ($area->fuelRequests()->exists() || FuelRequest::where('area', $area->name)->exists()) {
-            $msg = "Area operasional {$area->name} memiliki riwayat transaksi Fuel Request dan tidak dapat dihapus permanen. Silakan nonaktifkan statusnya.";
+        if (($area->fuelRequests()->exists() || FuelRequest::where('area', $area->name)->exists()) && !$twoStepVerified) {
+            $msg = "Area operasional {$area->name} memiliki riwayat transaksi Fuel Request dan tidak dapat dihapus tanpa Verifikasi 2 Langkah.";
             if ($request->expectsJson() || $request->ajax()) {
                 return response()->json(['success' => false, 'message' => $msg], 422);
             }
@@ -396,7 +423,8 @@ class AdminMasterController extends Controller
         $areaName = $area->name;
         $area->delete();
 
-        FuelRequestHistory::record(null, $admin->id, 'master_deleted', 'active', 'deleted', "Menghapus Area Operasional ID #{$id}: {$areaName}.");
+        $verifyNote = $twoStepVerified ? ' [Terverifikasi 2 Langkah]' : '';
+        FuelRequestHistory::record(null, $admin->id, 'master_deleted', 'active', 'deleted', "Menghapus Area Operasional ID #{$id}: {$areaName}{$verifyNote}.");
 
         return $this->respondSuccess($request, 'areas', "Area operasional {$areaName} berhasil dihapus.");
     }
@@ -499,9 +527,10 @@ class AdminMasterController extends Controller
     {
         $admin = $this->getActiveUser();
         $vendor = Vendor::findOrFail($id);
+        $twoStepVerified = $this->verifyTwoStepDeleteConfirmation($request);
 
-        if ($vendor->fuelRequests()->exists() || FuelRequest::where('vendor_name', $vendor->name)->exists()) {
-            $msg = "Data Vendor {$vendor->name} memiliki riwayat transaksi Fuel Request dan tidak dapat dihapus permanen. Silakan nonaktifkan statusnya.";
+        if (($vendor->fuelRequests()->exists() || FuelRequest::where('vendor_name', $vendor->name)->exists()) && !$twoStepVerified) {
+            $msg = "Data Vendor {$vendor->name} memiliki riwayat transaksi Fuel Request dan tidak dapat dihapus tanpa Verifikasi 2 Langkah.";
             if ($request->expectsJson() || $request->ajax()) {
                 return response()->json(['success' => false, 'message' => $msg], 422);
             }
@@ -511,7 +540,8 @@ class AdminMasterController extends Controller
         $vendorName = $vendor->name;
         $vendor->delete();
 
-        FuelRequestHistory::record(null, $admin->id, 'master_deleted', 'active', 'deleted', "Menghapus data Vendor ID #{$id}: {$vendorName}.");
+        $verifyNote = $twoStepVerified ? ' [Terverifikasi 2 Langkah]' : '';
+        FuelRequestHistory::record(null, $admin->id, 'master_deleted', 'active', 'deleted', "Menghapus data Vendor ID #{$id}: {$vendorName}{$verifyNote}.");
 
         return $this->respondSuccess($request, 'vendors', "Data Vendor {$vendorName} berhasil dihapus.");
     }
@@ -633,6 +663,15 @@ class AdminMasterController extends Controller
     {
         $admin = $this->getActiveUser();
         $targetUser = User::findOrFail($id);
+        $twoStepVerified = $this->verifyTwoStepDeleteConfirmation($request);
+
+        if ((int) $targetUser->id === (int) $admin->id) {
+            $msg = 'Akun Admin yang sedang Anda gunakan login saat ini tidak dapat dihapus.';
+            if ($request->expectsJson() || $request->ajax()) {
+                return response()->json(['success' => false, 'message' => $msg], 422);
+            }
+            return redirect()->route('admin.master', ['tab' => 'users'])->with('error', $msg);
+        }
 
         $hasHistory = $targetUser->fuelRequests()->exists()
             || $targetUser->spvRequests()->exists()
@@ -641,8 +680,8 @@ class AdminMasterController extends Controller
             || $targetUser->approvals()->exists()
             || $targetUser->fuelTransactions()->exists();
 
-        if ($hasHistory) {
-            $msg = "Akun pengguna {$targetUser->name} ({$targetUser->username}) memiliki riwayat pengajuan atau persetujuan BBM dan tidak dapat dihapus permanen. Silakan nonaktifkan statusnya.";
+        if ($hasHistory && !$twoStepVerified) {
+            $msg = "Akun pengguna {$targetUser->name} ({$targetUser->username}) memiliki riwayat pengajuan atau persetujuan BBM dan tidak dapat dihapus tanpa Verifikasi 2 Langkah.";
             if ($request->expectsJson() || $request->ajax()) {
                 return response()->json(['success' => false, 'message' => $msg], 422);
             }
@@ -653,7 +692,8 @@ class AdminMasterController extends Controller
         $targetUser->roles()->detach();
         $targetUser->delete();
 
-        FuelRequestHistory::record(null, $admin->id, 'master_deleted', 'active', 'deleted', "Menghapus akun pengguna ID #{$id}: {$username}.");
+        $verifyNote = $twoStepVerified ? ' [Terverifikasi 2 Langkah]' : '';
+        FuelRequestHistory::record(null, $admin->id, 'master_deleted', 'active', 'deleted', "Menghapus akun pengguna ID #{$id}: {$username}{$verifyNote}.");
 
         return $this->respondSuccess($request, 'users', "Akun pengguna {$username} berhasil dihapus.");
     }
@@ -734,6 +774,7 @@ class AdminMasterController extends Controller
     {
         $admin = $this->getActiveUser();
         $aa = AreaApprover::findOrFail($id);
+        $twoStepVerified = $this->verifyTwoStepDeleteConfirmation($request);
 
         $hasHistory = FuelRequest::where('area_id', $aa->area_id)
             ->where(function ($q) use ($aa) {
@@ -744,8 +785,8 @@ class AdminMasterController extends Controller
                     ->orWhere('vendor_user_id', $aa->user_id);
             })->exists();
 
-        if ($hasHistory) {
-            $msg = 'Penugasan Approver ini telah digunakan pada riwayat transaksi Fuel Request dan tidak dapat dihapus permanen. Silakan nonaktifkan statusnya.';
+        if ($hasHistory && !$twoStepVerified) {
+            $msg = 'Penugasan Approver ini telah digunakan pada riwayat transaksi Fuel Request dan tidak dapat dihapus tanpa Verifikasi 2 Langkah.';
             if ($request->expectsJson() || $request->ajax()) {
                 return response()->json(['success' => false, 'message' => $msg], 422);
             }
@@ -754,7 +795,8 @@ class AdminMasterController extends Controller
 
         $aa->delete();
 
-        FuelRequestHistory::record(null, $admin->id, 'master_deleted', 'active', 'deleted', "Menghapus penugasan Approver Area ID #{$id}.");
+        $verifyNote = $twoStepVerified ? ' [Terverifikasi 2 Langkah]' : '';
+        FuelRequestHistory::record(null, $admin->id, 'master_deleted', 'active', 'deleted', "Menghapus penugasan Approver Area ID #{$id}{$verifyNote}.");
 
         return $this->respondSuccess($request, 'approvers', 'Penugasan Approver Area berhasil dihapus.');
     }
@@ -1087,5 +1129,35 @@ class AdminMasterController extends Controller
         FuelRequestHistory::record(null, $admin->id, 'price_updated', null, 'active', "Memperbarui harga BBM ({$price->fuel_type}): Rp " . number_format($price->price_per_liter, 0, ',', '.') . "/Liter mulai {$price->effective_start->format('d/m/Y')}.");
 
         return redirect()->route('admin.master', ['tab' => 'prices'])->with('success', 'Harga BBM baru berhasil disimpan (riwayat harga lama tetap tersimpan).');
+    }
+
+    public function destroyFuelStandard(Request $request, $id)
+    {
+        $admin = $this->getActiveUser();
+        $std = FuelStandard::findOrFail($id);
+        $twoStepVerified = $this->verifyTwoStepDeleteConfirmation($request);
+
+        $label = ($std->vehicle?->unit_code ?? 'Vehicle #' . $std->vehicle_id) . ' (' . (float) $std->standard_value . ')';
+        $std->delete();
+
+        $verifyNote = $twoStepVerified ? ' [Terverifikasi 2 Langkah]' : '';
+        FuelRequestHistory::record(null, $admin->id, 'master_deleted', 'active', 'deleted', "Menghapus Standar BBM ID #{$id}: {$label}{$verifyNote}.");
+
+        return $this->respondSuccess($request, 'standards', "Data Standar BBM {$label} berhasil dihapus.");
+    }
+
+    public function destroyFuelPrice(Request $request, $id)
+    {
+        $admin = $this->getActiveUser();
+        $price = FuelPrice::findOrFail($id);
+        $twoStepVerified = $this->verifyTwoStepDeleteConfirmation($request);
+
+        $label = $price->fuel_type . ' (Rp ' . number_format($price->price_per_liter, 0, ',', '.') . ')';
+        $price->delete();
+
+        $verifyNote = $twoStepVerified ? ' [Terverifikasi 2 Langkah]' : '';
+        FuelRequestHistory::record(null, $admin->id, 'master_deleted', 'active', 'deleted', "Menghapus Harga BBM ID #{$id}: {$label}{$verifyNote}.");
+
+        return $this->respondSuccess($request, 'prices', "Data Harga BBM {$label} berhasil dihapus.");
     }
 }
