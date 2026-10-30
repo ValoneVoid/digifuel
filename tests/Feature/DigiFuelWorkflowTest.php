@@ -455,5 +455,64 @@ class DigiFuelWorkflowTest extends TestCase
         $docResp->assertStatus(200);
         $docResp->assertSee('40 Liter');
     }
+
+    /**
+     * Test: Driver dapat melihat/membuka detail/approval (tombol ungu) miliknya sendiri,
+     * tetapi tidak bisa membuka milik driver lain (IDOR) dan tidak bisa melakukan approve/reject/update.
+     */
+    public function test_driver_can_view_own_fuel_request_detail_and_cannot_view_others_or_perform_approval(): void
+    {
+        $driverAdji = User::where('username', 'adji')->firstOrFail();
+        $driverRachmat = User::where('username', 'rachmat')->firstOrFail();
+        $spv = User::where('username', 'aklis')->firstOrFail();
+        $depthead = User::where('username', 'Pdh-kusan')->firstOrFail();
+        $fuelman = User::where('username', 'adya')->firstOrFail();
+
+        // 1. Driver Adji membuat pengajuan
+        $this->actingAs($driverAdji);
+        $createResp = $this->post('/fuel', [
+            'request_date' => '2026-07-01 10:00:00',
+            'unit_code' => 'UT 208 DA 8191',
+            'police_no' => 'DA 8191',
+            'total_liters' => 35,
+            'hm_km' => 110000,
+            'area' => 'SDU (Sungai Danau)',
+            'spv_id' => $spv->id,
+            'fuelman_id' => $fuelman->id,
+            'depthead_id' => $depthead->id,
+            'vendor_name' => 'Cv. Sudan Mandiri',
+            'action_type' => 'submit',
+        ]);
+        $createResp->assertRedirect(route('history.index'));
+
+        $adjiRequest = FuelRequest::latest('id')->firstOrFail();
+        $this->assertEquals($driverAdji->id, $adjiRequest->user_id);
+
+        // 2. Driver Adji dapat membuka link tombol ungu (approval.show) untuk pengajuan miliknya sendiri
+        $adjiViewResp = $this->actingAs($driverAdji)->get(route('approval.show', $adjiRequest->id));
+        $adjiViewResp->assertStatus(200);
+        $adjiViewResp->assertSee($adjiRequest->request_no);
+        $adjiViewResp->assertSee('Isi Form Request');
+        $adjiViewResp->assertSee('35 Liter');
+        // Pastikan driver TIDAK melihat tombol Setuju atau Tolak
+        $adjiViewResp->assertDontSee('Setuju (Tahap 1');
+        $adjiViewResp->assertDontSee('id="approveModal"', false);
+        $adjiViewResp->assertDontSee('id="rejectModal"', false);
+        $adjiViewResp->assertDontSee('Ubah Jumlah Liter');
+
+        // 3. Driver Rachmat TIDAK DAPAT membuka pengajuan milik Adji (IDOR Prevention -> 403 Forbidden)
+        $this->actingAs($driverRachmat);
+        $rachmatBlockedResp = $this->get(route('approval.show', $adjiRequest->id));
+        $rachmatBlockedResp->assertStatus(403);
+
+        // 4. Driver TIDAK DAPAT mengakses daftar antrean approval (/approval -> 403 Forbidden)
+        $this->actingAs($driverAdji);
+        $this->get(route('approval.index'))->assertStatus(403);
+
+        // 5. Driver TIDAK DAPAT menyetujui, menolak, atau mengubah liter pengajuan (403 Forbidden)
+        $this->post(route('approval.approve', $adjiRequest->id), ['note' => 'Coba approve'])->assertStatus(403);
+        $this->post(route('approval.reject', $adjiRequest->id), ['note' => 'Coba tolak'])->assertStatus(403);
+        $this->post(route('approval.updateLiters', $adjiRequest->id), ['total_liters' => 20])->assertStatus(403);
+    }
 }
 

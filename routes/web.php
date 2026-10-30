@@ -54,10 +54,12 @@ Route::middleware(['auth'])->group(function () {
         Route::get('/api/vehicle-lookup', [FuelRequestController::class, 'vehicleLookup'])->name('api.vehicle.lookup');
     });
 
+    // Detail Pengajuan Fuel Request (Dapat diakses oleh Driver pemilik pengajuan, SPV, Dept Head, Vendor, Fuel Man, Admin sesuai Policy)
+    Route::get('/approval/{id}', [ApprovalController::class, 'show'])->name('approval.show');
+
     // Sequential Approval (SPV, Dept Head/Manager, Vendor) & Fuel Man Module
     Route::middleware(['role:spv,depthead,vendor,fuelman,admin'])->group(function () {
         Route::get('/approval', [ApprovalController::class, 'index'])->name('approval.index');
-        Route::get('/approval/{id}', [ApprovalController::class, 'show'])->name('approval.show');
         Route::post('/approval/{id}/approve', [ApprovalController::class, 'approve'])->name('approval.approve');
         Route::post('/approval/{id}/reject', [ApprovalController::class, 'reject'])->name('approval.reject');
         Route::post('/approval/{id}/update-liters', [ApprovalController::class, 'updateLiters'])->name('approval.updateLiters');

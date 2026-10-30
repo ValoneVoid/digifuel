@@ -134,6 +134,12 @@
             <a href="{{ route('fuel.document', $fuelRequest->id) }}" target="_blank" class="btn-digi btn-digi-blue" style="padding: 9px 16px;">
                 Dokumen Fuel
             </a>
+
+            @if($currentUser?->isDriver() && !$currentUser?->isAdmin())
+                <a href="{{ route('history.index') }}" class="btn-digi btn-digi-gray" style="padding: 9px 16px;">
+                    &larr; Riwayat Saya
+                </a>
+            @endif
         </div>
     </div>
 
@@ -363,6 +369,7 @@
     @endif
 </div>
 
+@if($canApprove)
 <!-- MODAL KONFIRMASI PERSETUJUAN (Slide 9) -->
 <div id="approveModal" class="digi-modal-backdrop" style="display: none;">
     <div class="digi-modal">
@@ -467,6 +474,7 @@
         </form>
     </div>
 </div>
+@endif
 @endsection
 
 @section('scripts')
