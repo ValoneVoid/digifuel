@@ -48,12 +48,12 @@ class FuelRequestController extends Controller
                 ->where('is_active', true)
                 ->get();
 
-            $areaSpvs = $assignments->where('role_type', 'spv')->pluck('user')->filter()->values();
-            $areaManagers = $assignments->where('role_type', 'manager')->pluck('user')->filter()->values();
-            $areaFuelmen = $assignments->where('role_type', 'fuelman')->pluck('user')->filter()->values();
-            $areaVendorUsers = $assignments->where('role_type', 'vendor')->pluck('user')->filter()->values();
+            $areaSpvs = $assignments->where('role_type', 'spv')->pluck('user')->filter(fn($u) => $u && $u->is_active)->values();
+            $areaManagers = $assignments->where('role_type', 'manager')->pluck('user')->filter(fn($u) => $u && $u->is_active)->values();
+            $areaFuelmen = $assignments->where('role_type', 'fuelman')->pluck('user')->filter(fn($u) => $u && $u->is_active)->values();
+            $areaVendorUsers = $assignments->where('role_type', 'vendor')->pluck('user')->filter(fn($u) => $u && $u->is_active)->values();
 
-            $areaVendors = $areaVendorUsers->map(fn($u) => $u->vendor)->filter()->unique('id')->values();
+            $areaVendors = $areaVendorUsers->map(fn($u) => $u->vendor)->filter(fn($v) => $v && $v->is_active)->unique('id')->values();
 
             $areaApproverMap[$area->name] = [
                 'spvs' => ($areaSpvs->isNotEmpty() ? $areaSpvs : $spvs)->map(fn($u) => [
@@ -118,15 +118,15 @@ class FuelRequestController extends Controller
                 ->get();
 
             if ($assignments->where('role_type', 'spv')->isNotEmpty()) {
-                $spvs = $assignments->where('role_type', 'spv')->pluck('user')->filter()->values();
+                $spvs = $assignments->where('role_type', 'spv')->pluck('user')->filter(fn($u) => $u && $u->is_active)->values();
             }
             if ($assignments->where('role_type', 'manager')->isNotEmpty()) {
-                $deptheads = $assignments->where('role_type', 'manager')->pluck('user')->filter()->values();
+                $deptheads = $assignments->where('role_type', 'manager')->pluck('user')->filter(fn($u) => $u && $u->is_active)->values();
             }
             if ($assignments->where('role_type', 'fuelman')->isNotEmpty()) {
-                $fuelmen = $assignments->where('role_type', 'fuelman')->pluck('user')->filter()->values();
+                $fuelmen = $assignments->where('role_type', 'fuelman')->pluck('user')->filter(fn($u) => $u && $u->is_active)->values();
             }
-            $assignedVendors = $assignments->where('role_type', 'vendor')->pluck('user.vendor')->filter()->unique('id')->values();
+            $assignedVendors = $assignments->where('role_type', 'vendor')->pluck('user.vendor')->filter(fn($v) => $v && $v->is_active)->unique('id')->values();
             if ($assignedVendors->isNotEmpty()) {
                 $vendors = $assignedVendors;
             }

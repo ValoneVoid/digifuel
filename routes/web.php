@@ -76,6 +76,8 @@ Route::middleware(['auth'])->group(function () {
 
         // Master Data & Audit Trail Management (Admin)
         Route::get('/admin/master', [AdminMasterController::class, 'index'])->name('admin.master');
+
+        // Legacy Form Action Routes (Backward Compatible with admin/master.blade.php)
         Route::post('/admin/master/employee', [AdminMasterController::class, 'storeEmployee'])->name('admin.master.employee');
         Route::post('/admin/master/vehicle', [AdminMasterController::class, 'storeVehicle'])->name('admin.master.vehicle');
         Route::post('/admin/master/area', [AdminMasterController::class, 'storeArea'])->name('admin.master.area');
@@ -87,5 +89,47 @@ Route::middleware(['auth'])->group(function () {
         Route::post('/admin/master/background', [AdminMasterController::class, 'storeBackground'])->name('admin.master.background');
         Route::post('/admin/master/background/{id}/delete', [AdminMasterController::class, 'deleteBackground'])->name('admin.master.background.delete');
         Route::post('/admin/master/toggle-status', [AdminMasterController::class, 'toggleStatus'])->name('admin.master.toggle');
+        Route::patch('/admin/master/toggle-status', [AdminMasterController::class, 'toggleStatus']);
+
+        // 1. Employee ID-based CRUD Routes
+        Route::get('/admin/master/employees/{id}/edit', [AdminMasterController::class, 'editEmployee'])->name('admin.master.employees.edit');
+        Route::match(['put', 'patch', 'post'], '/admin/master/employees/{id}', [AdminMasterController::class, 'updateEmployee'])->name('admin.master.employees.update');
+        Route::match(['patch', 'post'], '/admin/master/employees/{id}/toggle-active', [AdminMasterController::class, 'toggleEmployee'])->name('admin.master.employees.toggle');
+        Route::delete('/admin/master/employees/{id}', [AdminMasterController::class, 'destroyEmployee'])->name('admin.master.employees.destroy');
+
+        // 2. Unit / Vehicle ID-based CRUD Routes (supports both /units/{id} and /vehicles/{id})
+        Route::get('/admin/master/units/{id}/edit', [AdminMasterController::class, 'editVehicle'])->name('admin.master.units.edit');
+        Route::match(['put', 'patch', 'post'], '/admin/master/units/{id}', [AdminMasterController::class, 'updateVehicle'])->name('admin.master.units.update');
+        Route::match(['patch', 'post'], '/admin/master/units/{id}/toggle-active', [AdminMasterController::class, 'toggleVehicle'])->name('admin.master.units.toggle');
+        Route::delete('/admin/master/units/{id}', [AdminMasterController::class, 'destroyVehicle'])->name('admin.master.units.destroy');
+
+        Route::get('/admin/master/vehicles/{id}/edit', [AdminMasterController::class, 'editVehicle'])->name('admin.master.vehicles.edit');
+        Route::match(['put', 'patch', 'post'], '/admin/master/vehicles/{id}', [AdminMasterController::class, 'updateVehicle'])->name('admin.master.vehicles.update');
+        Route::match(['patch', 'post'], '/admin/master/vehicles/{id}/toggle-active', [AdminMasterController::class, 'toggleVehicle'])->name('admin.master.vehicles.toggle');
+        Route::delete('/admin/master/vehicles/{id}', [AdminMasterController::class, 'destroyVehicle'])->name('admin.master.vehicles.destroy');
+
+        // 3. Area ID-based CRUD Routes
+        Route::get('/admin/master/areas/{id}/edit', [AdminMasterController::class, 'editArea'])->name('admin.master.areas.edit');
+        Route::match(['put', 'patch', 'post'], '/admin/master/areas/{id}', [AdminMasterController::class, 'updateArea'])->name('admin.master.areas.update');
+        Route::match(['patch', 'post'], '/admin/master/areas/{id}/toggle-active', [AdminMasterController::class, 'toggleArea'])->name('admin.master.areas.toggle');
+        Route::delete('/admin/master/areas/{id}', [AdminMasterController::class, 'destroyArea'])->name('admin.master.areas.destroy');
+
+        // 4. Vendor ID-based CRUD Routes
+        Route::get('/admin/master/vendors/{id}/edit', [AdminMasterController::class, 'editVendor'])->name('admin.master.vendors.edit');
+        Route::match(['put', 'patch', 'post'], '/admin/master/vendors/{id}', [AdminMasterController::class, 'updateVendor'])->name('admin.master.vendors.update');
+        Route::match(['patch', 'post'], '/admin/master/vendors/{id}/toggle-active', [AdminMasterController::class, 'toggleVendor'])->name('admin.master.vendors.toggle');
+        Route::delete('/admin/master/vendors/{id}', [AdminMasterController::class, 'destroyVendor'])->name('admin.master.vendors.destroy');
+
+        // 5. User ID-based CRUD Routes
+        Route::get('/admin/master/users/{id}/edit', [AdminMasterController::class, 'editUser'])->name('admin.master.users.edit');
+        Route::match(['put', 'patch', 'post'], '/admin/master/users/{id}', [AdminMasterController::class, 'updateUser'])->name('admin.master.users.update');
+        Route::match(['patch', 'post'], '/admin/master/users/{id}/toggle-active', [AdminMasterController::class, 'toggleUser'])->name('admin.master.users.toggle');
+        Route::delete('/admin/master/users/{id}', [AdminMasterController::class, 'destroyUser'])->name('admin.master.users.destroy');
+
+        // 6. Area Approver ID-based CRUD Routes
+        Route::get('/admin/master/area-approvers/{id}/edit', [AdminMasterController::class, 'editAreaApprover'])->name('admin.master.approvers.edit');
+        Route::match(['put', 'patch', 'post'], '/admin/master/area-approvers/{id}', [AdminMasterController::class, 'updateAreaApprover'])->name('admin.master.approvers.update');
+        Route::match(['patch', 'post'], '/admin/master/area-approvers/{id}/toggle-active', [AdminMasterController::class, 'toggleAreaApprover'])->name('admin.master.approvers.toggle');
+        Route::delete('/admin/master/area-approvers/{id}', [AdminMasterController::class, 'destroyAreaApprover'])->name('admin.master.approvers.destroy');
     });
 });

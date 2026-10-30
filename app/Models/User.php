@@ -51,6 +51,40 @@ class User extends Authenticatable
         return $this->hasMany(FuelRequest::class);
     }
 
+    public function spvRequests()
+    {
+        return $this->hasMany(FuelRequest::class, 'spv_id');
+    }
+
+    public function deptheadRequests()
+    {
+        return $this->hasMany(FuelRequest::class, 'depthead_id');
+    }
+
+    public function fuelmanRequests()
+    {
+        return $this->hasMany(FuelRequest::class, 'fuelman_id');
+    }
+
+    public function approvals()
+    {
+        return $this->hasMany(FuelRequestApproval::class, 'approver_id');
+    }
+
+    public function fuelTransactions()
+    {
+        return $this->hasMany(FuelTransaction::class, 'fuelman_id');
+    }
+
+    public function hasRole(string|array $roles): bool
+    {
+        $roleList = is_array($roles) ? $roles : [$roles];
+        if (in_array($this->role, $roleList, true)) {
+            return true;
+        }
+        return $this->roles()->whereIn('name', $roleList)->exists();
+    }
+
     public function areaApprovers()
     {
         return $this->hasMany(AreaApprover::class);

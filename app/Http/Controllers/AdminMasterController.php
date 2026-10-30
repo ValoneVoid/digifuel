@@ -3,6 +3,8 @@
 namespace App\Http\Controllers;
 
 use Illuminate\Http\Request;
+use Illuminate\Validation\Rule;
+use Illuminate\Validation\ValidationException;
 use App\Models\Employee;
 use App\Models\Vehicle;
 use App\Models\Area;
@@ -12,6 +14,7 @@ use App\Models\Role;
 use App\Models\AreaApprover;
 use App\Models\FuelStandard;
 use App\Models\FuelPrice;
+use App\Models\FuelRequest;
 use App\Models\SystemBackground;
 use App\Models\FuelRequestHistory;
 use Illuminate\Support\Facades\Auth;
@@ -28,6 +31,19 @@ class AdminMasterController extends Controller
             abort(401, 'Silakan login terlebih dahulu.');
         }
         return $user;
+    }
+
+    protected function respondSuccess(Request $request, string $tab, string $message, $data = null, int $status = 200)
+    {
+        if ($request->expectsJson() || $request->ajax()) {
+            return response()->json([
+                'success' => true,
+                'message' => $message,
+                'data' => $data,
+            ], $status);
+        }
+
+        return redirect()->route('admin.master', ['tab' => $tab])->with('success', $message);
     }
 
     public function index(Request $request)
@@ -66,165 +82,483 @@ class AdminMasterController extends Controller
         ));
     }
 
-    // 1. Store / Update Employee
+    // =========================================================================
+    // 1. EMPLOYEE CRUD
+    // =========================================================================
+
+    public function editEmployee($id)
+    {
+        $employee = Employee::findOrFail($id);
+
+        return response()->json([
+            'success' => true,
+            'data' => $employee,
+        ]);
+    }
+
     public function storeEmployee(Request $request)
     {
+        $id = $request->input('id');
+        if ($id !== null && $id !== '') {
+            return $this->updateEmployee($request, $id);
+        }
+
         $user = $this->getActiveUser();
         $validated = $request->validate([
-            'id' => 'nullable|exists:employees,id',
-            'nrp' => 'required|string|max:50',
-            'name' => 'required|string|max:150',
-            'position' => 'nullable|string|max:100',
-            'department' => 'nullable|string|max:100',
-            'company' => 'required|string|max:150',
-            'source' => 'nullable|in:local,digisim',
-            'external_reference' => 'nullable|string|max:100',
-            'is_active' => 'nullable|boolean',
+            'nrp' => ['required', 'string', 'max:50', Rule::unique('employees', 'nrp')],
+            'name' => ['required', 'string', 'max:150'],
+            'position' => ['nullable', 'string', 'max:100'],
+            'department' => ['nullable', 'string', 'max:100'],
+            'company' => ['required', 'string', 'max:150'],
+            'source' => ['nullable', 'in:local,digisim'],
+            'external_reference' => ['nullable', 'string', 'max:100'],
+            'is_active' => ['nullable', 'boolean'],
         ]);
 
-        $payload = [
+        $source = $validated['source'] ?? 'local';
+        $emp = Employee::create([
             'nrp' => $validated['nrp'],
             'name' => $validated['name'],
             'position' => $validated['position'] ?? 'Driver / Operator',
             'department' => $validated['department'] ?? 'Operation',
             'company' => $validated['company'],
-            'source' => $validated['source'] ?? 'local',
-            'external_system' => ($validated['source'] ?? 'local') === 'digisim' ? 'DIGISIM' : null,
+            'source' => $source,
+            'external_system' => $source === 'digisim' ? 'DIGISIM' : null,
             'external_reference' => $validated['external_reference'] ?? null,
             'is_active' => $request->has('is_active') ? $request->boolean('is_active') : true,
-        ];
+        ]);
 
-        if (!empty($validated['id'])) {
-            $emp = Employee::findOrFail($validated['id']);
-            $emp->update($payload);
-        } else {
-            $emp = Employee::updateOrCreate(['nrp' => $validated['nrp']], $payload);
-        }
+        FuelRequestHistory::record(null, $user->id, 'master_updated', null, 'active', "Menambahkan data Employee: {$emp->nrp} - {$emp->name}.");
 
-        FuelRequestHistory::record(null, $user->id, 'master_updated', null, 'active', "Menyimpan data Employee: {$emp->nrp} - {$emp->name}.");
-
-        return redirect()->route('admin.master', ['tab' => 'employees'])->with('success', "Data Employee {$emp->name} ({$emp->nrp}) berhasil disimpan.");
+        return $this->respondSuccess($request, 'employees', "Data Employee {$emp->name} ({$emp->nrp}) berhasil disimpan.", $emp);
     }
 
-    // 2. Store / Update Unit (Vehicle)
-    public function storeVehicle(Request $request)
+    public function updateEmployee(Request $request, $id)
     {
         $user = $this->getActiveUser();
+        $emp = Employee::findOrFail($id);
+
         $validated = $request->validate([
-            'id' => 'nullable|exists:vehicles,id',
-            'unit_code' => 'required|string|max:80',
-            'police_no' => 'required|string|max:50',
-            'model' => 'nullable|string|max:120',
-            'unit_type' => 'nullable|string|max:80',
-            'meter_type' => 'required|in:km,hm',
-            'tank_capacity' => 'nullable|numeric|min:1',
-            'is_active' => 'nullable|boolean',
+            'nrp' => ['required', 'string', 'max:50', Rule::unique('employees', 'nrp')->ignore($emp->id)],
+            'name' => ['required', 'string', 'max:150'],
+            'position' => ['nullable', 'string', 'max:100'],
+            'department' => ['nullable', 'string', 'max:100'],
+            'company' => ['required', 'string', 'max:150'],
+            'source' => ['nullable', 'in:local,digisim'],
+            'external_reference' => ['nullable', 'string', 'max:100'],
+            'is_active' => ['nullable', 'boolean'],
+        ]);
+
+        $source = $validated['source'] ?? $emp->source ?? 'local';
+        $payload = [
+            'nrp' => $validated['nrp'],
+            'name' => $validated['name'],
+            'position' => $validated['position'] ?? $emp->position ?? 'Driver / Operator',
+            'department' => $validated['department'] ?? $emp->department ?? 'Operation',
+            'company' => $validated['company'],
+            'source' => $source,
+            'external_system' => $source === 'digisim' ? ($emp->external_system ?? 'DIGISIM') : $emp->external_system,
+            'external_reference' => array_key_exists('external_reference', $validated) && $validated['external_reference'] !== null
+                ? $validated['external_reference']
+                : $emp->external_reference,
+            'is_active' => $request->has('is_active') ? $request->boolean('is_active') : $emp->is_active,
+        ];
+
+        $emp->update($payload);
+
+        FuelRequestHistory::record(null, $user->id, 'master_updated', null, $emp->is_active ? 'active' : 'inactive', "Memperbarui data Employee ID #{$emp->id}: {$emp->nrp} - {$emp->name}.");
+
+        return $this->respondSuccess($request, 'employees', "Data Employee {$emp->name} ({$emp->nrp}) berhasil diperbarui.", $emp->fresh());
+    }
+
+    public function toggleEmployee(Request $request, $id)
+    {
+        return $this->toggleEntityById($request, Employee::class, $id, 'employee', 'employees');
+    }
+
+    public function destroyEmployee(Request $request, $id)
+    {
+        $admin = $this->getActiveUser();
+        $emp = Employee::findOrFail($id);
+
+        if ($emp->fuelRequests()->exists()) {
+            $msg = "Data Employee {$emp->name} ({$emp->nrp}) memiliki riwayat transaksi Fuel Request dan tidak dapat dihapus permanen. Silakan nonaktifkan statusnya.";
+            if ($request->expectsJson() || $request->ajax()) {
+                return response()->json(['success' => false, 'message' => $msg], 422);
+            }
+            return redirect()->route('admin.master', ['tab' => 'employees'])->with('error', $msg);
+        }
+
+        $emp->update(['is_active' => false]);
+        $emp->delete();
+
+        FuelRequestHistory::record(null, $admin->id, 'master_deleted', 'active', 'deleted', "Menghapus (Soft Delete) data Employee ID #{$emp->id}: {$emp->nrp} - {$emp->name}.");
+
+        return $this->respondSuccess($request, 'employees', "Data Employee {$emp->name} berhasil dihapus.");
+    }
+
+    // =========================================================================
+    // 2. UNIT / VEHICLE CRUD
+    // =========================================================================
+
+    public function editVehicle($id)
+    {
+        $vehicle = Vehicle::with(['defaultArea', 'activeFuelStandard'])->findOrFail($id);
+
+        return response()->json([
+            'success' => true,
+            'data' => $vehicle,
+        ]);
+    }
+
+    public function storeVehicle(Request $request)
+    {
+        $id = $request->input('id');
+        if ($id !== null && $id !== '') {
+            return $this->updateVehicle($request, $id);
+        }
+
+        $user = $this->getActiveUser();
+        $validated = $request->validate([
+            'unit_code' => ['required', 'string', 'max:80', Rule::unique('vehicles', 'unit_code')],
+            'police_no' => ['required', 'string', 'max:50'],
+            'model' => ['nullable', 'string', 'max:120'],
+            'unit_type' => ['nullable', 'string', 'max:80'],
+            'meter_type' => ['required', 'in:km,hm'],
+            'tank_capacity' => ['nullable', 'numeric', 'min:1'],
+            'default_area_id' => ['nullable', 'exists:areas,id'],
+            'is_active' => ['nullable', 'boolean'],
+        ]);
+
+        $veh = Vehicle::create([
+            'unit_code' => $validated['unit_code'],
+            'police_no' => $validated['police_no'],
+            'model' => $validated['model'] ?? ($validated['unit_type'] ?? 'Light Vehicle'),
+            'unit_type' => $validated['unit_type'] ?? ($validated['model'] ?? 'Light Vehicle'),
+            'meter_type' => $validated['meter_type'],
+            'tank_capacity' => $validated['tank_capacity'] ?? 80,
+            'default_area_id' => $validated['default_area_id'] ?? null,
+            'is_active' => $request->has('is_active') ? $request->boolean('is_active') : true,
+        ]);
+
+        FuelRequestHistory::record(null, $user->id, 'master_updated', null, 'active', "Menambahkan data Unit: {$veh->unit_code} ({$veh->police_no}).");
+
+        return $this->respondSuccess($request, 'units', "Data Unit {$veh->unit_code} berhasil disimpan.", $veh);
+    }
+
+    public function updateVehicle(Request $request, $id)
+    {
+        $user = $this->getActiveUser();
+        $veh = Vehicle::findOrFail($id);
+
+        $validated = $request->validate([
+            'unit_code' => ['required', 'string', 'max:80', Rule::unique('vehicles', 'unit_code')->ignore($veh->id)],
+            'police_no' => ['required', 'string', 'max:50'],
+            'model' => ['nullable', 'string', 'max:120'],
+            'unit_type' => ['nullable', 'string', 'max:80'],
+            'meter_type' => ['required', 'in:km,hm'],
+            'tank_capacity' => ['nullable', 'numeric', 'min:1'],
+            'default_area_id' => ['nullable', 'exists:areas,id'],
+            'is_active' => ['nullable', 'boolean'],
         ]);
 
         $payload = [
             'unit_code' => $validated['unit_code'],
             'police_no' => $validated['police_no'],
-            'model' => $validated['model'] ?? $validated['unit_type'],
-            'unit_type' => $validated['unit_type'] ?? 'Light Vehicle',
+            'model' => $validated['model'] ?? ($validated['unit_type'] ?? $veh->model),
+            'unit_type' => $validated['unit_type'] ?? ($validated['model'] ?? $veh->unit_type ?? 'Light Vehicle'),
             'meter_type' => $validated['meter_type'],
-            'tank_capacity' => $validated['tank_capacity'] ?? 80,
-            'is_active' => $request->has('is_active') ? $request->boolean('is_active') : true,
+            'tank_capacity' => $validated['tank_capacity'] ?? $veh->tank_capacity ?? 80,
+            'default_area_id' => array_key_exists('default_area_id', $validated) ? $validated['default_area_id'] : $veh->default_area_id,
+            'is_active' => $request->has('is_active') ? $request->boolean('is_active') : $veh->is_active,
         ];
 
-        if (!empty($validated['id'])) {
-            $veh = Vehicle::findOrFail($validated['id']);
-            $veh->update($payload);
-        } else {
-            $veh = Vehicle::updateOrCreate(['unit_code' => $validated['unit_code']], $payload);
-        }
+        $veh->update($payload);
 
-        FuelRequestHistory::record(null, $user->id, 'master_updated', null, 'active', "Menyimpan data Unit: {$veh->unit_code} ({$veh->police_no}).");
+        FuelRequestHistory::record(null, $user->id, 'master_updated', null, $veh->is_active ? 'active' : 'inactive', "Memperbarui data Unit ID #{$veh->id}: {$veh->unit_code} ({$veh->police_no}).");
 
-        return redirect()->route('admin.master', ['tab' => 'units'])->with('success', "Data Unit {$veh->unit_code} berhasil disimpan.");
+        return $this->respondSuccess($request, 'units', "Data Unit {$veh->unit_code} berhasil diperbarui.", $veh->fresh());
     }
 
-    // 3. Store / Update Area
-    public function storeArea(Request $request)
+    public function toggleVehicle(Request $request, $id)
     {
-        $user = $this->getActiveUser();
-        $validated = $request->validate([
-            'id' => 'nullable|exists:areas,id',
-            'code' => 'nullable|string|max:30',
-            'name' => 'required|string|max:120',
-            'is_active' => 'nullable|boolean',
-        ]);
-
-        $payload = [
-            'name' => $validated['name'],
-            'code' => $validated['code'] ?: strtoupper(substr(preg_replace('/[^A-Za-z0-9]/', '', $validated['name']), 0, 6)),
-            'is_active' => $request->has('is_active') ? $request->boolean('is_active') : true,
-        ];
-
-        if (!empty($validated['id'])) {
-            $area = Area::findOrFail($validated['id']);
-            $area->update($payload);
-        } else {
-            $area = Area::updateOrCreate(['name' => $validated['name']], $payload);
-        }
-
-        FuelRequestHistory::record(null, $user->id, 'master_updated', null, 'active', "Menyimpan data Area Operasional: {$area->name}.");
-
-        return redirect()->route('admin.master', ['tab' => 'areas'])->with('success', "Area operasional {$area->name} berhasil disimpan.");
+        return $this->toggleEntityById($request, Vehicle::class, $id, 'unit', 'units');
     }
 
-    // 4. Store / Update Vendor
-    public function storeVendor(Request $request)
-    {
-        $user = $this->getActiveUser();
-        $validated = $request->validate([
-            'id' => 'nullable|exists:vendors,id',
-            'code' => 'nullable|string|max:30',
-            'name' => 'required|string|max:150',
-            'contact_person' => 'nullable|string|max:100',
-            'phone' => 'nullable|string|max:40',
-            'is_active' => 'nullable|boolean',
-        ]);
-
-        $payload = [
-            'name' => $validated['name'],
-            'code' => $validated['code'] ?: 'VND-' . rand(100, 999),
-            'contact_person' => $validated['contact_person'],
-            'phone' => $validated['phone'],
-            'is_active' => $request->has('is_active') ? $request->boolean('is_active') : true,
-        ];
-
-        if (!empty($validated['id'])) {
-            $vendor = Vendor::findOrFail($validated['id']);
-            $vendor->update($payload);
-        } else {
-            $vendor = Vendor::updateOrCreate(['name' => $validated['name']], $payload);
-        }
-
-        FuelRequestHistory::record(null, $user->id, 'master_updated', null, 'active', "Menyimpan data Vendor: {$vendor->name}.");
-
-        return redirect()->route('admin.master', ['tab' => 'vendors'])->with('success', "Data Vendor {$vendor->name} berhasil disimpan.");
-    }
-
-    // 5. Store / Update User & Role
-    public function storeUser(Request $request)
+    public function destroyVehicle(Request $request, $id)
     {
         $admin = $this->getActiveUser();
+        $veh = Vehicle::findOrFail($id);
+
+        if ($veh->fuelRequests()->exists()) {
+            $msg = "Data Unit {$veh->unit_code} memiliki riwayat transaksi Fuel Request dan tidak dapat dihapus permanen. Silakan nonaktifkan statusnya.";
+            if ($request->expectsJson() || $request->ajax()) {
+                return response()->json(['success' => false, 'message' => $msg], 422);
+            }
+            return redirect()->route('admin.master', ['tab' => 'units'])->with('error', $msg);
+        }
+
+        $unitCode = $veh->unit_code;
+        $veh->delete();
+
+        FuelRequestHistory::record(null, $admin->id, 'master_deleted', 'active', 'deleted', "Menghapus data Unit ID #{$id}: {$unitCode}.");
+
+        return $this->respondSuccess($request, 'units', "Data Unit {$unitCode} berhasil dihapus.");
+    }
+
+    // =========================================================================
+    // 3. AREA CRUD
+    // =========================================================================
+
+    public function editArea($id)
+    {
+        $area = Area::findOrFail($id);
+
+        return response()->json([
+            'success' => true,
+            'data' => $area,
+        ]);
+    }
+
+    public function storeArea(Request $request)
+    {
+        $id = $request->input('id');
+        if ($id !== null && $id !== '') {
+            return $this->updateArea($request, $id);
+        }
+
+        $user = $this->getActiveUser();
         $validated = $request->validate([
-            'id' => 'nullable|exists:users,id',
-            'name' => 'required|string|max:120',
-            'username' => 'required|string|max:80',
-            'email' => 'required|email|max:150',
-            'role' => 'required|in:admin,driver,spv,depthead,vendor,fuelman',
-            'jabatan' => 'required|string|max:100',
-            'nrp' => 'nullable|string|max:50',
-            'vendor_id' => 'nullable|exists:vendors,id',
-            'password' => 'nullable|string|min:6',
-            'is_active' => 'nullable|boolean',
+            'code' => ['nullable', 'string', 'max:30', Rule::unique('areas', 'code')],
+            'name' => ['required', 'string', 'max:120', Rule::unique('areas', 'name')],
+            'is_active' => ['nullable', 'boolean'],
         ]);
 
-        $existing = !empty($validated['id'])
-            ? User::find($validated['id'])
-            : User::where('email', $validated['email'])->orWhere('username', $validated['username'])->first();
+        $code = !empty($validated['code'])
+            ? $validated['code']
+            : $this->generateUniqueAreaCode($validated['name']);
+
+        $area = Area::create([
+            'name' => $validated['name'],
+            'code' => $code,
+            'is_active' => $request->has('is_active') ? $request->boolean('is_active') : true,
+        ]);
+
+        FuelRequestHistory::record(null, $user->id, 'master_updated', null, 'active', "Menambahkan Area Operasional: {$area->name} ({$area->code}).");
+
+        return $this->respondSuccess($request, 'areas', "Area operasional {$area->name} berhasil disimpan.", $area);
+    }
+
+    public function updateArea(Request $request, $id)
+    {
+        $user = $this->getActiveUser();
+        $area = Area::findOrFail($id);
+
+        $validated = $request->validate([
+            'code' => ['nullable', 'string', 'max:30', Rule::unique('areas', 'code')->ignore($area->id)],
+            'name' => ['required', 'string', 'max:120', Rule::unique('areas', 'name')->ignore($area->id)],
+            'is_active' => ['nullable', 'boolean'],
+        ]);
+
+        $code = !empty($validated['code'])
+            ? $validated['code']
+            : ($area->code ?: $this->generateUniqueAreaCode($validated['name'], $area->id));
+
+        $area->update([
+            'name' => $validated['name'],
+            'code' => $code,
+            'is_active' => $request->has('is_active') ? $request->boolean('is_active') : $area->is_active,
+        ]);
+
+        FuelRequestHistory::record(null, $user->id, 'master_updated', null, $area->is_active ? 'active' : 'inactive', "Memperbarui Area Operasional ID #{$area->id}: {$area->name} ({$area->code}).");
+
+        return $this->respondSuccess($request, 'areas', "Area operasional {$area->name} berhasil diperbarui.", $area->fresh());
+    }
+
+    public function toggleArea(Request $request, $id)
+    {
+        return $this->toggleEntityById($request, Area::class, $id, 'area', 'areas');
+    }
+
+    public function destroyArea(Request $request, $id)
+    {
+        $admin = $this->getActiveUser();
+        $area = Area::findOrFail($id);
+
+        if ($area->fuelRequests()->exists() || FuelRequest::where('area', $area->name)->exists()) {
+            $msg = "Area operasional {$area->name} memiliki riwayat transaksi Fuel Request dan tidak dapat dihapus permanen. Silakan nonaktifkan statusnya.";
+            if ($request->expectsJson() || $request->ajax()) {
+                return response()->json(['success' => false, 'message' => $msg], 422);
+            }
+            return redirect()->route('admin.master', ['tab' => 'areas'])->with('error', $msg);
+        }
+
+        $areaName = $area->name;
+        $area->delete();
+
+        FuelRequestHistory::record(null, $admin->id, 'master_deleted', 'active', 'deleted', "Menghapus Area Operasional ID #{$id}: {$areaName}.");
+
+        return $this->respondSuccess($request, 'areas', "Area operasional {$areaName} berhasil dihapus.");
+    }
+
+    protected function generateUniqueAreaCode(string $name, ?int $ignoreId = null): string
+    {
+        $base = strtoupper(substr(preg_replace('/[^A-Za-z0-9]/', '', $name), 0, 6)) ?: 'AREA';
+        $code = $base;
+        $counter = 1;
+        while (Area::where('code', $code)->when($ignoreId, fn($q) => $q->where('id', '!=', $ignoreId))->exists()) {
+            $code = $base . '-' . $counter;
+            $counter++;
+        }
+        return $code;
+    }
+
+    // =========================================================================
+    // 4. VENDOR CRUD
+    // =========================================================================
+
+    public function editVendor($id)
+    {
+        $vendor = Vendor::findOrFail($id);
+
+        return response()->json([
+            'success' => true,
+            'data' => $vendor,
+        ]);
+    }
+
+    public function storeVendor(Request $request)
+    {
+        $id = $request->input('id');
+        if ($id !== null && $id !== '') {
+            return $this->updateVendor($request, $id);
+        }
+
+        $user = $this->getActiveUser();
+        $validated = $request->validate([
+            'code' => ['nullable', 'string', 'max:30', Rule::unique('vendors', 'code')],
+            'name' => ['required', 'string', 'max:150', Rule::unique('vendors', 'name')],
+            'contact_person' => ['nullable', 'string', 'max:100'],
+            'phone' => ['nullable', 'string', 'max:40'],
+            'is_active' => ['nullable', 'boolean'],
+        ]);
+
+        $code = !empty($validated['code'])
+            ? $validated['code']
+            : $this->generateUniqueVendorCode();
+
+        $vendor = Vendor::create([
+            'name' => $validated['name'],
+            'code' => $code,
+            'contact_person' => $validated['contact_person'] ?? null,
+            'phone' => $validated['phone'] ?? null,
+            'is_active' => $request->has('is_active') ? $request->boolean('is_active') : true,
+        ]);
+
+        FuelRequestHistory::record(null, $user->id, 'master_updated', null, 'active', "Menambahkan data Vendor: {$vendor->name} ({$vendor->code}).");
+
+        return $this->respondSuccess($request, 'vendors', "Data Vendor {$vendor->name} berhasil disimpan.", $vendor);
+    }
+
+    public function updateVendor(Request $request, $id)
+    {
+        $user = $this->getActiveUser();
+        $vendor = Vendor::findOrFail($id);
+
+        $validated = $request->validate([
+            'code' => ['nullable', 'string', 'max:30', Rule::unique('vendors', 'code')->ignore($vendor->id)],
+            'name' => ['required', 'string', 'max:150', Rule::unique('vendors', 'name')->ignore($vendor->id)],
+            'contact_person' => ['nullable', 'string', 'max:100'],
+            'phone' => ['nullable', 'string', 'max:40'],
+            'is_active' => ['nullable', 'boolean'],
+        ]);
+
+        $code = !empty($validated['code'])
+            ? $validated['code']
+            : ($vendor->code ?: $this->generateUniqueVendorCode($vendor->id));
+
+        $vendor->update([
+            'name' => $validated['name'],
+            'code' => $code,
+            'contact_person' => array_key_exists('contact_person', $validated) ? $validated['contact_person'] : $vendor->contact_person,
+            'phone' => array_key_exists('phone', $validated) ? $validated['phone'] : $vendor->phone,
+            'is_active' => $request->has('is_active') ? $request->boolean('is_active') : $vendor->is_active,
+        ]);
+
+        FuelRequestHistory::record(null, $user->id, 'master_updated', null, $vendor->is_active ? 'active' : 'inactive', "Memperbarui data Vendor ID #{$vendor->id}: {$vendor->name} ({$vendor->code}).");
+
+        return $this->respondSuccess($request, 'vendors', "Data Vendor {$vendor->name} berhasil diperbarui.", $vendor->fresh());
+    }
+
+    public function toggleVendor(Request $request, $id)
+    {
+        return $this->toggleEntityById($request, Vendor::class, $id, 'vendor', 'vendors');
+    }
+
+    public function destroyVendor(Request $request, $id)
+    {
+        $admin = $this->getActiveUser();
+        $vendor = Vendor::findOrFail($id);
+
+        if ($vendor->fuelRequests()->exists() || FuelRequest::where('vendor_name', $vendor->name)->exists()) {
+            $msg = "Data Vendor {$vendor->name} memiliki riwayat transaksi Fuel Request dan tidak dapat dihapus permanen. Silakan nonaktifkan statusnya.";
+            if ($request->expectsJson() || $request->ajax()) {
+                return response()->json(['success' => false, 'message' => $msg], 422);
+            }
+            return redirect()->route('admin.master', ['tab' => 'vendors'])->with('error', $msg);
+        }
+
+        $vendorName = $vendor->name;
+        $vendor->delete();
+
+        FuelRequestHistory::record(null, $admin->id, 'master_deleted', 'active', 'deleted', "Menghapus data Vendor ID #{$id}: {$vendorName}.");
+
+        return $this->respondSuccess($request, 'vendors', "Data Vendor {$vendorName} berhasil dihapus.");
+    }
+
+    protected function generateUniqueVendorCode(?int $ignoreId = null): string
+    {
+        do {
+            $code = 'VND-' . rand(100, 999);
+        } while (Vendor::where('code', $code)->when($ignoreId, fn($q) => $q->where('id', '!=', $ignoreId))->exists());
+
+        return $code;
+    }
+
+    // =========================================================================
+    // 5. USER & ROLE CRUD
+    // =========================================================================
+
+    public function editUser($id)
+    {
+        $targetUser = User::with(['employee', 'vendor', 'roles'])->findOrFail($id);
+
+        return response()->json([
+            'success' => true,
+            'data' => $targetUser,
+        ]);
+    }
+
+    public function storeUser(Request $request)
+    {
+        $id = $request->input('id');
+        if ($id !== null && $id !== '') {
+            return $this->updateUser($request, $id);
+        }
+
+        $admin = $this->getActiveUser();
+        $validated = $request->validate([
+            'name' => ['required', 'string', 'max:120'],
+            'username' => ['required', 'string', 'max:80', Rule::unique('users', 'username')],
+            'email' => ['required', 'email', 'max:150', Rule::unique('users', 'email')],
+            'role' => ['required', 'in:admin,driver,spv,depthead,vendor,fuelman'],
+            'jabatan' => ['required', 'string', 'max:100'],
+            'nrp' => ['nullable', 'string', 'max:50', Rule::unique('users', 'nrp')],
+            'employee_id' => ['nullable', 'exists:employees,id'],
+            'vendor_id' => ['nullable', 'exists:vendors,id'],
+            'password' => ['nullable', 'string', 'min:6'],
+            'is_active' => ['nullable', 'boolean'],
+        ]);
 
         $payload = [
             'name' => $validated['name'],
@@ -232,67 +566,246 @@ class AdminMasterController extends Controller
             'email' => $validated['email'],
             'role' => $validated['role'],
             'jabatan' => $validated['jabatan'],
-            'nrp' => $validated['nrp'],
+            'nrp' => $validated['nrp'] ?? null,
+            'employee_id' => $validated['employee_id'] ?? null,
             'vendor_id' => $validated['vendor_id'] ?? null,
+            'password' => Hash::make(!empty($validated['password']) ? $validated['password'] : 'password123'),
             'is_active' => $request->has('is_active') ? $request->boolean('is_active') : true,
         ];
 
-        if (!empty($validated['password'])) {
-            $payload['password'] = Hash::make($validated['password']);
-        } elseif (!$existing) {
-            $payload['password'] = Hash::make('password123');
-        }
+        $targetUser = User::create($payload);
+        $this->syncUserRolePivot($targetUser, $validated['role']);
 
-        $targetUser = $existing ? tap($existing)->update($payload) : User::create($payload);
+        FuelRequestHistory::record(null, $admin->id, 'master_updated', null, 'active', "Menambahkan akun pengguna: {$targetUser->username} (Role: {$targetUser->role}).");
 
-        FuelRequestHistory::record(null, $admin->id, 'master_updated', null, 'active', "Menyimpan akun pengguna: {$targetUser->username} (Role: {$targetUser->role}).");
-
-        return redirect()->route('admin.master', ['tab' => 'users'])->with('success', "Akun pengguna {$targetUser->name} berhasil disimpan.");
+        return $this->respondSuccess($request, 'users', "Akun pengguna {$targetUser->name} berhasil disimpan.", $targetUser);
     }
 
-    // 6. Store / Update Area Approver Assignment
-    public function storeAreaApprover(Request $request)
+    public function updateUser(Request $request, $id)
     {
         $admin = $this->getActiveUser();
+        $targetUser = User::findOrFail($id);
+
         $validated = $request->validate([
-            'id' => 'nullable|exists:area_approvers,id',
-            'area_id' => 'required|exists:areas,id',
-            'user_id' => 'required|exists:users,id',
-            'role_type' => 'required|in:spv,manager,vendor,fuelman',
-            'start_date' => 'nullable|date',
-            'end_date' => 'nullable|date',
-            'is_active' => 'nullable|boolean',
+            'name' => ['required', 'string', 'max:120'],
+            'username' => ['required', 'string', 'max:80', Rule::unique('users', 'username')->ignore($targetUser->id)],
+            'email' => ['required', 'email', 'max:150', Rule::unique('users', 'email')->ignore($targetUser->id)],
+            'role' => ['required', 'in:admin,driver,spv,depthead,vendor,fuelman'],
+            'jabatan' => ['nullable', 'string', 'max:100'],
+            'nrp' => ['nullable', 'string', 'max:50', Rule::unique('users', 'nrp')->ignore($targetUser->id)],
+            'employee_id' => ['nullable', 'exists:employees,id'],
+            'vendor_id' => ['nullable', 'exists:vendors,id'],
+            'password' => ['nullable', 'string', 'min:6'],
+            'is_active' => ['nullable', 'boolean'],
         ]);
 
         $payload = [
+            'name' => $validated['name'],
+            'username' => $validated['username'],
+            'email' => $validated['email'],
+            'role' => $validated['role'],
+            'jabatan' => $validated['jabatan'] ?? $targetUser->jabatan ?? ucfirst($validated['role']),
+            'nrp' => array_key_exists('nrp', $validated) ? $validated['nrp'] : $targetUser->nrp,
+            'employee_id' => array_key_exists('employee_id', $validated) ? $validated['employee_id'] : $targetUser->employee_id,
+            'vendor_id' => array_key_exists('vendor_id', $validated) ? $validated['vendor_id'] : $targetUser->vendor_id,
+            'is_active' => $request->has('is_active') ? $request->boolean('is_active') : $targetUser->is_active,
+        ];
+
+        // Password hanya di-hash dan diperbarui jika diisi oleh Admin; jika kosong, password lama tetap utuh
+        if ($request->filled('password')) {
+            $payload['password'] = Hash::make($validated['password']);
+        }
+
+        $targetUser->update($payload);
+        $this->syncUserRolePivot($targetUser, $validated['role']);
+
+        FuelRequestHistory::record(null, $admin->id, 'master_updated', null, $targetUser->is_active ? 'active' : 'inactive', "Memperbarui akun pengguna ID #{$targetUser->id}: {$targetUser->username} (Role: {$targetUser->role}).");
+
+        return $this->respondSuccess($request, 'users', "Akun pengguna {$targetUser->name} berhasil diperbarui.", $targetUser->fresh(['roles', 'employee', 'vendor']));
+    }
+
+    public function toggleUser(Request $request, $id)
+    {
+        return $this->toggleEntityById($request, User::class, $id, 'user', 'users');
+    }
+
+    public function destroyUser(Request $request, $id)
+    {
+        $admin = $this->getActiveUser();
+        $targetUser = User::findOrFail($id);
+
+        $hasHistory = $targetUser->fuelRequests()->exists()
+            || $targetUser->spvRequests()->exists()
+            || $targetUser->deptheadRequests()->exists()
+            || $targetUser->fuelmanRequests()->exists()
+            || $targetUser->approvals()->exists()
+            || $targetUser->fuelTransactions()->exists();
+
+        if ($hasHistory) {
+            $msg = "Akun pengguna {$targetUser->name} ({$targetUser->username}) memiliki riwayat pengajuan atau persetujuan BBM dan tidak dapat dihapus permanen. Silakan nonaktifkan statusnya.";
+            if ($request->expectsJson() || $request->ajax()) {
+                return response()->json(['success' => false, 'message' => $msg], 422);
+            }
+            return redirect()->route('admin.master', ['tab' => 'users'])->with('error', $msg);
+        }
+
+        $username = $targetUser->username;
+        $targetUser->roles()->detach();
+        $targetUser->delete();
+
+        FuelRequestHistory::record(null, $admin->id, 'master_deleted', 'active', 'deleted', "Menghapus akun pengguna ID #{$id}: {$username}.");
+
+        return $this->respondSuccess($request, 'users', "Akun pengguna {$username} berhasil dihapus.");
+    }
+
+    protected function syncUserRolePivot(User $targetUser, string $roleName): void
+    {
+        $role = Role::where('name', $roleName)->first();
+        if ($role) {
+            $targetUser->roles()->sync([$role->id]);
+        }
+    }
+
+    // =========================================================================
+    // 6. AREA APPROVER CRUD
+    // =========================================================================
+
+    public function editAreaApprover($id)
+    {
+        $approver = AreaApprover::with(['area', 'user'])->findOrFail($id);
+
+        return response()->json([
+            'success' => true,
+            'data' => $approver,
+        ]);
+    }
+
+    public function storeAreaApprover(Request $request)
+    {
+        $id = $request->input('id');
+        if ($id !== null && $id !== '') {
+            return $this->updateAreaApprover($request, $id);
+        }
+
+        $admin = $this->getActiveUser();
+        $validated = $this->validateAreaApproverPayload($request);
+
+        $aa = AreaApprover::create([
             'area_id' => $validated['area_id'],
             'user_id' => $validated['user_id'],
             'role_type' => $validated['role_type'],
             'start_date' => $validated['start_date'] ?? now()->toDateString(),
             'end_date' => $validated['end_date'] ?? null,
             'is_active' => $request->has('is_active') ? $request->boolean('is_active') : true,
-        ];
-
-        if (!empty($validated['id'])) {
-            $aa = AreaApprover::findOrFail($validated['id']);
-            $aa->update($payload);
-        } else {
-            AreaApprover::updateOrCreate(
-                [
-                    'area_id' => $validated['area_id'],
-                    'user_id' => $validated['user_id'],
-                    'role_type' => $validated['role_type'],
-                ],
-                $payload
-            );
-        }
+        ]);
 
         FuelRequestHistory::record(null, $admin->id, 'master_updated', null, 'active', "Menetapkan penugasan Approver ({$validated['role_type']}) untuk Area ID {$validated['area_id']}.");
 
-        return redirect()->route('admin.master', ['tab' => 'approvers'])->with('success', 'Penugasan Approver Area berhasil disimpan.');
+        return $this->respondSuccess($request, 'approvers', 'Penugasan Approver Area berhasil disimpan.', $aa->load(['area', 'user']));
     }
 
-    // 9. Store / Update System Background (Admin CRUD Background sesuai ketentuan UT)
+    public function updateAreaApprover(Request $request, $id)
+    {
+        $admin = $this->getActiveUser();
+        $aa = AreaApprover::findOrFail($id);
+
+        $validated = $this->validateAreaApproverPayload($request, $aa->id);
+
+        $aa->update([
+            'area_id' => $validated['area_id'],
+            'user_id' => $validated['user_id'],
+            'role_type' => $validated['role_type'],
+            'start_date' => $validated['start_date'] ?? ($aa->start_date ? $aa->start_date->toDateString() : now()->toDateString()),
+            'end_date' => array_key_exists('end_date', $validated) ? $validated['end_date'] : ($aa->end_date ? $aa->end_date->toDateString() : null),
+            'is_active' => $request->has('is_active') ? $request->boolean('is_active') : $aa->is_active,
+        ]);
+
+        FuelRequestHistory::record(null, $admin->id, 'master_updated', null, $aa->is_active ? 'active' : 'inactive', "Memperbarui penugasan Approver ID #{$aa->id} ({$aa->role_type}) untuk Area ID {$aa->area_id}.");
+
+        return $this->respondSuccess($request, 'approvers', 'Penugasan Approver Area berhasil diperbarui.', $aa->fresh(['area', 'user']));
+    }
+
+    public function toggleAreaApprover(Request $request, $id)
+    {
+        return $this->toggleEntityById($request, AreaApprover::class, $id, 'approver', 'approvers');
+    }
+
+    public function destroyAreaApprover(Request $request, $id)
+    {
+        $admin = $this->getActiveUser();
+        $aa = AreaApprover::findOrFail($id);
+
+        $hasHistory = FuelRequest::where('area_id', $aa->area_id)
+            ->where(function ($q) use ($aa) {
+                $q->where('spv_id', $aa->user_id)
+                    ->orWhere('depthead_id', $aa->user_id)
+                    ->orWhere('manager_id', $aa->user_id)
+                    ->orWhere('fuelman_id', $aa->user_id)
+                    ->orWhere('vendor_user_id', $aa->user_id);
+            })->exists();
+
+        if ($hasHistory) {
+            $msg = 'Penugasan Approver ini telah digunakan pada riwayat transaksi Fuel Request dan tidak dapat dihapus permanen. Silakan nonaktifkan statusnya.';
+            if ($request->expectsJson() || $request->ajax()) {
+                return response()->json(['success' => false, 'message' => $msg], 422);
+            }
+            return redirect()->route('admin.master', ['tab' => 'approvers'])->with('error', $msg);
+        }
+
+        $aa->delete();
+
+        FuelRequestHistory::record(null, $admin->id, 'master_deleted', 'active', 'deleted', "Menghapus penugasan Approver Area ID #{$id}.");
+
+        return $this->respondSuccess($request, 'approvers', 'Penugasan Approver Area berhasil dihapus.');
+    }
+
+    protected function validateAreaApproverPayload(Request $request, ?int $ignoreId = null): array
+    {
+        $validated = $request->validate([
+            'area_id' => ['required', 'exists:areas,id'],
+            'user_id' => ['required', 'exists:users,id'],
+            'role_type' => ['required', 'in:spv,manager,vendor,fuelman'],
+            'start_date' => ['nullable', 'date'],
+            'end_date' => ['nullable', 'date', 'after_or_equal:start_date'],
+            'is_active' => ['nullable', 'boolean'],
+        ]);
+
+        $targetUser = User::findOrFail($validated['user_id']);
+        $roleType = $validated['role_type'];
+
+        $roleMatches = match ($roleType) {
+            'spv' => $targetUser->isSpv(),
+            'manager' => $targetUser->isManager(),
+            'vendor' => $targetUser->isVendor(),
+            'fuelman' => $targetUser->isFuelman(),
+            default => false,
+        };
+
+        if (!$roleMatches) {
+            throw ValidationException::withMessages([
+                'user_id' => "Pengguna {$targetUser->name} (role: {$targetUser->role}) tidak sesuai dengan jenis penugasan approver '{$roleType}'.",
+            ]);
+        }
+
+        $duplicateExists = AreaApprover::where('area_id', $validated['area_id'])
+            ->where('user_id', $validated['user_id'])
+            ->where('role_type', $validated['role_type'])
+            ->when($ignoreId, fn($q) => $q->where('id', '!=', $ignoreId))
+            ->exists();
+
+        if ($duplicateExists) {
+            throw ValidationException::withMessages([
+                'user_id' => 'Penugasan approver untuk kombinasi Area, User, dan Tipe Role tersebut sudah terdaftar.',
+            ]);
+        }
+
+        return $validated;
+    }
+
+    // =========================================================================
+    // 7. FUEL STANDARD & 8. FUEL PRICE & 9. SYSTEM BACKGROUND
+    // =========================================================================
+
     public function storeBackground(Request $request)
     {
         $admin = $this->getActiveUser();
@@ -396,14 +909,44 @@ class AdminMasterController extends Controller
             ->with('success', "Background '{$title}' berhasil dihapus.");
     }
 
-    // 10. Toggle Active / Inactive Status for Any Master Entity
+    // =========================================================================
+    // 10. TOGGLE ACTIVE / INACTIVE STATUS
+    // =========================================================================
+
+    protected function toggleEntityById(Request $request, string $modelClass, $id, string $entityName, string $tab)
+    {
+        $admin = $this->getActiveUser();
+        $record = $modelClass::findOrFail($id);
+        $newStatus = !$record->is_active;
+        $record->update(['is_active' => $newStatus]);
+
+        $statusLabel = $newStatus ? 'DIAKTIFKAN' : 'DINONAKTIFKAN';
+        $recordLabel = $record->unit_code ?? $record->name ?? $record->fuel_type ?? ('ID #' . $record->id);
+
+        FuelRequestHistory::record(
+            null,
+            $admin->id,
+            'master_status_toggled',
+            $newStatus ? 'inactive' : 'active',
+            $newStatus ? 'active' : 'inactive',
+            "Status Master Data ({$entityName}: {$recordLabel}) diubah menjadi {$statusLabel}."
+        );
+
+        return $this->respondSuccess(
+            $request,
+            $request->input('tab', $tab),
+            "Status data {$recordLabel} berhasil diubah menjadi {$statusLabel}.",
+            $record->fresh()
+        );
+    }
+
     public function toggleStatus(Request $request)
     {
         $admin = $this->getActiveUser();
         $validated = $request->validate([
             'entity' => 'required|in:unit,employee,area,vendor,user,approver,standard,price,background',
             'id' => 'required|integer',
-            'tab' => 'required|string',
+            'tab' => 'nullable|string',
         ]);
 
         if ($validated['entity'] === 'background') {
@@ -425,43 +968,38 @@ class AdminMasterController extends Controller
         }
 
         $modelMap = [
-            'unit' => Vehicle::class,
-            'employee' => Employee::class,
-            'area' => Area::class,
-            'vendor' => Vendor::class,
-            'user' => User::class,
-            'approver' => AreaApprover::class,
-            'standard' => FuelStandard::class,
-            'price' => FuelPrice::class,
+            'unit' => [Vehicle::class, 'units'],
+            'employee' => [Employee::class, 'employees'],
+            'area' => [Area::class, 'areas'],
+            'vendor' => [Vendor::class, 'vendors'],
+            'user' => [User::class, 'users'],
+            'approver' => [AreaApprover::class, 'approvers'],
+            'standard' => [FuelStandard::class, 'standards'],
+            'price' => [FuelPrice::class, 'prices'],
         ];
 
-        $modelClass = $modelMap[$validated['entity']];
-        $record = $modelClass::findOrFail($validated['id']);
-        $newStatus = !$record->is_active;
-        $record->update(['is_active' => $newStatus]);
+        [$modelClass, $defaultTab] = $modelMap[$validated['entity']];
 
-        $statusLabel = $newStatus ? 'DIAKTIFKAN' : 'DINONAKTIFKAN';
-        $recordLabel = $record->unit_code ?? $record->name ?? $record->fuel_type ?? ('ID #' . $record->id);
-
-        FuelRequestHistory::record(
-            null,
-            $admin->id,
-            'master_status_toggled',
-            $newStatus ? 'inactive' : 'active',
-            $newStatus ? 'active' : 'inactive',
-            "Status Master Data ({$validated['entity']}: {$recordLabel}) diubah menjadi {$statusLabel}."
+        return $this->toggleEntityById(
+            $request,
+            $modelClass,
+            $validated['id'],
+            $validated['entity'],
+            $validated['tab'] ?? $defaultTab
         );
-
-        return redirect()->route('admin.master', ['tab' => $validated['tab']])
-            ->with('success', "Status data {$recordLabel} berhasil diubah menjadi {$statusLabel}.");
     }
 
-    // 7. Store / Update Fuel Standard (Preserves historical standards!)
     public function storeFuelStandard(Request $request)
     {
         $admin = $this->getActiveUser();
+        $id = $request->input('id');
+        if ($id !== null && $id !== '') {
+            $std = FuelStandard::findOrFail($id);
+        } else {
+            $std = null;
+        }
+
         $validated = $request->validate([
-            'id' => 'nullable|exists:fuel_standards,id',
             'vehicle_id' => 'required|exists:vehicles,id',
             'standard_type' => 'required|in:km_per_liter,liter_per_hour',
             'standard_value' => 'required|numeric|gt:0',
@@ -470,8 +1008,7 @@ class AdminMasterController extends Controller
             'notes' => 'nullable|string|max:500',
         ]);
 
-        if (!empty($validated['id'])) {
-            $std = FuelStandard::findOrFail($validated['id']);
+        if ($std) {
             $std->update([
                 'vehicle_id' => $validated['vehicle_id'],
                 'standard_type' => $validated['standard_type'],
@@ -484,7 +1021,6 @@ class AdminMasterController extends Controller
             return redirect()->route('admin.master', ['tab' => 'standards'])->with('success', 'Data standar konsumsi BBM berhasil diperbarui.');
         }
 
-        // Close previous active standard without overwriting it (preserves history)
         FuelStandard::where('vehicle_id', $validated['vehicle_id'])
             ->where('is_active', true)
             ->update([
@@ -507,20 +1043,24 @@ class AdminMasterController extends Controller
         return redirect()->route('admin.master', ['tab' => 'standards'])->with('success', 'Standar konsumsi BBM berhasil ditambahkan (riwayat standar lama tetap tersimpan).');
     }
 
-    // 8. Store / Update Fuel Price (Preserves historical prices!)
     public function storeFuelPrice(Request $request)
     {
         $admin = $this->getActiveUser();
+        $id = $request->input('id');
+        if ($id !== null && $id !== '') {
+            $price = FuelPrice::findOrFail($id);
+        } else {
+            $price = null;
+        }
+
         $validated = $request->validate([
-            'id' => 'nullable|exists:fuel_prices,id',
             'fuel_type' => 'required|string|max:80',
             'price_per_liter' => 'required|numeric|gt:0',
             'effective_start' => 'required|date',
             'notes' => 'nullable|string|max:500',
         ]);
 
-        if (!empty($validated['id'])) {
-            $price = FuelPrice::findOrFail($validated['id']);
+        if ($price) {
             $price->update([
                 'fuel_type' => $validated['fuel_type'],
                 'price_per_liter' => $validated['price_per_liter'],
@@ -549,4 +1089,3 @@ class AdminMasterController extends Controller
         return redirect()->route('admin.master', ['tab' => 'prices'])->with('success', 'Harga BBM baru berhasil disimpan (riwayat harga lama tetap tersimpan).');
     }
 }
-

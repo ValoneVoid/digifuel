@@ -25,6 +25,21 @@ class FuelRequestService
     public function createRequest(User $user, array $data, bool $isDraft = false): FuelRequest
     {
         return DB::transaction(function () use ($user, $data, $isDraft) {
+            if (!$user->is_active) {
+                throw ValidationException::withMessages([
+                    'user_id' => 'Akun pengguna tidak aktif dan tidak dapat mengajukan permintaan BBM baru.',
+                ]);
+            }
+
+            if ($user->employee_id) {
+                $empCheck = $user->employee()->withTrashed()->first();
+                if (!$empCheck || !$empCheck->is_active || $empCheck->trashed()) {
+                    throw ValidationException::withMessages([
+                        'employee_id' => 'Data karyawan tidak aktif dan tidak dapat digunakan untuk pengajuan baru.',
+                    ]);
+                }
+            }
+
             $vehicle = Vehicle::where('unit_code', $data['unit_code'])
                 ->where('is_active', true)
                 ->first();
@@ -36,11 +51,41 @@ class FuelRequestService
             }
 
             $area = Area::where('name', $data['area'])->where('is_active', true)->first();
-            $vendor = Vendor::where('name', $data['vendor_name'])->where('is_active', true)->first();
+            if (!$area) {
+                throw ValidationException::withMessages([
+                    'area' => 'Area operasional tidak ditemukan atau sudah tidak aktif.',
+                ]);
+            }
 
-            $spv = User::findOrFail($data['spv_id']);
-            $depthead = User::findOrFail($data['depthead_id']);
-            $fuelman = !empty($data['fuelman_id']) ? User::find($data['fuelman_id']) : null;
+            $vendor = Vendor::where('name', $data['vendor_name'])->where('is_active', true)->first();
+            if (!$vendor) {
+                throw ValidationException::withMessages([
+                    'vendor_name' => 'Vendor pengisian tidak ditemukan atau sudah tidak aktif.',
+                ]);
+            }
+
+            $spv = User::where('id', $data['spv_id'])->where('is_active', true)->first();
+            if (!$spv) {
+                throw ValidationException::withMessages([
+                    'spv_id' => 'Approver SPV tidak ditemukan atau sedang nonaktif.',
+                ]);
+            }
+
+            $depthead = User::where('id', $data['depthead_id'])->where('is_active', true)->first();
+            if (!$depthead) {
+                throw ValidationException::withMessages([
+                    'depthead_id' => 'Approver Dept Head/Manager tidak ditemukan atau sedang nonaktif.',
+                ]);
+            }
+
+            $fuelman = !empty($data['fuelman_id'])
+                ? User::where('id', $data['fuelman_id'])->where('is_active', true)->first()
+                : null;
+            if (!empty($data['fuelman_id']) && !$fuelman) {
+                throw ValidationException::withMessages([
+                    'fuelman_id' => 'Fuel Man tidak ditemukan atau sedang nonaktif.',
+                ]);
+            }
 
             // Find dedicated Vendor user for this vendor company (if any)
             $vendorUser = null;

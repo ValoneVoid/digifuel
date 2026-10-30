@@ -6,6 +6,8 @@ use Illuminate\Foundation\Http\FormRequest;
 use App\Models\Vehicle;
 use App\Models\Area;
 use App\Models\AreaApprover;
+use App\Models\Vendor;
+use App\Models\User;
 
 class StoreFuelRequest extends FormRequest
 {
@@ -36,30 +38,89 @@ class StoreFuelRequest extends FormRequest
     public function withValidator($validator): void
     {
         $validator->after(function ($validator) {
+            /** @var \App\Models\User|null $authUser */
+            $authUser = $this->user();
+            if ($authUser) {
+                if (!$authUser->is_active) {
+                    $validator->errors()->add('user_id', 'Akun pengguna Anda sedang nonaktif dan tidak dapat mengajukan Fuel Request baru.');
+                }
+                if ($authUser->employee_id) {
+                    $employee = $authUser->employee()->withTrashed()->first();
+                    if (!$employee || !$employee->is_active || $employee->trashed()) {
+                        $validator->errors()->add('employee_id', 'Data karyawan tidak aktif dan tidak dapat digunakan untuk pengajuan Fuel Request baru.');
+                    }
+                }
+            }
+
             $vehicle = Vehicle::where('unit_code', $this->input('unit_code'))->first();
             if (!$vehicle || !$vehicle->is_active) {
                 $validator->errors()->add('unit_code', 'Unit kendaraan tidak aktif atau tidak dapat digunakan untuk pengajuan baru.');
             }
 
             $area = Area::where('name', $this->input('area'))->where('is_active', true)->first();
-            if ($area && AreaApprover::where('area_id', $area->id)->where('is_active', true)->exists()) {
-                $spvValid = AreaApprover::where('area_id', $area->id)
+            if (!$area) {
+                $validator->errors()->add('area', 'Area operasional tidak ditemukan atau sedang nonaktif.');
+            }
+
+            $vendor = Vendor::where('name', $this->input('vendor_name'))->where('is_active', true)->first();
+            if (!$vendor) {
+                $validator->errors()->add('vendor_name', 'Vendor pengisian BBM tidak ditemukan atau sedang nonaktif.');
+            }
+
+            $spv = User::find($this->input('spv_id'));
+            if (!$spv || !$spv->is_active) {
+                $validator->errors()->add('spv_id', 'Approver SPV yang dipilih sedang nonaktif.');
+            }
+
+            $depthead = User::find($this->input('depthead_id'));
+            if (!$depthead || !$depthead->is_active) {
+                $validator->errors()->add('depthead_id', 'Approver Dept Head/Manager yang dipilih sedang nonaktif.');
+            }
+
+            $fuelman = User::find($this->input('fuelman_id'));
+            if (!$fuelman || !$fuelman->is_active) {
+                $validator->errors()->add('fuelman_id', 'Fuel Man yang dipilih sedang nonaktif.');
+            }
+
+            if ($area) {
+                $spvAssignedInArea = AreaApprover::where('area_id', $area->id)->where('role_type', 'spv')->exists();
+                $spvExplicitlyInactive = AreaApprover::where('area_id', $area->id)
+                    ->where('user_id', $this->input('spv_id'))
+                    ->where('role_type', 'spv')
+                    ->where('is_active', false)
+                    ->exists();
+
+                if ($spvExplicitlyInactive || ($spvAssignedInArea && !AreaApprover::where('area_id', $area->id)
                     ->where('user_id', $this->input('spv_id'))
                     ->where('role_type', 'spv')
                     ->where('is_active', true)
+                    ->exists())) {
+                    $validator->errors()->add('spv_id', 'Approver SPV yang dipilih tidak aktif atau tidak ditugaskan pada area operasional tersebut.');
+                }
+
+                $mgrAssignedInArea = AreaApprover::where('area_id', $area->id)->where('role_type', 'manager')->exists();
+                $mgrExplicitlyInactive = AreaApprover::where('area_id', $area->id)
+                    ->where('user_id', $this->input('depthead_id'))
+                    ->where('role_type', 'manager')
+                    ->where('is_active', false)
                     ->exists();
 
-                $mgrValid = AreaApprover::where('area_id', $area->id)
+                if ($mgrExplicitlyInactive || ($mgrAssignedInArea && !AreaApprover::where('area_id', $area->id)
                     ->where('user_id', $this->input('depthead_id'))
                     ->where('role_type', 'manager')
                     ->where('is_active', true)
+                    ->exists())) {
+                    $validator->errors()->add('depthead_id', 'Approver Dept Head/Manager yang dipilih tidak aktif atau tidak ditugaskan pada area operasional tersebut.');
+                }
+
+                $fuelmanExplicitlyInactive = AreaApprover::where('area_id', $area->id)
+                    ->where('user_id', $this->input('fuelman_id'))
+                    ->where('role_type', 'fuelman')
+                    ->where('is_active', false)
                     ->exists();
 
-                if (!$spvValid) {
-                    $validator->errors()->add('spv_id', 'Approver SPV yang dipilih tidak ditugaskan pada area operasional tersebut.');
-                }
-                if (!$mgrValid) {
-                    $validator->errors()->add('depthead_id', 'Approver Dept Head/Manager yang dipilih tidak ditugaskan pada area operasional tersebut.');
+                if ($fuelmanExplicitlyInactive) {
+                    $validator->errors()->add('fuelman_id', 'Penugasan Fuel Man pada area operasional tersebut sedang nonaktif.');
                 }
             }
         });

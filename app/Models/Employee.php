@@ -11,6 +11,11 @@ class Employee extends Model
 
     protected $guarded = [];
 
+    protected $casts = [
+        'is_active' => 'boolean',
+        'last_synced_at' => 'datetime',
+    ];
+
     public function user()
     {
         return $this->hasOne(User::class);
