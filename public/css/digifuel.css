@@ -73,31 +73,36 @@ body {
 .digi-nav-links {
   display: flex;
   align-items: center;
-  gap: 12px;
+  gap: 6px;
+  flex-wrap: nowrap;
 }
 
 .digi-nav-link {
   color: #0f172a;
   font-weight: 600;
-  font-size: 15px;
+  font-size: 14px;
   text-decoration: none;
-  padding: 7px 18px;
-  border-radius: 6px;
+  padding: 8px 16px;
+  border-radius: 8px;
+  white-space: nowrap;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
   transition: all 0.2s ease;
   text-shadow: 0 1px 2px rgba(255, 255, 255, 0.75);
 }
 
 .digi-nav-link:hover {
-  background: rgba(255, 255, 255, 0.45);
+  background: rgba(255, 255, 255, 0.55);
   color: #000000;
 }
 
 .digi-nav-link.active {
-  background: rgba(255, 255, 255, 0.72);
-  backdrop-filter: blur(6px);
+  background: rgba(255, 255, 255, 0.92);
+  backdrop-filter: blur(8px);
   color: #000000;
   font-weight: 700;
-  box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.8), 0 2px 6px rgba(0, 0, 0, 0.08);
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08), inset 0 0 0 1px rgba(255, 255, 255, 0.9);
 }
 
 .digi-nav-right {
@@ -165,7 +170,53 @@ body {
   box-shadow: 0 2px 5px rgba(0, 0, 0, 0.28);
 }
 
-/* User Role Badge / Quick Switcher in Navbar */
+/* Active User Profile Badge in Navbar */
+.digi-user-profile-badge {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  background: rgba(255, 255, 255, 0.9);
+  backdrop-filter: blur(8px);
+  border: 1px solid rgba(255, 255, 255, 0.95);
+  border-radius: 30px;
+  padding: 4px 14px 4px 6px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+}
+
+.digi-user-avatar {
+  width: 28px;
+  height: 28px;
+  border-radius: 50%;
+  background: linear-gradient(135deg, #0284c7, #0369a1);
+  color: #ffffff;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 12px;
+  font-weight: 700;
+}
+
+.digi-user-info {
+  display: flex;
+  flex-direction: column;
+  line-height: 1.25;
+}
+
+.digi-user-name {
+  font-size: 12.5px;
+  font-weight: 700;
+  color: #0f172a;
+  white-space: nowrap;
+}
+
+.digi-user-role {
+  font-size: 11px;
+  color: #64748b;
+  font-weight: 500;
+  white-space: nowrap;
+}
+
+/* User Role Badge / Quick Switcher in Navbar (Legacy fallback) */
 .digi-role-switcher {
   background: rgba(255, 255, 255, 0.95);
   border: 1px solid rgba(255, 255, 255, 0.8);

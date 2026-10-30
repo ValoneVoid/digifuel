@@ -18,7 +18,6 @@
         $currentUser = auth()->user() ?? \App\Models\User::where('role', 'driver')->first();
         $isApprover = $currentUser ? $currentUser->isApprover() : false;
         $isAdmin = $currentUser ? $currentUser->isAdmin() : false;
-        $allUsers = \App\Models\User::where('is_active', true)->orderBy('id')->get();
         $unreadNotifs = $currentUser ? $currentUser->userNotifications()->where('is_read', false)->take(6)->get() : collect();
     @endphp
 
@@ -88,20 +87,16 @@
                 </div>
             @endif
 
-            <!-- Fast Role Switcher for pairwise testing across Driver, SPV, Dept Head, Vendor, Fuelman, Admin -->
-            <div class="digi-role-switcher" title="Ganti Pengguna / Role untuk Pengujian Alur">
-                <span style="color:#64748b; font-size:11px;">Akun:</span>
-                <form id="switch-user-form" action="{{ route('switch.user') }}" method="POST" style="margin:0;">
-                    @csrf
-                    <select name="user_id" onchange="this.form.submit()">
-                        @foreach($allUsers as $u)
-                            <option value="{{ $u->id }}" {{ $currentUser && $currentUser->id === $u->id ? 'selected' : '' }}>
-                                {{ $u->name }} ({{ $u->jabatan }})
-                            </option>
-                        @endforeach
-                    </select>
-                </form>
-            </div>
+            <!-- User Profile Info Badge -->
+            @if($currentUser)
+                <div class="digi-user-profile-badge" title="Pengguna Aktif: {{ $currentUser->name }} ({{ $currentUser->jabatan }})">
+                    <span class="digi-user-avatar">{{ strtoupper(substr($currentUser->name, 0, 1)) }}</span>
+                    <div class="digi-user-info">
+                        <span class="digi-user-name">{{ $currentUser->name }}</span>
+                        <span class="digi-user-role">{{ $currentUser->jabatan }}</span>
+                    </div>
+                </div>
+            @endif
         </div>
     </nav>
 

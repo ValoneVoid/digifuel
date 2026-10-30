@@ -65,19 +65,6 @@
                 </button>
             </div>
         </form>
-
-        <!-- Quick Demo Accounts Reference -->
-        <div style="background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 10px; padding: 12px 14px; font-size: 12px; color: #475569;">
-            <div style="font-weight: 700; color: #1e293b; margin-bottom: 6px;">Akun Pengujian Cepat (Password: <code>password123</code>):</div>
-            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 4px 10px;">
-                <div>• Employee: <strong>adji</strong></div>
-                <div>• SPV: <strong>aklis</strong></div>
-                <div>• Dept Head: <strong>Pdh-kusan</strong></div>
-                <div>• Vendor: <strong>vendor_sudan</strong></div>
-                <div>• Fuel Man: <strong>adya</strong></div>
-                <div>• Admin: <strong>admin</strong></div>
-            </div>
-        </div>
     </div>
 
     <script>
