@@ -72,24 +72,31 @@ class AdminMasterController extends Controller
     {
         $user = $this->getActiveUser();
         $tab = $request->get('tab', 'units');
+        $perPage = max(5, min(100, (int) $request->input('per_page', 10)));
 
-        $employees = Employee::orderBy('name')->get();
-        $vehicles = Vehicle::with(['defaultArea', 'activeFuelStandard'])->orderBy('unit_code')->get();
-        $areas = Area::orderBy('name')->get();
-        $vendors = Vendor::orderBy('name')->get();
-        $users = User::with(['employee', 'vendor'])->orderBy('name')->get();
+        $allVehicles = Vehicle::where('is_active', true)->orderBy('unit_code')->get();
+        $allAreas = Area::where('is_active', true)->orderBy('name')->get();
+        $allVendors = Vendor::where('is_active', true)->orderBy('name')->get();
+        $allUsers = User::where('is_active', true)->orderBy('name')->get();
         $roles = Role::all();
-        $areaApprovers = AreaApprover::with(['area', 'user'])->orderBy('area_id')->get();
-        $fuelStandards = FuelStandard::with('vehicle')->orderBy('vehicle_id')->orderBy('effective_start', 'desc')->get();
-        $fuelPrices = FuelPrice::orderBy('effective_start', 'desc')->get();
+
+        $employees = Employee::orderBy('name')->paginate($perPage)->withQueryString();
+        $vehicles = Vehicle::with(['defaultArea', 'activeFuelStandard'])->orderBy('unit_code')->paginate($perPage)->withQueryString();
+        $areas = Area::orderBy('name')->paginate($perPage)->withQueryString();
+        $vendors = Vendor::orderBy('name')->paginate($perPage)->withQueryString();
+        $users = User::with(['employee', 'vendor'])->orderBy('name')->paginate($perPage)->withQueryString();
+        $areaApprovers = AreaApprover::with(['area', 'user'])->orderBy('area_id')->paginate($perPage)->withQueryString();
+        $fuelStandards = FuelStandard::with('vehicle')->orderBy('vehicle_id')->orderBy('effective_start', 'desc')->paginate($perPage)->withQueryString();
+        $fuelPrices = FuelPrice::orderBy('effective_start', 'desc')->paginate($perPage)->withQueryString();
         $backgrounds = Schema::hasTable('system_backgrounds')
-            ? SystemBackground::with('uploader')->orderBy('is_active', 'desc')->orderBy('id', 'desc')->get()
-            : collect();
-        $auditLogs = FuelRequestHistory::with(['user', 'fuelRequest'])->latest('created_at')->limit(100)->get();
+            ? SystemBackground::with('uploader')->orderBy('is_active', 'desc')->orderBy('id', 'desc')->paginate($perPage)->withQueryString()
+            : new \Illuminate\Pagination\LengthAwarePaginator(collect(), 0, $perPage);
+        $auditLogs = FuelRequestHistory::with(['user', 'fuelRequest'])->latest('created_at')->paginate($perPage)->withQueryString();
 
         return view('admin.master', compact(
             'user',
             'tab',
+            'perPage',
             'employees',
             'vehicles',
             'areas',
@@ -100,7 +107,11 @@ class AdminMasterController extends Controller
             'fuelStandards',
             'fuelPrices',
             'backgrounds',
-            'auditLogs'
+            'auditLogs',
+            'allVehicles',
+            'allAreas',
+            'allVendors',
+            'allUsers'
         ));
     }
 

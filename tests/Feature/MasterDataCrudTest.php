@@ -634,4 +634,64 @@ class MasterDataCrudTest extends TestCase
 
         $this->assertDatabaseMissing('fuel_standards', ['id' => $std1->id]);
     }
+
+    /**
+     * Skenario 13: Paginasi dan Limit/Show Per Page pada Master Data
+     */
+    public function test_admin_master_page_supports_pagination_and_custom_per_page_limit(): void
+    {
+        // Pastikan ada lebih dari 15 data vehicle untuk menguji paginasi
+        $existingCount = Vehicle::count();
+        for ($i = $existingCount + 1; $i <= 18; $i++) {
+            Vehicle::create([
+                'unit_code' => sprintf('TEST-%03d', $i),
+                'police_no' => sprintf('KT %04d Z', $i),
+                'unit_type' => 'Light Vehicle',
+                'model' => 'Toyota Hilux 4x4',
+                'meter_type' => 'km',
+                'tank_capacity' => 80,
+                'is_active' => true,
+            ]);
+        }
+
+        // 1. Request dengan per_page default 10
+        $response10 = $this->actingAs($this->admin)
+            ->get(route('admin.master', ['tab' => 'units', 'per_page' => 10]));
+
+        $response10->assertStatus(200);
+        $response10->assertViewHas('vehicles');
+        $response10->assertViewHas('perPage', 10);
+        $response10->assertViewHas('allVehicles');
+
+        $paginator10 = $response10->viewData('vehicles');
+        $this->assertEquals(10, $paginator10->perPage());
+        $this->assertEquals(10, $paginator10->count());
+        $this->assertGreaterThanOrEqual(18, $paginator10->total());
+        $this->assertEquals(1, $paginator10->currentPage());
+
+        // Verifikasi dropdown Limit per page menampilkan value 10 selected
+        $response10->assertSee('value="10" selected', false);
+        $response10->assertSee('Menampilkan <strong>1</strong> - <strong>10</strong> dari total', false);
+
+        // 2. Request dengan per_page 25
+        $response25 = $this->actingAs($this->admin)
+            ->get(route('admin.master', ['tab' => 'units', 'per_page' => 25]));
+
+        $response25->assertStatus(200);
+        $response25->assertViewHas('perPage', 25);
+        $paginator25 = $response25->viewData('vehicles');
+        $this->assertEquals(25, $paginator25->perPage());
+        $this->assertGreaterThanOrEqual(18, $paginator25->count());
+        $response25->assertSee('value="25" selected', false);
+
+        // 3. Request page 2 dengan per_page 10
+        $responsePage2 = $this->actingAs($this->admin)
+            ->get(route('admin.master', ['tab' => 'units', 'per_page' => 10, 'page' => 2]));
+
+        $responsePage2->assertStatus(200);
+        $paginatorPage2 = $responsePage2->viewData('vehicles');
+        $this->assertEquals(2, $paginatorPage2->currentPage());
+        $this->assertEquals(11, $paginatorPage2->firstItem());
+        $responsePage2->assertSee('Menampilkan <strong>11</strong> -', false);
+    }
 }

@@ -15,22 +15,23 @@
 
     <!-- Navigation Tabs -->
     @php
+        $getCount = fn($col) => method_exists($col, 'total') ? $col->total() : (is_countable($col) ? count($col) : 0);
         $tabs = [
-            'units' => 'Data Unit (' . $vehicles->count() . ')',
-            'employees' => 'Data Employee (' . $employees->count() . ')',
-            'areas' => 'Data Area (' . $areas->count() . ')',
-            'vendors' => 'Data Vendor (' . $vendors->count() . ')',
-            'approvers' => 'Approver Area (' . $areaApprovers->count() . ')',
-            'standards' => 'Standar BBM (' . $fuelStandards->count() . ')',
-            'prices' => 'Harga BBM (' . $fuelPrices->count() . ')',
-            'users' => 'User & Role (' . $users->count() . ')',
-            'backgrounds' => 'Background Sistem (' . (isset($backgrounds) ? $backgrounds->count() : 0) . ')',
-            'audit' => 'Audit Trail (' . $auditLogs->count() . ')',
+            'units' => 'Data Unit (' . $getCount($vehicles) . ')',
+            'employees' => 'Data Employee (' . $getCount($employees) . ')',
+            'areas' => 'Data Area (' . $getCount($areas) . ')',
+            'vendors' => 'Data Vendor (' . $getCount($vendors) . ')',
+            'approvers' => 'Approver Area (' . $getCount($areaApprovers) . ')',
+            'standards' => 'Standar BBM (' . $getCount($fuelStandards) . ')',
+            'prices' => 'Harga BBM (' . $getCount($fuelPrices) . ')',
+            'users' => 'User & Role (' . $getCount($users) . ')',
+            'backgrounds' => 'Background Sistem (' . $getCount($backgrounds ?? collect()) . ')',
+            'audit' => 'Audit Trail (' . $getCount($auditLogs) . ')',
         ];
     @endphp
     <div style="display: flex; gap: 8px; flex-wrap: wrap; border-bottom: 1px solid #e2e8f0; padding-bottom: 14px; margin-bottom: 22px;">
         @foreach($tabs as $key => $label)
-            <a href="{{ route('admin.master', ['tab' => $key]) }}" class="btn-digi {{ $tab === $key ? 'btn-digi-blue' : 'btn-digi-gray' }}" style="padding: 7px 14px; font-size: 12.5px;">
+            <a href="{{ route('admin.master', array_merge(request()->query(), ['tab' => $key, 'page' => 1])) }}" class="btn-digi {{ $tab === $key ? 'btn-digi-blue' : 'btn-digi-gray' }}" style="padding: 7px 14px; font-size: 12.5px;">
                 {{ $label }}
             </a>
         @endforeach
@@ -81,11 +82,13 @@
             </div>
         </form>
 
+        @include('partials.pagination_top', ['paginator' => $vehicles])
+
         <div style="overflow-x: auto;">
             <table class="digi-table">
                 <thead>
                     <tr>
-                        <th>No</th>
+                        <th style="width: 50px;">No</th>
                         <th>Unit Code</th>
                         <th>Nomor Polisi</th>
                         <th>Tipe / Model Unit</th>
@@ -99,7 +102,7 @@
                 <tbody>
                     @foreach($vehicles as $idx => $v)
                         <tr>
-                            <td>{{ $idx + 1 }}</td>
+                            <td>{{ $vehicles->firstItem() ? ($vehicles->firstItem() + $idx) : ($idx + 1) }}</td>
                             <td style="font-weight: 700; color: #0284c7;">{{ $v->unit_code }}</td>
                             <td>{{ $v->police_no }}</td>
                             <td>{{ $v->model ?? $v->unit_type }}</td>
@@ -138,6 +141,8 @@
                 </tbody>
             </table>
         </div>
+
+        @include('partials.pagination_bottom', ['paginator' => $vehicles])
     @endif
 
     <!-- ============================================================ -->
@@ -188,11 +193,13 @@
             </div>
         </form>
 
+        @include('partials.pagination_top', ['paginator' => $employees])
+
         <div style="overflow-x: auto;">
             <table class="digi-table">
                 <thead>
                     <tr>
-                        <th>No</th>
+                        <th style="width: 50px;">No</th>
                         <th>NRP</th>
                         <th>Nama Employee</th>
                         <th>Jabatan</th>
@@ -206,7 +213,7 @@
                 <tbody>
                     @foreach($employees as $idx => $emp)
                         <tr>
-                            <td>{{ $idx + 1 }}</td>
+                            <td>{{ $employees->firstItem() ? ($employees->firstItem() + $idx) : ($idx + 1) }}</td>
                             <td style="font-weight:700; color: #0284c7;">{{ $emp->nrp }}</td>
                             <td style="font-weight:600;">{{ $emp->name }}</td>
                             <td>{{ $emp->position }}</td>
@@ -239,6 +246,8 @@
                 </tbody>
             </table>
         </div>
+
+        @include('partials.pagination_bottom', ['paginator' => $employees])
     @endif
 
     <!-- ============================================================ -->
@@ -269,11 +278,13 @@
             </div>
         </form>
 
+        @include('partials.pagination_top', ['paginator' => $areas])
+
         <div style="overflow-x: auto;">
             <table class="digi-table">
                 <thead>
                     <tr>
-                        <th>No</th>
+                        <th style="width: 50px;">No</th>
                         <th>Kode Area</th>
                         <th>Nama Area Operasional</th>
                         <th>Status</th>
@@ -283,7 +294,7 @@
                 <tbody>
                     @foreach($areas as $idx => $a)
                         <tr>
-                            <td>{{ $idx + 1 }}</td>
+                            <td>{{ $areas->firstItem() ? ($areas->firstItem() + $idx) : ($idx + 1) }}</td>
                             <td style="font-weight:700; color: #0284c7;">{{ $a->code ?? 'AREA-' . $a->id }}</td>
                             <td style="font-weight:600;">{{ $a->name }}</td>
                             <td>
@@ -312,6 +323,8 @@
                 </tbody>
             </table>
         </div>
+
+        @include('partials.pagination_bottom', ['paginator' => $areas])
     @endif
 
     <!-- ============================================================ -->
@@ -348,11 +361,13 @@
             </div>
         </form>
 
+        @include('partials.pagination_top', ['paginator' => $vendors])
+
         <div style="overflow-x: auto;">
             <table class="digi-table">
                 <thead>
                     <tr>
-                        <th>No</th>
+                        <th style="width: 50px;">No</th>
                         <th>Kode Vendor</th>
                         <th>Nama Perusahaan Vendor</th>
                         <th>Kontak Petugas</th>
@@ -364,7 +379,7 @@
                 <tbody>
                     @foreach($vendors as $idx => $ven)
                         <tr>
-                            <td>{{ $idx + 1 }}</td>
+                            <td>{{ $vendors->firstItem() ? ($vendors->firstItem() + $idx) : ($idx + 1) }}</td>
                             <td style="font-weight:700; color: #0284c7;">{{ $ven->code ?? 'VND-0' . $ven->id }}</td>
                             <td style="font-weight:600;">{{ $ven->name }}</td>
                             <td>{{ $ven->contact_person ?? 'Petugas Operasional' }}</td>
@@ -395,6 +410,8 @@
                 </tbody>
             </table>
         </div>
+
+        @include('partials.pagination_bottom', ['paginator' => $vendors])
     @endif
 
     <!-- ============================================================ -->
@@ -414,7 +431,7 @@
                 <div class="digi-form-group">
                     <label class="digi-form-label">Area Operasional <span class="digi-required">*</span></label>
                     <select name="area_id" id="aa_area_id" class="digi-select" required>
-                        @foreach($areas as $a)
+                        @foreach(($allAreas ?? $areas) as $a)
                             <option value="{{ $a->id }}">{{ $a->name }}</option>
                         @endforeach
                     </select>
@@ -423,7 +440,7 @@
                     <label class="digi-form-label">Pengguna & Peran Tanggung Jawab <span class="digi-required">*</span></label>
                     <div style="display:flex; gap:6px;">
                         <select name="user_id" id="aa_user_id" class="digi-select" required>
-                            @foreach($users as $u)
+                            @foreach(($allUsers ?? $users) as $u)
                                 <option value="{{ $u->id }}">{{ $u->name }} ({{ $u->jabatan }})</option>
                             @endforeach
                         </select>
@@ -441,6 +458,8 @@
             </div>
         </form>
 
+        @include('partials.pagination_top', ['paginator' => $areaApprovers])
+
         <div style="overflow-x: auto;">
             <table class="digi-table">
                 <thead>
@@ -457,7 +476,7 @@
                 <tbody>
                     @foreach($areaApprovers as $idx => $aa)
                         <tr>
-                            <td>{{ $idx + 1 }}</td>
+                            <td>{{ $areaApprovers->firstItem() ? ($areaApprovers->firstItem() + $idx) : ($idx + 1) }}</td>
                             <td style="font-weight:700; color: #0284c7;">{{ $aa->area?->name }}</td>
                             <td style="font-weight:600;">{{ $aa->user?->name }} ({{ $aa->user?->username }})</td>
                             <td><span class="digi-badge digi-badge-blue">{{ strtoupper($aa->role_type) }}</span></td>
@@ -488,6 +507,8 @@
                 </tbody>
             </table>
         </div>
+
+        @include('partials.pagination_bottom', ['paginator' => $areaApprovers])
     @endif
 
     <!-- ============================================================ -->
@@ -537,7 +558,7 @@
                     <label class="digi-form-label">Pilih Unit Kendaraan / Alat Berat <span class="digi-required">*</span></label>
                     <select name="vehicle_id" id="std_vehicle_id" class="digi-select" onchange="onVehicleSelectChange(this)" required>
                         <option value="" disabled selected>-- Pilih Unit --</option>
-                        @foreach($vehicles as $v)
+                        @foreach(($allVehicles ?? $vehicles) as $v)
                             <option value="{{ $v->id }}"
                                 data-type="{{ $v->unit_type ?? $v->model }}"
                                 data-meter="{{ $v->meter_type }}"
@@ -603,6 +624,8 @@
             </div>
         </form>
 
+        @include('partials.pagination_top', ['paginator' => $fuelStandards])
+
         <!-- Tabel Sederhana Standar Konsumsi BBM -->
         <div style="overflow-x: auto;">
             <table class="digi-table">
@@ -619,7 +642,7 @@
                 <tbody>
                     @foreach($fuelStandards as $idx => $std)
                         <tr>
-                            <td>{{ $idx + 1 }}</td>
+                            <td>{{ $fuelStandards->firstItem() ? ($fuelStandards->firstItem() + $idx) : ($idx + 1) }}</td>
                             <td style="font-weight: 700; color: #0284c7;">
                                 {{ $std->vehicle?->unit_code ?? ('Unit #' . $std->vehicle_id) }}
                             </td>
@@ -658,6 +681,8 @@
                 </tbody>
             </table>
         </div>
+
+        @include('partials.pagination_bottom', ['paginator' => $fuelStandards])
     @endif
 
     <!-- ============================================================ -->
@@ -691,11 +716,13 @@
             </div>
         </form>
 
+        @include('partials.pagination_top', ['paginator' => $fuelPrices])
+
         <div style="overflow-x: auto;">
             <table class="digi-table">
                 <thead>
                     <tr>
-                        <th>No</th>
+                        <th style="width: 50px;">No</th>
                         <th>Jenis BBM</th>
                         <th>Harga per Liter</th>
                         <th>Mulai Berlaku</th>
@@ -707,7 +734,7 @@
                 <tbody>
                     @foreach($fuelPrices as $idx => $fp)
                         <tr>
-                            <td>{{ $idx + 1 }}</td>
+                            <td>{{ $fuelPrices->firstItem() ? ($fuelPrices->firstItem() + $idx) : ($idx + 1) }}</td>
                             <td style="font-weight:700; color: #0284c7;">{{ $fp->fuel_type }}</td>
                             <td><strong>Rp {{ number_format($fp->price_per_liter, 0, ',', '.') }}</strong> / Liter</td>
                             <td>{{ $fp->effective_start?->format('d/m/Y') }}</td>
@@ -738,6 +765,8 @@
                 </tbody>
             </table>
         </div>
+
+        @include('partials.pagination_bottom', ['paginator' => $fuelPrices])
     @endif
 
     <!-- ============================================================ -->
@@ -788,7 +817,7 @@
                     <label class="digi-form-label">Perusahaan Vendor Terkait (Khusus Role Vendor)</label>
                     <select name="vendor_id" id="usr_vendor_id" class="digi-select">
                         <option value="">- Internal PT United Tractors -</option>
-                        @foreach($vendors as $ven)
+                        @foreach(($allVendors ?? $vendors) as $ven)
                             <option value="{{ $ven->id }}">{{ $ven->name }}</option>
                         @endforeach
                     </select>
@@ -803,11 +832,13 @@
             </div>
         </form>
 
+        @include('partials.pagination_top', ['paginator' => $users])
+
         <div style="overflow-x: auto;">
             <table class="digi-table">
                 <thead>
                     <tr>
-                        <th>No</th>
+                        <th style="width: 50px;">No</th>
                         <th>Nama Pengguna</th>
                         <th>Username</th>
                         <th>NRP</th>
@@ -821,7 +852,7 @@
                 <tbody>
                     @foreach($users as $idx => $u)
                         <tr>
-                            <td>{{ $idx + 1 }}</td>
+                            <td>{{ $users->firstItem() ? ($users->firstItem() + $idx) : ($idx + 1) }}</td>
                             <td style="font-weight:700; color: #0284c7;">{{ $u->name }}</td>
                             <td style="font-weight:600;">{{ $u->username }}</td>
                             <td>{{ $u->nrp ?? '-' }}</td>
@@ -856,6 +887,8 @@
                 </tbody>
             </table>
         </div>
+
+        @include('partials.pagination_bottom', ['paginator' => $users])
     @endif
 
     <!-- ============================================================ -->
@@ -899,11 +932,13 @@
             </div>
         </form>
 
+        @include('partials.pagination_top', ['paginator' => $backgrounds])
+
         <div style="overflow-x: auto;">
             <table class="digi-table">
                 <thead>
                     <tr>
-                        <th>No</th>
+                        <th style="width: 50px;">No</th>
                         <th>Pratinjau Gambar</th>
                         <th>Judul Background</th>
                         <th>Keterangan / Ketentuan UT</th>
@@ -915,7 +950,7 @@
                 <tbody>
                     @forelse($backgrounds as $idx => $bg)
                         <tr>
-                            <td>{{ $idx + 1 }}</td>
+                            <td>{{ method_exists($backgrounds, 'firstItem') && $backgrounds->firstItem() ? ($backgrounds->firstItem() + $idx) : ($idx + 1) }}</td>
                             <td>
                                 <a href="{{ asset($bg->image_path) }}" target="_blank" title="Klik untuk melihat ukuran penuh">
                                     <img src="{{ asset($bg->image_path) }}" alt="{{ $bg->title }}" style="width: 125px; height: 68px; object-fit: cover; border-radius: 8px; border: 2px solid {{ $bg->is_active ? '#22c55e' : '#cbd5e1' }}; display: block;">
@@ -970,18 +1005,23 @@
                 </tbody>
             </table>
         </div>
+
+        @include('partials.pagination_bottom', ['paginator' => $backgrounds])
     @endif
 
     <!-- ============================================================ -->
     <!-- TAB 9: AUDIT TRAIL                                           -->
     <!-- ============================================================ -->
     @if($tab === 'audit')
-        <h3 class="digi-section-title">Log Aktivitas & Audit Trail Sistem (100 Aktivitas Terbaru)</h3>
+        <h3 class="digi-section-title">Log Aktivitas & Audit Trail Sistem</h3>
+
+        @include('partials.pagination_top', ['paginator' => $auditLogs])
+
         <div style="overflow-x: auto;">
             <table class="digi-table">
                 <thead>
                     <tr>
-                        <th>No</th>
+                        <th style="width: 50px;">No</th>
                         <th>Waktu</th>
                         <th>Pengguna</th>
                         <th>Aksi</th>
@@ -993,7 +1033,7 @@
                 <tbody>
                     @forelse($auditLogs as $idx => $log)
                         <tr>
-                            <td>{{ $idx + 1 }}</td>
+                            <td>{{ $auditLogs->firstItem() ? ($auditLogs->firstItem() + $idx) : ($idx + 1) }}</td>
                             <td style="white-space:nowrap;">{{ $log->created_at?->format('d/m/Y H:i:s') }}</td>
                             <td style="font-weight:600;">{{ $log->user?->name ?? 'Sistem' }}</td>
                             <td><span class="digi-badge digi-badge-blue">{{ strtoupper($log->action) }}</span></td>
@@ -1015,6 +1055,8 @@
                 </tbody>
             </table>
         </div>
+
+        @include('partials.pagination_bottom', ['paginator' => $auditLogs])
     @endif
 </div>
 
@@ -1457,6 +1499,13 @@ function validateDeleteStep2() {
 
 function closeDeleteModal() {
     document.getElementById('deleteMasterModal').style.display = 'none';
+}
+
+function updatePerPage(val) {
+    const url = new URL(window.location.href);
+    url.searchParams.set('per_page', val);
+    url.searchParams.set('page', '1');
+    window.location.href = url.toString();
 }
 </script>
 @endsection
