@@ -6,6 +6,7 @@ use App\Models\Area;
 use App\Models\AreaApprover;
 use App\Models\Employee;
 use App\Models\FuelRequest;
+use App\Models\FuelStandard;
 use App\Models\User;
 use App\Models\Vehicle;
 use App\Models\Vendor;
@@ -504,5 +505,133 @@ class MasterDataCrudTest extends TestCase
             ])
             ->assertRedirect(route('admin.master', ['tab' => 'areas']));
         $this->assertDatabaseMissing('areas', ['id' => $tempArea->id]);
+    }
+
+    /**
+     * Skenario 19: Pengujian Lengkap Fitur Standar Konsumsi BBM (CRUD, Historical Versioning, & Evaluasi)
+     */
+    public function test_fuel_standard_crud_historical_versioning_and_evaluation(): void
+    {
+        // 1. Admin dapat melihat daftar standar BBM
+        $indexResp = $this->actingAs($this->admin)
+            ->get(route('admin.master', ['tab' => 'standards']));
+        $indexResp->assertStatus(200);
+
+        // 2. Admin dapat menambahkan standar untuk unit baru
+        $newVehicle = Vehicle::create([
+            'unit_code' => 'LV-TEST-99',
+            'police_no' => 'DA 1999 UT',
+            'model' => 'Toyota Hilux 4x4 Double Cabin',
+            'unit_type' => 'Light Vehicle',
+            'meter_type' => 'km',
+            'tank_capacity' => 80,
+            'is_active' => true,
+        ]);
+
+        $createResp = $this->actingAs($this->admin)
+            ->post(route('admin.master.standard'), [
+                'vehicle_id' => $newVehicle->id,
+                'standard_value' => 8.5,
+                'effective_start' => '2026-01-01',
+                // standard_type and tolerance_percentage omitted to test auto-detection & default tolerance
+            ]);
+
+        $createResp->assertRedirect(route('admin.master', ['tab' => 'standards']));
+
+        $std1 = FuelStandard::where('vehicle_id', $newVehicle->id)->firstOrFail();
+        $this->assertSame('km_per_liter', $std1->standard_type);
+        $this->assertEquals(8.5, (float) $std1->standard_value);
+        $this->assertEquals(5.0, (float) $std1->tolerance_percentage);
+        $this->assertTrue($std1->is_active);
+        $this->assertNull($std1->effective_end);
+
+        // 3. Admin dapat mengedit standar berdasarkan ID
+        $updateResp = $this->actingAs($this->admin)
+            ->post(route('admin.master.standard'), [
+                'id' => $std1->id,
+                'vehicle_id' => $newVehicle->id,
+                'standard_value' => 8.2,
+                'effective_start' => '2026-01-01',
+                'notes' => 'Koreksi salah ketik target rasio',
+            ]);
+
+        $updateResp->assertRedirect(route('admin.master', ['tab' => 'standards']));
+        $std1->refresh();
+        $this->assertEquals(8.2, (float) $std1->standard_value);
+        $this->assertSame('Koreksi salah ketik target rasio', $std1->notes);
+
+        // 4. Tambah Standar Baru -> Standar lama otomatis ditutup (Historical Versioning)
+        $newStandardResp = $this->actingAs($this->admin)
+            ->post(route('admin.master.standard'), [
+                'vehicle_id' => $newVehicle->id,
+                'standard_value' => 7.8,
+                'effective_start' => '2026-11-01',
+            ]);
+
+        $newStandardResp->assertRedirect(route('admin.master', ['tab' => 'standards']));
+
+        $std1->refresh();
+        $this->assertFalse($std1->is_active);
+        $this->assertSame('2026-11-01', $std1->effective_end->format('Y-m-d'));
+
+        $std2 = FuelStandard::where('vehicle_id', $newVehicle->id)->where('is_active', true)->firstOrFail();
+        $this->assertEquals(7.8, (float) $std2->standard_value);
+        $this->assertSame('2026-11-01', $std2->effective_start->format('Y-m-d'));
+        $this->assertNull($std2->effective_end);
+
+        // 5. Admin dapat menonaktifkan dan mengaktifkan kembali standar
+        $this->actingAs($this->admin)
+            ->post(route('admin.master.toggle'), [
+                'entity' => 'standard',
+                'id' => $std2->id,
+                'tab' => 'standards',
+            ])->assertRedirect();
+        $this->assertFalse($std2->fresh()->is_active);
+
+        $this->actingAs($this->admin)
+            ->post(route('admin.master.toggle'), [
+                'entity' => 'standard',
+                'id' => $std2->id,
+                'tab' => 'standards',
+            ])->assertRedirect();
+        $this->assertTrue($std2->fresh()->is_active);
+
+        // 6. Unit nonaktif tidak dapat diberi standar baru
+        $newVehicle->update(['is_active' => false]);
+        $this->actingAs($this->admin)
+            ->post(route('admin.master.standard'), [
+                'vehicle_id' => $newVehicle->id,
+                'standard_value' => 7.0,
+                'effective_start' => '2026-12-01',
+            ])
+            ->assertSessionHasErrors(['vehicle_id']);
+        $newVehicle->update(['is_active' => true]);
+
+        // 7. Pengujian Rumus Evaluasi BBM: KM/L (Batas Tetap 0.5 Km/L) & Snapshot Evaluasi
+        $evalService = app(\App\Services\FuelEvaluationService::class);
+        $evalResult = $evalService->evaluateVehicle(
+            $newVehicle,
+            '2026-11',
+            $this->admin->id,
+            10000.0, // Meter Start
+            10780.0, // Meter End (Jarak 780 KM)
+            110.0    // Total Aktual Liter (Rasio Aktual: 780 / 110 = 7.09 KM/L)
+        );
+
+        // Standar 7.8, Rasio Aktual 7.09 < (7.8 - 0.5 = 7.3) -> Harus 'needs_review'
+        $this->assertSame('needs_review', $evalResult->evaluation_status);
+        $this->assertSame('km_per_liter', $evalResult->standard_type);
+        $this->assertEquals(7.8, (float) $evalResult->standard_used);
+        $this->assertNotNull($evalResult->evaluation_no);
+
+        // 8. Hapus Standar dengan Verifikasi 2 Langkah
+        $this->actingAs($this->admin)
+            ->delete(route('admin.master.standards.destroy', $std1->id), [
+                'verification_step' => '2',
+                'confirm_keyword' => 'HAPUS',
+            ])
+            ->assertRedirect(route('admin.master', ['tab' => 'standards']));
+
+        $this->assertDatabaseMissing('fuel_standards', ['id' => $std1->id]);
     }
 }

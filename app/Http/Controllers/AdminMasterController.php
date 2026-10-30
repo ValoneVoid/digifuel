@@ -1043,27 +1043,43 @@ class AdminMasterController extends Controller
 
         $validated = $request->validate([
             'vehicle_id' => 'required|exists:vehicles,id',
-            'standard_type' => 'required|in:km_per_liter,liter_per_hour',
+            'standard_type' => 'nullable|in:km_per_liter,liter_per_hour',
             'standard_value' => 'required|numeric|gt:0',
-            'tolerance_percentage' => 'required|numeric|min:0|max:100',
+            'tolerance_percentage' => 'nullable|numeric|min:0|max:100',
             'effective_start' => 'required|date',
             'notes' => 'nullable|string|max:500',
         ]);
 
+        $vehicle = Vehicle::findOrFail($validated['vehicle_id']);
+        if (!$std && !$vehicle->is_active) {
+            throw ValidationException::withMessages([
+                'vehicle_id' => 'Tidak dapat menambahkan standar baru untuk unit yang sedang nonaktif.',
+            ]);
+        }
+
+        $standardType = !empty($validated['standard_type'])
+            ? $validated['standard_type']
+            : ($vehicle->meter_type === 'hm' ? 'liter_per_hour' : 'km_per_liter');
+
+        $tolerancePct = array_key_exists('tolerance_percentage', $validated) && $validated['tolerance_percentage'] !== null && $validated['tolerance_percentage'] !== ''
+            ? (float) $validated['tolerance_percentage']
+            : 5.00;
+
         if ($std) {
             $std->update([
                 'vehicle_id' => $validated['vehicle_id'],
-                'standard_type' => $validated['standard_type'],
+                'standard_type' => $standardType,
                 'standard_value' => $validated['standard_value'],
-                'tolerance_percentage' => $validated['tolerance_percentage'],
+                'tolerance_percentage' => $tolerancePct,
                 'effective_start' => $validated['effective_start'],
                 'notes' => $validated['notes'] ?? null,
             ]);
-            FuelRequestHistory::record(null, $admin->id, 'standard_updated', null, 'active', "Memperbarui standar konsumsi BBM ID #{$std->id} untuk Vehicle ID {$std->vehicle_id}: {$std->standard_value} ({$std->standard_type}).");
-            return redirect()->route('admin.master', ['tab' => 'standards'])->with('success', 'Data standar konsumsi BBM berhasil diperbarui.');
+            FuelRequestHistory::record(null, $admin->id, 'standard_updated', null, 'active', "Memperbarui standar konsumsi BBM ID #{$std->id} untuk Unit {$vehicle->unit_code}: {$std->standard_value} ({$std->standard_type}).");
+            return redirect()->route('admin.master', ['tab' => 'standards'])->with('success', "Data standar konsumsi BBM untuk unit {$vehicle->unit_code} berhasil diperbarui.");
         }
 
-        FuelStandard::where('vehicle_id', $validated['vehicle_id'])
+        // Close previous active standard without overwriting it (preserves history)
+        FuelStandard::where('vehicle_id', $vehicle->id)
             ->where('is_active', true)
             ->update([
                 'is_active' => false,
@@ -1071,18 +1087,18 @@ class AdminMasterController extends Controller
             ]);
 
         $std = FuelStandard::create([
-            'vehicle_id' => $validated['vehicle_id'],
-            'standard_type' => $validated['standard_type'],
+            'vehicle_id' => $vehicle->id,
+            'standard_type' => $standardType,
             'standard_value' => $validated['standard_value'],
-            'tolerance_percentage' => $validated['tolerance_percentage'],
+            'tolerance_percentage' => $tolerancePct,
             'effective_start' => $validated['effective_start'],
             'is_active' => true,
             'notes' => $validated['notes'] ?? null,
         ]);
 
-        FuelRequestHistory::record(null, $admin->id, 'standard_updated', null, 'active', "Menambahkan standar konsumsi BBM baru untuk Vehicle ID {$std->vehicle_id}: {$std->standard_value} ({$std->standard_type}).");
+        FuelRequestHistory::record(null, $admin->id, 'standard_updated', null, 'active', "Menambahkan standar konsumsi BBM baru untuk Unit {$vehicle->unit_code}: {$std->standard_value} ({$std->standard_type}).");
 
-        return redirect()->route('admin.master', ['tab' => 'standards'])->with('success', 'Standar konsumsi BBM berhasil ditambahkan (riwayat standar lama tetap tersimpan).');
+        return redirect()->route('admin.master', ['tab' => 'standards'])->with('success', "Standar konsumsi BBM untuk unit {$vehicle->unit_code} berhasil ditambahkan (riwayat standar lama tetap tersimpan).");
     }
 
     public function storeFuelPrice(Request $request)

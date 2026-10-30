@@ -494,60 +494,124 @@
     <!-- TAB 6: FUEL STANDARDS                                        -->
     <!-- ============================================================ -->
     @if($tab === 'standards')
+        <!-- Penjelasan Singkat Standar Konsumsi BBM Sesuai Aturan Perusahaan -->
+        <div style="background: #f8fafc; border: 1px solid #e2e8f0; border-left: 4px solid #0284c7; border-radius: 8px; padding: 14px 18px; margin-bottom: 20px;">
+            <div style="display: flex; align-items: flex-start; gap: 12px;">
+                <span style="font-size: 20px; line-height: 1.2;">ℹ️</span>
+                <div>
+                    <h4 style="margin: 0 0 4px 0; font-size: 14px; font-weight: 700; color: #0f172a;">Tentang Standar Konsumsi BBM</h4>
+                    <p style="margin: 0 0 8px 0; font-size: 13px; color: #334155; line-height: 1.5;">
+                        Standar konsumsi BBM merupakan nilai acuan yang digunakan DigiFuel untuk mengevaluasi penggunaan BBM setiap unit. Nilai standar diperoleh dari ketentuan perusahaan dan dimasukkan oleh Admin secara manual. Standar cukup dimasukkan satu kali untuk setiap unit dan hanya perlu diperbarui apabila terdapat perubahan ketentuan perusahaan atau penambahan unit baru.
+                    </p>
+                    <div style="display: flex; gap: 16px; flex-wrap: wrap; font-size: 12px; color: #64748b; line-height: 1.4;">
+                        <span>• <strong>KM/Liter:</strong> Digunakan untuk kendaraan yang menggunakan Odometer (Light Vehicle & Bus).</span>
+                        <span>• <strong>Liter/Jam:</strong> Digunakan untuk alat berat yang menggunakan Hour Meter (HM).</span>
+                        <span>• <strong>Komparasi:</strong> Sistem membandingkan konsumsi aktual dengan standar untuk mendeteksi potensi pemborosan BBM.</span>
+                        <span>• <strong>Edit vs Tambah Baru:</strong> Gunakan <em>Edit</em> untuk memperbaiki salah ketik. Gunakan <em>Tambah Baru</em> jika perusahaan menetapkan standar baru agar histori periode lama tetap tersimpan utuh.</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Formulir Sederhana Pengaturan Standar BBM -->
         <form id="standardForm" action="{{ route('admin.master.standard') }}" method="POST" class="digi-form-box">
             @csrf
             <input type="hidden" name="id" id="std_id" value="">
+            <input type="hidden" name="standard_type" id="std_type" value="km_per_liter">
+
             <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 14px;">
-                <h3 class="digi-section-title" id="stdFormTitle" style="margin: 0;">Tambah Standar Konsumsi BBM (Menyimpan Riwayat Historis)</h3>
+                <div>
+                    <h3 class="digi-section-title" id="stdFormTitle" style="margin: 0;">Pengaturan Standar Konsumsi BBM Unit</h3>
+                    <p style="font-size: 12.5px; color: #64748b; margin: 3px 0 0 0;">
+                        Pilih unit, masukkan nilai standar konsumsi, dan tentukan tanggal mulai berlaku.
+                    </p>
+                </div>
                 <button type="button" id="stdCancelBtn" class="btn-digi btn-digi-gray" style="display: none; padding: 5px 14px; font-size: 12px;" onclick="resetStandardForm()">
                     Batal Edit
                 </button>
             </div>
+
             <div class="digi-form-grid-3">
+                <!-- 1. Unit Code Dropdown (Hanya unit aktif untuk standar baru) -->
                 <div class="digi-form-group">
-                    <label class="digi-form-label">Pilih Unit <span class="digi-required">*</span></label>
-                    <select name="vehicle_id" id="std_vehicle_id" class="digi-select" required>
+                    <label class="digi-form-label">Pilih Unit Kendaraan / Alat Berat <span class="digi-required">*</span></label>
+                    <select name="vehicle_id" id="std_vehicle_id" class="digi-select" onchange="onVehicleSelectChange(this)" required>
+                        <option value="" disabled selected>-- Pilih Unit --</option>
                         @foreach($vehicles as $v)
-                            <option value="{{ $v->id }}">{{ $v->unit_code }} ({{ $v->model }})</option>
+                            <option value="{{ $v->id }}"
+                                data-type="{{ $v->unit_type ?? $v->model }}"
+                                data-meter="{{ $v->meter_type }}"
+                                data-code="{{ $v->unit_code }}"
+                                data-active="{{ $v->is_active ? '1' : '0' }}">
+                                {{ $v->unit_code }} ({{ $v->unit_type ?? $v->model }}){{ !$v->is_active ? ' - [Nonaktif]' : '' }}
+                            </option>
                         @endforeach
                     </select>
+                    <!-- Indikator otomatis jenis unit & tipe meter -->
+                    <div id="std_vehicle_info" style="font-size: 12px; color: #0284c7; margin-top: 5px; display: none;">
+                        Jenis Unit: <strong id="std_info_type">-</strong> | Tipe Meter: <strong id="std_info_meter">-</strong>
+                    </div>
                 </div>
+
+                <!-- 2. Nilai Standar Konsumsi dengan Satuan Dinamis -->
                 <div class="digi-form-group">
-                    <label class="digi-form-label">Jenis Standar <span class="digi-required">*</span></label>
-                    <select name="standard_type" id="std_type" class="digi-select" required>
-                        <option value="km_per_liter">KM per Liter (Kendaraan LV / Bus)</option>
-                        <option value="liter_per_hour">Liter per Jam (Alat Berat / HM)</option>
-                    </select>
+                    <label class="digi-form-label">Nilai Standar Konsumsi <span class="digi-required">*</span></label>
+                    <div style="display: flex; align-items: center; gap: 6px;">
+                        <input type="number" step="0.01" min="0.01" name="standard_value" id="std_value" class="digi-input" placeholder="Contoh: 8.0" required>
+                        <span id="std_unit_badge" style="background: #f1f5f9; padding: 7px 14px; border-radius: 6px; font-weight: 700; color: #334155; font-size: 13px; border: 1px solid #cbd5e1; white-space: nowrap;">
+                            KM/L
+                        </span>
+                    </div>
+                    <div id="std_type_hint" style="font-size: 11.5px; color: #64748b; margin-top: 4px;">
+                        Target efisiensi konsumsi BBM unit operasional.
+                    </div>
                 </div>
+
+                <!-- 3. Tanggal Mulai Berlaku -->
                 <div class="digi-form-group">
-                    <label class="digi-form-label">Nilai Standar & Toleransi (%) <span class="digi-required">*</span></label>
-                    <div style="display:flex; gap:6px;">
-                        <input type="number" step="0.01" name="standard_value" id="std_value" class="digi-input" placeholder="Contoh: 8.0" required>
-                        <input type="number" step="0.1" name="tolerance_percentage" id="std_tolerance" class="digi-input" value="5.0" style="width:90px;" required>
+                    <label class="digi-form-label">Berlaku Mulai <span class="digi-required">*</span></label>
+                    <input type="date" name="effective_start" id="std_start" class="digi-input" value="{{ now()->toDateString() }}" required>
+                    <div style="font-size: 11.5px; color: #64748b; margin-top: 4px;">
+                        Standar sebelumnya akan ditutup otomatis per tanggal ini.
                     </div>
                 </div>
             </div>
-            <div class="digi-form-grid-2" style="margin-bottom: 0; align-items: flex-end;">
-                <div class="digi-form-group">
-                    <label class="digi-form-label">Tanggal Mulai Berlaku <span class="digi-required">*</span></label>
-                    <input type="date" name="effective_start" id="std_start" class="digi-input" value="{{ now()->toDateString() }}" required>
+
+            <!-- Pengaturan Toleransi Khusus Alat Berat (HM) - Ditampilkan otomatis jika relevan -->
+            <div id="std_tolerance_box" style="display: none; background: #f8fafc; border: 1px dashed #cbd5e1; border-radius: 8px; padding: 10px 14px; margin-bottom: 14px;">
+                <div style="display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 10px;">
+                    <div>
+                        <span style="font-size: 13px; font-weight: 600; color: #1e293b;">Toleransi Konsumsi Alat Berat (HM):</span>
+                        <span style="font-size: 12px; color: #64748b; margin-left: 6px;">Batas toleransi deviasi konsumsi maksimum untuk alat berat (default 5.0%).</span>
+                    </div>
+                    <div style="display: flex; align-items: center; gap: 6px;">
+                        <input type="number" step="0.1" min="0" max="100" name="tolerance_percentage" id="std_tolerance" class="digi-input" value="5.0" style="width: 80px; text-align: center;">
+                        <span style="font-size: 13px; font-weight: 600; color: #475569;">%</span>
+                    </div>
+                </div>
+            </div>
+
+            <div style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 12px; margin-top: 4px;">
+                <div style="flex: 1; min-width: 260px;">
+                    <input type="text" name="notes" id="std_notes" class="digi-input" placeholder="Catatan opsional (misal: penyesuaian rasio operasional tambang 2026)">
                 </div>
                 <div>
-                    <button type="submit" id="stdSubmitBtn" class="btn-digi btn-digi-blue">Simpan Standar BBM</button>
+                    <button type="submit" id="stdSubmitBtn" class="btn-digi btn-digi-blue">
+                        Simpan Standar BBM
+                    </button>
                 </div>
             </div>
         </form>
 
+        <!-- Tabel Sederhana Standar Konsumsi BBM -->
         <div style="overflow-x: auto;">
             <table class="digi-table">
                 <thead>
                     <tr>
-                        <th>No</th>
+                        <th style="width: 50px;">No</th>
                         <th>Unit Code</th>
-                        <th>Jenis Standar</th>
-                        <th>Nilai Target</th>
-                        <th>Toleransi</th>
-                        <th>Periode Berlaku</th>
+                        <th>Jenis Unit</th>
+                        <th style="text-align: right;">Standar Konsumsi</th>
                         <th>Status</th>
                         <th>Aksi</th>
                     </tr>
@@ -556,14 +620,21 @@
                     @foreach($fuelStandards as $idx => $std)
                         <tr>
                             <td>{{ $idx + 1 }}</td>
-                            <td style="font-weight:700; color: #0284c7;">{{ $std->vehicle?->unit_code }}</td>
-                            <td>{{ $std->standard_type === 'liter_per_hour' ? 'Liter per Jam (HM)' : 'KM per Liter (KM)' }}</td>
-                            <td><strong>{{ (float)$std->standard_value }}</strong> {{ $std->standard_type === 'liter_per_hour' ? 'L/Jam' : 'Km/L' }}</td>
-                            <td>{{ (float)$std->tolerance_percentage }}%</td>
-                            <td>{{ $std->effective_start?->format('d/m/Y') }} — {{ $std->effective_end ? $std->effective_end->format('d/m/Y') : 'Sekarang' }}</td>
+                            <td style="font-weight: 700; color: #0284c7;">
+                                {{ $std->vehicle?->unit_code ?? ('Unit #' . $std->vehicle_id) }}
+                            </td>
+                            <td>
+                                {{ $std->vehicle?->unit_type ?? ($std->vehicle?->model ?? 'Light Vehicle') }}
+                            </td>
+                            <td style="text-align: right;">
+                                <span style="font-weight: 700; color: #0f172a; font-size: 13.5px;">{{ (float)$std->standard_value }}</span>
+                                <span style="font-size: 12px; font-weight: 600; color: #64748b; margin-left: 2px;">
+                                    {{ $std->standard_type === 'liter_per_hour' ? 'Liter/Jam' : 'KM/L' }}
+                                </span>
+                            </td>
                             <td>
                                 <span class="digi-badge {{ $std->is_active ? 'digi-badge-green' : 'digi-badge-gray' }}">
-                                    {{ $std->is_active ? 'Aktif' : 'Nonaktif / Historis' }}
+                                    {{ $std->is_active ? 'Aktif' : 'Nonaktif' }}
                                 </span>
                             </td>
                             <td>
@@ -1148,23 +1219,87 @@ function resetApproverForm() {
     document.getElementById('aaCancelBtn').style.display = 'none';
 }
 
-// 6. Fuel Standard Form Auto-Fill & Reset
+// 6. Fuel Standard Form Auto-Fill, Dynamic Units & Reset
+function onVehicleSelectChange(selectElem) {
+    if (!selectElem) return;
+    const selectedOpt = selectElem.options[selectElem.selectedIndex];
+    if (!selectedOpt || !selectedOpt.value) {
+        const infoElem = document.getElementById('std_vehicle_info');
+        if (infoElem) infoElem.style.display = 'none';
+        return;
+    }
+
+    const unitType = selectedOpt.getAttribute('data-type') || 'Kendaraan Operasional';
+    const meterType = (selectedOpt.getAttribute('data-meter') || 'km').toLowerCase();
+
+    const infoElem = document.getElementById('std_vehicle_info');
+    if (infoElem) {
+        document.getElementById('std_info_type').textContent = unitType;
+        document.getElementById('std_info_meter').textContent = meterType.toUpperCase();
+        infoElem.style.display = 'block';
+    }
+
+    const unitBadge = document.getElementById('std_unit_badge');
+    const stdTypeInput = document.getElementById('std_type');
+    const tolBox = document.getElementById('std_tolerance_box');
+    const hint = document.getElementById('std_type_hint');
+
+    if (meterType === 'hm') {
+        if (stdTypeInput) stdTypeInput.value = 'liter_per_hour';
+        if (unitBadge) unitBadge.textContent = 'Liter/Jam';
+        if (hint) hint.textContent = 'Target konsumsi BBM alat berat per Jam Operasi (HM).';
+        if (tolBox) tolBox.style.display = 'block';
+    } else {
+        if (stdTypeInput) stdTypeInput.value = 'km_per_liter';
+        if (unitBadge) unitBadge.textContent = 'KM/L';
+        if (hint) hint.textContent = 'Target efisiensi bahan bakar (Kilometer per Liter).';
+        if (tolBox) tolBox.style.display = 'none';
+    }
+}
+
 function editStandard(std, startDate) {
     document.getElementById('std_id').value = std.id;
-    document.getElementById('std_vehicle_id').value = std.vehicle_id;
-    document.getElementById('std_type').value = std.standard_type;
+    const vehSelect = document.getElementById('std_vehicle_id');
+    if (vehSelect) {
+        vehSelect.value = std.vehicle_id;
+    }
     document.getElementById('std_value').value = parseFloat(std.standard_value);
-    document.getElementById('std_tolerance').value = parseFloat(std.tolerance_percentage);
+
+    const stdTypeInput = document.getElementById('std_type');
+    if (stdTypeInput) {
+        stdTypeInput.value = std.standard_type || 'km_per_liter';
+    }
+    const tolInput = document.getElementById('std_tolerance');
+    if (tolInput) {
+        tolInput.value = parseFloat(std.tolerance_percentage || 5.0);
+    }
+    const notesInput = document.getElementById('std_notes');
+    if (notesInput) {
+        notesInput.value = std.notes || '';
+    }
     if (startDate) document.getElementById('std_start').value = startDate;
-    document.getElementById('stdFormTitle').textContent = 'Edit Standar Konsumsi BBM #' + std.id;
+
+    const vCode = std.vehicle ? std.vehicle.unit_code : ('Unit #' + std.vehicle_id);
+    document.getElementById('stdFormTitle').textContent = 'Edit Standar Konsumsi BBM: ' + vCode;
     document.getElementById('stdSubmitBtn').textContent = 'Perbarui Standar BBM';
     document.getElementById('stdCancelBtn').style.display = 'inline-flex';
+
+    onVehicleSelectChange(vehSelect);
     document.getElementById('standardForm').scrollIntoView({ behavior: 'smooth', block: 'center' });
 }
+
 function resetStandardForm() {
     document.getElementById('standardForm').reset();
     document.getElementById('std_id').value = '';
-    document.getElementById('stdFormTitle').textContent = 'Tambah Standar Konsumsi BBM (Menyimpan Riwayat Historis)';
+    const infoElem = document.getElementById('std_vehicle_info');
+    if (infoElem) infoElem.style.display = 'none';
+    const unitBadge = document.getElementById('std_unit_badge');
+    if (unitBadge) unitBadge.textContent = 'KM/L';
+    const stdTypeInput = document.getElementById('std_type');
+    if (stdTypeInput) stdTypeInput.value = 'km_per_liter';
+    const tolBox = document.getElementById('std_tolerance_box');
+    if (tolBox) tolBox.style.display = 'none';
+    document.getElementById('stdFormTitle').textContent = 'Pengaturan Standar Konsumsi BBM Unit';
     document.getElementById('stdSubmitBtn').textContent = 'Simpan Standar BBM';
     document.getElementById('stdCancelBtn').style.display = 'none';
 }
