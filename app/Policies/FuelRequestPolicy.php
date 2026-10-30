@@ -63,6 +63,19 @@ class FuelRequestPolicy
     }
 
     /**
+     * Determine whether the user can generate/download the official PDF Fuel Request Sheet.
+     * Strictly requires both view permission and final Vendor approval.
+     */
+    public function generatePdf(User $user, FuelRequest $fuelRequest): bool
+    {
+        if (!$this->printDocument($user, $fuelRequest)) {
+            return false;
+        }
+
+        return $fuelRequest->isVendorApproved();
+    }
+
+    /**
      * Determine whether the user can perform approval/rejection on a Fuel Request.
      */
     public function approve(User $user, FuelRequest $fuelRequest): bool

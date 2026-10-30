@@ -9,6 +9,7 @@ use App\Http\Controllers\AuthController;
 use App\Http\Controllers\EvaluationController;
 use App\Http\Controllers\AdminMasterController;
 use App\Http\Controllers\DashboardController;
+use App\Http\Controllers\FuelRequestPdfController;
 
 // Public Authentication Routes
 Route::get('/login', [AuthController::class, 'showLogin'])->name('login');
@@ -37,6 +38,8 @@ Route::middleware(['auth'])->group(function () {
         // Printable Fuel Request Document & Modal Preview (Protected by FuelRequestPolicy)
         Route::get('/fuel/{id}/document', [FuelRequestController::class, 'document'])->name('fuel.document');
         Route::get('/fuel/{id}/document-partial', [FuelRequestController::class, 'documentPartial'])->name('fuel.document.partial');
+        Route::get('/fuel/{id}/pdf', [FuelRequestPdfController::class, 'download'])->name('fuel.pdf');
+        Route::get('/fuel/{id}/pdf/stream', [FuelRequestPdfController::class, 'stream'])->name('fuel.pdf.stream');
 
         // Profile & Private Signature Storage
         Route::get('/profile', [ProfileController::class, 'index'])->name('profile.index');
