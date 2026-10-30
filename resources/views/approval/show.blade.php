@@ -94,6 +94,16 @@
             @endif
 
             @if($canApprove)
+                @if($fuelRequest->status_spv === 'menunggu' && ($currentUser->isSpv() || $currentUser->isAdmin()))
+                    <button type="button" class="btn-digi btn-digi-yellow" onclick="openUpdateLitersModal()">
+                        <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"></path>
+                            <path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"></path>
+                        </svg>
+                        Ubah Jumlah Liter
+                    </button>
+                @endif
+
                 <button type="button" class="btn-digi btn-digi-green" onclick="openApproveModal()">
                     <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3">
                         <polyline points="20 6 9 17 4 12"></polyline>
@@ -160,12 +170,38 @@
         <!-- Row 3 -->
         <div class="digi-form-grid-2">
             <div class="digi-form-group">
-                <label class="digi-form-label">Total (Jumlah) Liter Disetujui <span class="digi-required">*</span></label>
-                <input type="text" class="digi-input" value="{{ (float)$fuelRequest->total_liters }} Liter" readonly disabled>
+                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 4px;">
+                    <label class="digi-form-label" style="margin: 0;">
+                        {{ $fuelRequest->status_spv === 'menunggu' ? 'Total Liter Diajukan Driver' : 'Total (Jumlah) Liter Disetujui' }} <span class="digi-required">*</span>
+                    </label>
+                    @if($fuelRequest->status_spv === 'menunggu' && ($currentUser?->isSpv() || $currentUser?->isAdmin()))
+                        <button type="button" onclick="openUpdateLitersModal()" class="btn-digi btn-digi-yellow" style="padding: 2px 10px; font-size: 11.5px; height: auto;">
+                            ✎ Ubah Liter
+                        </button>
+                    @endif
+                </div>
+                <div style="display: flex; align-items: center; gap: 8px;">
+                    <input type="text" class="digi-input" value="{{ (float)$fuelRequest->total_liters }} Liter" readonly disabled style="font-weight: 700; color: #0284c7; font-size: 15px;">
+                    @if($fuelRequest->vehicle?->tank_capacity)
+                        <span style="font-size: 12px; color: #64748b; white-space: nowrap; background: #f8fafc; border: 1px solid #e2e8f0; padding: 6px 10px; border-radius: 6px;" title="Kapasitas Tangki Kendaraan">
+                            Kapasitas Tangki: <strong>{{ (float)$fuelRequest->vehicle->tank_capacity }} L</strong>
+                        </span>
+                    @endif
+                </div>
+                <span style="font-size: 11.5px; color: #64748b; margin-top: 4px; display: block;">
+                    @if($fuelRequest->status_spv === 'menunggu')
+                        Jumlah liter BBM yang diajukan oleh driver. Supervisor berhak memeriksa dan menyesuaikan jumlah liter sebelum persetujuan.
+                    @else
+                        Jumlah liter BBM yang telah disetujui untuk pengisian unit ini.
+                    @endif
+                </span>
             </div>
             <div class="digi-form-group">
                 <label class="digi-form-label">HM / KM Pengajuan</label>
                 <input type="text" class="digi-input" value="{{ $fuelRequest->hm_km ?? 79 }} {{ strtoupper($fuelRequest->meter_type ?? 'KM') }}" readonly disabled>
+                <span style="font-size: 11.5px; color: #64748b; margin-top: 4px; display: block;">
+                    Posisi odometer/hour meter saat pengajuan dibuat.
+                </span>
             </div>
         </div>
 
@@ -338,6 +374,22 @@
             @csrf
             <div class="digi-modal-body">
                 <p style="margin: 0 0 12px 0;">Apakah Anda yakin ingin menyetujui permintaan <strong>{{ $fuelRequest->request_no }}</strong>?</p>
+
+                @if($fuelRequest->status_spv === 'menunggu' && ($currentUser?->isSpv() || $currentUser?->isAdmin()))
+                    <div class="digi-form-group" style="background: #f0fdf4; border: 1px solid #bbf7d0; padding: 12px; border-radius: 8px; margin-bottom: 14px;">
+                        <label class="digi-form-label" style="color: #166534; font-weight: 700;">
+                            Pemeriksaan & Penyesuaian Jumlah Liter (BBM)
+                        </label>
+                        <div style="display: flex; align-items: center; gap: 8px;">
+                            <input type="number" step="0.1" min="0.1" max="5000" name="total_liters" id="approve_total_liters" class="digi-input" value="{{ (float)$fuelRequest->total_liters }}" style="font-weight: 700; font-size: 15px;" required>
+                            <span style="font-weight: 700; color: #166534;">Liter</span>
+                        </div>
+                        <div style="font-size: 11.5px; color: #15803d; margin-top: 5px;">
+                            Kapasitas tangki unit: <strong>{{ (float)($fuelRequest->vehicle?->tank_capacity ?? 80) }} L</strong>. Anda dapat menyesuaikan jumlah liter jika kuota yang diminta driver perlu diubah.
+                        </div>
+                    </div>
+                @endif
+
                 <div class="digi-form-group">
                     <label class="digi-form-label">Catatan Persetujuan (Opsional)</label>
                     <textarea name="note" class="digi-input" rows="2" placeholder="Tambahkan catatan persetujuan jika diperlukan..."></textarea>
@@ -350,6 +402,47 @@
         </form>
     </div>
 </div>
+
+<!-- MODAL SESUAIKAN JUMLAH LITER OLEH SUPERVISOR -->
+@if($fuelRequest->status_spv === 'menunggu' && ($currentUser?->isSpv() || $currentUser?->isAdmin()))
+<div id="updateLitersModal" class="digi-modal-backdrop" style="display: none;">
+    <div class="digi-modal" style="max-width: 480px;">
+        <div class="digi-modal-header" style="background: #f8fafc; border-bottom: 1px solid #e2e8f0;">
+            <h3 class="digi-modal-title" style="color: #0f172a;">Ubah Jumlah Liter Pengajuan BBM</h3>
+            <button type="button" class="digi-modal-close" onclick="closeUpdateLitersModal()">&times;</button>
+        </div>
+        <form action="{{ route('approval.updateLiters', $fuelRequest->id) }}" method="POST" style="margin: 0;" onsubmit="this.querySelector('button[type=submit]').disabled=true;">
+            @csrf
+            <div class="digi-modal-body">
+                <div style="background: #f0f9ff; border: 1px solid #bae6fd; border-radius: 8px; padding: 10px 14px; margin-bottom: 14px; font-size: 12.5px; color: #0369a1; line-height: 1.5;">
+                    <strong>Informasi Pengajuan Driver:</strong><br>
+                    Driver <strong>{{ $fuelRequest->driver_name }}</strong> mengajukan <strong>{{ (float)$fuelRequest->total_liters }} Liter</strong> untuk unit <strong>{{ $fuelRequest->unit_code }}</strong> (Kapasitas Tangki: <strong>{{ (float)($fuelRequest->vehicle?->tank_capacity ?? 80) }} L</strong>).
+                </div>
+
+                <div class="digi-form-group">
+                    <label class="digi-form-label">Jumlah Liter Baru <span class="digi-required">*</span></label>
+                    <div style="display: flex; align-items: center; gap: 8px;">
+                        <input type="number" step="0.1" min="0.1" max="5000" name="total_liters" class="digi-input" value="{{ (float)$fuelRequest->total_liters }}" style="font-weight: 700; font-size: 15px;" required>
+                        <span style="font-weight: 700; color: #334155;">Liter</span>
+                    </div>
+                    <span style="font-size: 11.5px; color: #64748b; margin-top: 4px; display: block;">
+                        Masukkan jumlah liter yang disesuaikan oleh Supervisor.
+                    </span>
+                </div>
+
+                <div class="digi-form-group" style="margin-bottom: 0;">
+                    <label class="digi-form-label">Alasan / Catatan Penyesuaian (Opsional)</label>
+                    <textarea name="reason" class="digi-input" rows="2" placeholder="Contoh: Disesuaikan dengan batas kapasitas tangki dan rute operasional shift..."></textarea>
+                </div>
+            </div>
+            <div class="digi-modal-footer">
+                <button type="button" class="btn-digi btn-digi-gray" onclick="closeUpdateLitersModal()">Batal</button>
+                <button type="submit" class="btn-digi btn-digi-blue">Simpan Perubahan Liter</button>
+            </div>
+        </form>
+    </div>
+</div>
+@endif
 
 <!-- MODAL KONFIRMASI PENOLAKAN -->
 <div id="rejectModal" class="digi-modal-backdrop" style="display: none;">
@@ -389,6 +482,14 @@ function openRejectModal() {
 }
 function closeRejectModal() {
     document.getElementById('rejectModal').style.display = 'none';
+}
+function openUpdateLitersModal() {
+    const modal = document.getElementById('updateLitersModal');
+    if (modal) modal.style.display = 'flex';
+}
+function closeUpdateLitersModal() {
+    const modal = document.getElementById('updateLitersModal');
+    if (modal) modal.style.display = 'none';
 }
 </script>
 @endsection

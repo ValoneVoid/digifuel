@@ -226,14 +226,69 @@ class FuelRequestService
     }
 
     /**
+     * Supervisor inspects and updates the requested fuel liters before or during approval.
+     */
+    public function updateLiters(FuelRequest $fuelRequest, User $user, float $newLiters, ?string $reason = null): array
+    {
+        return DB::transaction(function () use ($fuelRequest, $user, $newLiters, $reason) {
+            $locked = FuelRequest::lockForUpdate()->findOrFail($fuelRequest->id);
+
+            if ($locked->status_spv !== 'menunggu') {
+                return [
+                    'ok' => false,
+                    'message' => 'Jumlah liter hanya dapat disesuaikan saat status pengajuan masih Menunggu Persetujuan SPV.',
+                ];
+            }
+
+            if (!$user->isAdmin() && $locked->spv_id && (int) $locked->spv_id !== (int) $user->id) {
+                return [
+                    'ok' => false,
+                    'message' => 'Anda bukan Supervisor yang ditugaskan pada pengajuan ini.',
+                ];
+            }
+
+            $oldLiters = (float) $locked->total_liters;
+            $newLiters = round($newLiters, 2);
+
+            $locked->update([
+                'total_liters' => $newLiters,
+            ]);
+
+            FuelRequestHistory::record(
+                $locked->id,
+                $user->id,
+                'adjusted_liters',
+                $locked->current_stage,
+                $locked->current_stage,
+                "Supervisor ({$user->name}) menyesuaikan total liter permintaan BBM dari {$oldLiters} L menjadi {$newLiters} L." . ($reason ? " Alasan: {$reason}" : "")
+            );
+
+            UserNotification::notify(
+                $locked->user_id,
+                $locked->id,
+                "Penyesuaian Liter BBM: {$locked->request_no}",
+                "Supervisor ({$user->name}) telah menyesuaikan jumlah liter permintaan BBM Anda dari {$oldLiters} L menjadi {$newLiters} L." . ($reason ? " Alasan: {$reason}" : ""),
+                'info'
+            );
+
+            return [
+                'ok' => true,
+                'old_liters' => $oldLiters,
+                'new_liters' => $newLiters,
+                'message' => "Jumlah liter permintaan BBM berhasil diperbarui dari {$oldLiters} L menjadi {$newLiters} L.",
+            ];
+        });
+    }
+
+    /**
      * Process sequential approval:
      * Stage 1: SPV/Dept Head (pending_spv -> pending_manager)
      * Stage 2: Dept Head/Manager (pending_manager -> pending_vendor)
      * Stage 3: Vendor (pending_vendor -> approved [Ready for Fueling])
      */
-    public function approve(FuelRequest $fuelRequest, User $user, ?string $note = null): array
+    public function approve(FuelRequest $fuelRequest, User $user, ?string $note = null, ?float $adjustedLiters = null): array
     {
-        return DB::transaction(function () use ($fuelRequest, $user, $note) {
+        return DB::transaction(function () use ($fuelRequest, $user, $note, $adjustedLiters) {
             $locked = FuelRequest::lockForUpdate()->findOrFail($fuelRequest->id);
 
             if (in_array($locked->overall_status, ['ditolak', 'cancelled']) || in_array($locked->current_stage, ['rejected', 'cancelled', 'completed'])) {
@@ -249,25 +304,50 @@ class FuelRequestService
                 }
 
                 $fromStage = $locked->current_stage;
-                $locked->update([
+                $oldLiters = (float) $locked->total_liters;
+                $literAdjusted = false;
+                $finalLiters = $oldLiters;
+
+                if ($adjustedLiters !== null && $adjustedLiters > 0 && abs($adjustedLiters - $oldLiters) > 0.001) {
+                    $finalLiters = round($adjustedLiters, 2);
+                    $literAdjusted = true;
+                }
+
+                $spvNote = $note ?: ($literAdjusted ? "Disetujui oleh SPV dengan penyesuaian liter dari {$oldLiters} L menjadi {$finalLiters} L." : 'Disetujui oleh SPV.');
+
+                $updateData = [
                     'status_spv' => 'disetujui',
                     'spv_action_at' => now(),
-                    'spv_note' => $note ?: 'Disetujui oleh SPV.',
+                    'spv_note' => $spvNote,
                     'spv_signature' => $sig ?: 'images/sig_spv.png',
                     'status_depthead' => 'menunggu',
                     'status_manager' => 'menunggu',
                     'current_stage' => 'pending_manager',
-                ]);
+                ];
+
+                if ($literAdjusted) {
+                    $updateData['total_liters'] = $finalLiters;
+                }
+
+                $locked->update($updateData);
 
                 FuelRequestApproval::create([
                     'fuel_request_id' => $locked->id,
                     'approver_id' => $user->id,
                     'stage' => 'spv',
                     'status' => 'approved',
-                    'note' => $note ?: 'Disetujui oleh SPV.',
+                    'note' => $spvNote,
                     'signature_path' => $sig ?: 'images/sig_spv.png',
                     'action_at' => now(),
                 ]);
+
+                $historyMsg = "Disetujui oleh SPV ({$user->name}). Diteruskan ke Dept Head / Manager.";
+                if ($literAdjusted) {
+                    $historyMsg = "Disetujui oleh SPV ({$user->name}) dengan penyesuaian liter dari {$oldLiters} L menjadi {$finalLiters} L. Diteruskan ke Dept Head / Manager.";
+                }
+                if ($note) {
+                    $historyMsg .= " Catatan: {$note}";
+                }
 
                 FuelRequestHistory::record(
                     $locked->id,
@@ -275,8 +355,18 @@ class FuelRequestService
                     'approved_spv',
                     $fromStage,
                     'pending_manager',
-                    "Disetujui oleh SPV ({$user->name}). Diteruskan ke Dept Head / Manager." . ($note ? " Catatan: {$note}" : '')
+                    $historyMsg
                 );
+
+                if ($literAdjusted) {
+                    UserNotification::notify(
+                        $locked->user_id,
+                        $locked->id,
+                        "Pengajuan Disetujui SPV dengan Penyesuaian Liter: {$locked->request_no}",
+                        "Pengajuan {$locked->request_no} telah disetujui SPV ({$user->name}) dengan penyesuaian jumlah liter menjadi {$finalLiters} L.",
+                        'info'
+                    );
+                }
 
                 UserNotification::notify(
                     $locked->depthead_id ?? $locked->manager_id,
@@ -286,9 +376,13 @@ class FuelRequestService
                     'warning'
                 );
 
+                $successMsg = $literAdjusted
+                    ? "Pengajuan {$locked->request_no} berhasil disetujui pada Tahap 1 (SPV) dengan penyesuaian {$finalLiters} L dan diteruskan ke Dept Head/Manager!"
+                    : "Pengajuan {$locked->request_no} berhasil disetujui pada Tahap 1 (SPV) dan diteruskan ke Dept Head/Manager!";
+
                 return [
                     'ok' => true,
-                    'message' => "Pengajuan {$locked->request_no} berhasil disetujui pada Tahap 1 (SPV) dan diteruskan ke Dept Head/Manager!",
+                    'message' => $successMsg,
                 ];
             }
 

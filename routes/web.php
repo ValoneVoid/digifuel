@@ -60,6 +60,7 @@ Route::middleware(['auth'])->group(function () {
         Route::get('/approval/{id}', [ApprovalController::class, 'show'])->name('approval.show');
         Route::post('/approval/{id}/approve', [ApprovalController::class, 'approve'])->name('approval.approve');
         Route::post('/approval/{id}/reject', [ApprovalController::class, 'reject'])->name('approval.reject');
+        Route::post('/approval/{id}/update-liters', [ApprovalController::class, 'updateLiters'])->name('approval.updateLiters');
     });
 
     // Realisasi Pengisian BBM (Fuel Man & Admin)

@@ -126,7 +126,48 @@ class ApprovalController extends Controller
             abort(403, 'Akses Ditolak: Anda tidak memiliki izin untuk menyetujui pengajuan ini.');
         }
 
-        $result = $service->approve($fuelRequest, $user, $request->input('note'));
+        $adjustedLiters = null;
+        if ($request->filled('total_liters') && ($user->isSpv() || $user->isAdmin()) && $fuelRequest->status_spv === 'menunggu') {
+            $request->validate([
+                'total_liters' => ['required', 'numeric', 'gt:0', 'max:5000'],
+            ], [
+                'total_liters.required' => 'Jumlah liter harus diisi.',
+                'total_liters.numeric' => 'Jumlah liter harus berupa angka numerik.',
+                'total_liters.gt' => 'Jumlah liter harus lebih besar dari 0.',
+                'total_liters.max' => 'Jumlah liter melebihi batas sistem (5.000 Liter).',
+            ]);
+            $adjustedLiters = (float) $request->input('total_liters');
+        }
+
+        $result = $service->approve($fuelRequest, $user, $request->input('note'), $adjustedLiters);
+
+        if (!$result['ok']) {
+            return redirect()->back()->with('error', $result['message']);
+        }
+
+        return redirect()->route('approval.show', $fuelRequest->id)->with('success', $result['message']);
+    }
+
+    public function updateLiters(Request $request, $id, FuelRequestService $service, FuelRequestPolicy $policy)
+    {
+        $user = $this->getActiveUser();
+        $fuelRequest = FuelRequest::findOrFail($id);
+
+        if (!$policy->updateLiters($user, $fuelRequest)) {
+            abort(403, 'Akses Ditolak: Anda tidak memiliki izin untuk mengubah jumlah liter pada pengajuan ini.');
+        }
+
+        $validated = $request->validate([
+            'total_liters' => ['required', 'numeric', 'gt:0', 'max:5000'],
+            'reason' => ['nullable', 'string', 'max:500'],
+        ], [
+            'total_liters.required' => 'Jumlah liter wajib diisi.',
+            'total_liters.numeric' => 'Jumlah liter harus berupa angka numerik.',
+            'total_liters.gt' => 'Jumlah liter harus lebih besar dari 0.',
+            'total_liters.max' => 'Jumlah liter melebihi batas maksimum sistem (5.000 Liter).',
+        ]);
+
+        $result = $service->updateLiters($fuelRequest, $user, (float) $validated['total_liters'], $validated['reason'] ?? null);
 
         if (!$result['ok']) {
             return redirect()->back()->with('error', $result['message']);

@@ -79,6 +79,23 @@ class FuelRequestPolicy
     }
 
     /**
+     * Determine whether the user can inspect and update requested fuel liters (SPV on pending_spv stage or Admin).
+     */
+    public function updateLiters(User $user, FuelRequest $fuelRequest): bool
+    {
+        if ($user->isAdmin()) {
+            return true;
+        }
+
+        if ($user->isSpv()) {
+            return (empty($fuelRequest->spv_id) || (int) $fuelRequest->spv_id === (int) $user->id)
+                && $fuelRequest->status_spv === 'menunggu';
+        }
+
+        return false;
+    }
+
+    /**
      * Determine whether the user can record fueling realization.
      */
     public function recordRealization(User $user, FuelRequest $fuelRequest): bool

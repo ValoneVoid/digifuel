@@ -350,5 +350,110 @@ class DigiFuelWorkflowTest extends TestCase
         ])->assertSessionHasErrors('login');
         $this->assertGuest();
     }
+
+    /**
+     * Test: Supervisor dapat memeriksa dan mengubah total liter permintaan BBM driver
+     */
+    public function test_supervisor_can_inspect_and_modify_requested_fuel_liters(): void
+    {
+        $driver = User::where('username', 'adji')->firstOrFail();
+        $otherDriver = User::where('username', 'rachmat')->firstOrFail();
+        $spv = User::where('username', 'aklis')->firstOrFail();
+        $otherSpv = User::where('username', 'eko')->first();
+        if (!$otherSpv) {
+            $otherSpv = User::create([
+                'name' => 'Eko SPV Lain',
+                'username' => 'eko_spv',
+                'email' => 'eko_spv@unitedtractors.com',
+                'password' => \Illuminate\Support\Facades\Hash::make('password123'),
+                'role' => 'spv',
+                'jabatan' => 'Supervisor Mining',
+                'is_active' => true,
+            ]);
+        }
+        $depthead = User::where('username', 'Pdh-kusan')->firstOrFail();
+        $fuelman = User::where('username', 'adya')->firstOrFail();
+
+        // 1. Driver membuat permintaan BBM 50 Liter
+        $this->actingAs($driver);
+        $this->post('/fuel', [
+            'request_date' => '2026-06-15 09:00:00',
+            'unit_code' => 'UT 208 DA 8191',
+            'police_no' => 'DA 8191',
+            'total_liters' => 50,
+            'hm_km' => 108000,
+            'area' => 'SDU (Sungai Danau)',
+            'spv_id' => $spv->id,
+            'fuelman_id' => $fuelman->id,
+            'depthead_id' => $depthead->id,
+            'vendor_name' => 'Cv. Sudan Mandiri',
+            'action_type' => 'submit',
+        ])->assertRedirect(route('history.index'));
+
+        $fuelRequest = FuelRequest::latest('id')->firstOrFail();
+        $this->assertEquals(50.0, (float) $fuelRequest->total_liters);
+        $this->assertEquals('pending_spv', $fuelRequest->current_stage);
+
+        // 2. Supervisor memeriksa detail pengajuan di halaman show
+        $this->actingAs($spv);
+        $showResp = $this->get(route('approval.show', $fuelRequest->id));
+        $showResp->assertStatus(200);
+        $showResp->assertSee('Total Liter Diajukan Driver');
+        $showResp->assertSee('50 Liter');
+        $showResp->assertSee('Ubah Jumlah Liter');
+
+        // 3. Security/Policy: Driver tidak boleh mengubah liter via endpoint SPV (403)
+        $this->actingAs($driver);
+        $this->post(route('approval.updateLiters', $fuelRequest->id), [
+            'total_liters' => 40,
+        ])->assertStatus(403);
+
+        // Security/Policy: SPV lain yang tidak ditugaskan tidak boleh mengubah (403)
+        $this->actingAs($otherSpv);
+        $this->post(route('approval.updateLiters', $fuelRequest->id), [
+            'total_liters' => 40,
+        ])->assertStatus(403);
+
+        // 4. SPV yang ditugaskan mengubah jumlah liter menjadi 42 Liter dengan alasan
+        $this->actingAs($spv);
+        $updateResp = $this->post(route('approval.updateLiters', $fuelRequest->id), [
+            'total_liters' => 42.5,
+            'reason' => 'Disesuaikan dengan estimasi kebutuhan shift siang',
+        ]);
+        $updateResp->assertRedirect(route('approval.show', $fuelRequest->id));
+        $updateResp->assertSessionHas('success');
+
+        $fuelRequest->refresh();
+        $this->assertEquals(42.5, (float) $fuelRequest->total_liters);
+
+        // Verifikasi Riwayat tercatat pada Audit Trail
+        $history = $fuelRequest->histories()->where('action', 'adjusted_liters')->latest('id')->first();
+        $this->assertNotNull($history);
+        $this->assertStringContainsString('50 L menjadi 42.5 L', $history->note);
+        $this->assertStringContainsString('Disesuaikan dengan estimasi kebutuhan shift siang', $history->note);
+
+        // 5. SPV juga dapat menyetujui sekaligus menyesuaikan liter (misal menjadi 40 Liter) saat approve
+        $approveResp = $this->post(route('approval.approve', $fuelRequest->id), [
+            'total_liters' => 40,
+            'note' => 'Disetujui 40 Liter sesuai kuota shift',
+        ]);
+        $approveResp->assertRedirect(route('approval.show', $fuelRequest->id));
+        $approveResp->assertSessionHas('success');
+
+        $fuelRequest->refresh();
+        $this->assertEquals(40.0, (float) $fuelRequest->total_liters);
+        $this->assertEquals('disetujui', $fuelRequest->status_spv);
+        $this->assertEquals('pending_manager', $fuelRequest->current_stage);
+
+        // 6. Setelah SPV selesai menyetujui, liter tidak dapat diubah lagi oleh SPV
+        $this->post(route('approval.updateLiters', $fuelRequest->id), [
+            'total_liters' => 30,
+        ])->assertStatus(403);
+
+        // 7. Dokumen cetak Fuel Request menampilkan total liter baru (40 L)
+        $docResp = $this->get(route('fuel.document', $fuelRequest->id));
+        $docResp->assertStatus(200);
+        $docResp->assertSee('40 Liter');
+    }
 }
 
