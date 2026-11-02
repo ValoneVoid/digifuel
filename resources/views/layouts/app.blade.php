@@ -170,42 +170,51 @@
         @if(session('success'))
             @php
                 $successMsg = session('success');
+                $isLoginMsg = str_contains(strtolower($successMsg), 'selamat datang') || str_contains(strtolower($successMsg), 'login') || str_contains(strtolower($successMsg), 'beralih ke akun');
                 $isApprovedMsg = str_contains(strtolower($successMsg), 'disetujui') || str_contains(strtolower($successMsg), 'realisasi');
                 $isSubmittedMsg = str_contains(strtolower($successMsg), 'diajukan') || str_contains(strtolower($successMsg), 'dikirim') || str_contains(strtolower($successMsg), 'berhasil dibuat');
                 $swalTitle = $isApprovedMsg
                     ? 'Pengajuan Disetujui!'
                     : ($isSubmittedMsg ? 'Pengajuan Berhasil Dikirim!' : 'Berhasil!');
             @endphp
-            Swal.fire({
-                icon: 'success',
-                title: @json($swalTitle),
-                text: @json($successMsg),
-                confirmButtonText: 'OK, Mengerti',
-                confirmButtonColor: '#0284c7',
-                timer: 4500,
-                timerProgressBar: true,
-                showClass: {
-                    popup: 'animate__animated animate__zoomIn animate__faster'
-                },
-                hideClass: {
-                    popup: 'animate__animated animate__zoomOut animate__faster'
-                },
-                customClass: {
-                    popup: 'digi-swal-popup digi-swal-success-popup'
-                },
-                didOpen: () => {
-                    if (typeof confetti === 'function') {
-                        // Confetti burst celebratory effect
-                        confetti({
-                            particleCount: 45,
-                            spread: 60,
-                            origin: { y: 0.6 },
-                            colors: ['#22c55e', '#0284c7', '#f59e0b', '#10b981'],
-                            zIndex: 100000
-                        });
+            @if($isLoginMsg)
+                // Notifikasi Login Sederhana & Non-Intrusif: Toast di pojok kanan atas, tidak menghalangi tengah layar
+                Swal.fire({
+                    toast: true,
+                    position: 'top-end',
+                    icon: 'success',
+                    title: @json($successMsg),
+                    showConfirmButton: false,
+                    timer: 3500,
+                    timerProgressBar: true,
+                    customClass: {
+                        popup: 'digi-toast-popup'
+                    },
+                    didOpen: (toast) => {
+                        toast.addEventListener('mouseenter', Swal.stopTimer);
+                        toast.addEventListener('mouseleave', Swal.resumeTimer);
                     }
-                }
-            });
+                });
+            @else
+                Swal.fire({
+                    icon: 'success',
+                    title: @json($swalTitle),
+                    text: @json($successMsg),
+                    confirmButtonText: 'OK, Mengerti',
+                    confirmButtonColor: '#0284c7',
+                    timer: 4500,
+                    timerProgressBar: true,
+                    showClass: {
+                        popup: 'animate__animated animate__zoomIn animate__faster'
+                    },
+                    hideClass: {
+                        popup: 'animate__animated animate__zoomOut animate__faster'
+                    },
+                    customClass: {
+                        popup: 'digi-swal-popup digi-swal-success-popup'
+                    }
+                });
+            @endif
         @endif
 
         @if(session('error'))

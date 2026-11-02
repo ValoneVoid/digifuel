@@ -88,7 +88,7 @@
     function handleLoginSubmit(form) {
         const btn = document.getElementById('loginSubmitBtn');
         btn.disabled = true;
-        btn.textContent = 'Memproses Login...';
+        btn.innerHTML = '<span class="login-spinner"></span> Memproses Login...';
     }
     </script>
 </body>

@@ -907,6 +907,46 @@ body {
   40%, 80% { transform: translateX(6px); }
 }
 
+/* TOAST NOTIFICATION (POJOK KANAN ATAS, TIDAK MENGHALANGI TENGAH LAYAR) */
+.digi-toast-popup {
+  border-radius: 12px !important;
+  background: #ffffff !important;
+  box-shadow: 0 10px 28px rgba(15, 23, 42, 0.16) !important;
+  border: 1px solid #e2e8f0 !important;
+  padding: 12px 18px !important;
+  font-family: inherit !important;
+  margin-top: 14px !important;
+  margin-right: 16px !important;
+}
+
+.digi-toast-popup .swal2-title {
+  font-size: 13.5px !important;
+  font-weight: 700 !important;
+  color: #0f172a !important;
+  line-height: 1.4 !important;
+}
+
+.digi-toast-popup .swal2-icon {
+  margin: 0 10px 0 0 !important;
+  transform: scale(0.85);
+}
+
+.login-spinner {
+  display: inline-block;
+  width: 14px;
+  height: 14px;
+  border: 2px solid rgba(255, 255, 255, 0.35);
+  border-radius: 50%;
+  border-top-color: #ffffff;
+  animation: digiSpin 0.8s linear infinite;
+  margin-right: 8px;
+  vertical-align: middle;
+}
+
+@keyframes digiSpin {
+  to { transform: rotate(360deg); }
+}
+
 /* MODAL */
 .digi-modal-backdrop {
   position: fixed;
