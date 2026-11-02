@@ -41,10 +41,15 @@ Route::middleware(['auth'])->group(function () {
         Route::get('/fuel/{id}/pdf', [FuelRequestPdfController::class, 'download'])->name('fuel.pdf');
         Route::get('/fuel/{id}/pdf/stream', [FuelRequestPdfController::class, 'stream'])->name('fuel.pdf.stream');
 
-        // Profile & Private Signature Storage
+        // Profile, Profile Photo CRUD & Private Signature Storage
         Route::get('/profile', [ProfileController::class, 'index'])->name('profile.index');
+        Route::match(['post', 'put', 'patch'], '/profile/update', [ProfileController::class, 'updateProfile'])->name('profile.update');
+        Route::post('/profile/photo', [ProfileController::class, 'uploadPhoto'])->name('profile.photo.upload');
+        Route::match(['delete', 'post'], '/profile/photo/delete', [ProfileController::class, 'deletePhoto'])->name('profile.photo.delete');
+        Route::get('/profile/photo/{filename}', [ProfileController::class, 'servePhoto'])->name('profile.photo.serve');
         Route::post('/profile/signature', [ProfileController::class, 'uploadSignature'])->name('profile.signature');
         Route::post('/profile/signature/{id}/deactivate', [ProfileController::class, 'deactivateSignature'])->name('profile.signature.deactivate');
+        Route::match(['delete', 'post'], '/profile/signature/{id}/delete', [ProfileController::class, 'deleteSignature'])->name('profile.signature.delete');
         Route::get('/signatures/file/{filename}', [ProfileController::class, 'serveSignature'])->name('signature.serve');
     });
 

@@ -39,17 +39,14 @@
                 <a href="{{ route('evaluation.index') }}" class="digi-nav-link {{ request()->routeIs('evaluation.*') ? 'active' : '' }}">Evaluasi BBM</a>
                 <a href="{{ route('admin.master') }}" class="digi-nav-link {{ request()->routeIs('admin.master*') ? 'active' : '' }}">Master Data</a>
                 <a href="{{ route('profile.index') }}" class="digi-nav-link {{ request()->routeIs('profile.*') ? 'active' : '' }}">Profil</a>
-                <a href="{{ route('logout') }}" class="digi-nav-link" onclick="event.preventDefault(); document.getElementById('logout-form').submit();">Logout</a>
             @elseif($isApprover)
                 <a href="{{ route('approval.index') }}" class="digi-nav-link {{ request()->routeIs('approval.*') ? 'active' : '' }}">Pengajuan</a>
                 <a href="{{ route('history.index') }}" class="digi-nav-link {{ request()->routeIs('history.*') ? 'active' : '' }}">History</a>
                 <a href="{{ route('profile.index') }}" class="digi-nav-link {{ request()->routeIs('profile.*') ? 'active' : '' }}">Profil</a>
-                <a href="{{ route('logout') }}" class="digi-nav-link" onclick="event.preventDefault(); document.getElementById('logout-form').submit();">Logout</a>
             @else
                 <a href="{{ route('fuel.create') }}" class="digi-nav-link {{ request()->routeIs('fuel.create') ? 'active' : '' }}">Form Request</a>
                 <a href="{{ route('history.index') }}" class="digi-nav-link {{ request()->routeIs('history.*') ? 'active' : '' }}">History</a>
-                <a href="{{ route('profile.index') }}" class="digi-nav-link {{ request()->routeIs('profile.*') ? 'active' : '' }}">Profile</a>
-                <a href="{{ route('logout') }}" class="digi-nav-link" onclick="event.preventDefault(); document.getElementById('logout-form').submit();">Logout</a>
+                <a href="{{ route('profile.index') }}" class="digi-nav-link {{ request()->routeIs('profile.*') ? 'active' : '' }}">Profil</a>
             @endif
         </div>
 
@@ -89,13 +86,19 @@
 
             <!-- User Profile Info Badge -->
             @if($currentUser)
-                <div class="digi-user-profile-badge" title="Pengguna Aktif: {{ $currentUser->name }} ({{ $currentUser->jabatan }})">
-                    <span class="digi-user-avatar">{{ strtoupper(substr($currentUser->name, 0, 1)) }}</span>
+                <a href="{{ route('profile.index') }}" class="digi-user-profile-badge" title="Buka Profil: {{ $currentUser->name }} ({{ $currentUser->jabatan }})">
+                    <span class="digi-user-avatar">
+                        @if($currentUser->profile_photo_url)
+                            <img src="{{ asset($currentUser->profile_photo_url) }}" alt="{{ $currentUser->name }}" class="digi-user-avatar-img">
+                        @else
+                            {{ strtoupper(substr($currentUser->name, 0, 1)) }}
+                        @endif
+                    </span>
                     <div class="digi-user-info">
                         <span class="digi-user-name">{{ $currentUser->name }}</span>
                         <span class="digi-user-role">{{ $currentUser->jabatan }}</span>
                     </div>
-                </div>
+                </a>
             @endif
         </div>
     </nav>

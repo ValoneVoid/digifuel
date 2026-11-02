@@ -181,11 +181,20 @@ body {
   border-radius: 30px;
   padding: 4px 14px 4px 6px;
   box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+  text-decoration: none;
+  cursor: pointer;
+  transition: transform 0.15s ease, box-shadow 0.15s ease, background 0.15s ease;
+}
+
+.digi-user-profile-badge:hover {
+  background: #ffffff;
+  transform: translateY(-1px);
+  box-shadow: 0 4px 12px rgba(2, 132, 199, 0.18);
 }
 
 .digi-user-avatar {
-  width: 28px;
-  height: 28px;
+  width: 30px;
+  height: 30px;
   border-radius: 50%;
   background: linear-gradient(135deg, #0284c7, #0369a1);
   color: #ffffff;
@@ -194,6 +203,15 @@ body {
   justify-content: center;
   font-size: 12px;
   font-weight: 700;
+  overflow: hidden;
+  flex-shrink: 0;
+}
+
+.digi-user-avatar-img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  display: block;
 }
 
 .digi-user-info {
@@ -699,7 +717,7 @@ body {
 /* PROFILE PAGE */
 .digi-profile-layout {
   display: grid;
-  grid-template-columns: 280px 1fr;
+  grid-template-columns: 310px 1fr;
   gap: 28px;
 }
 
@@ -707,9 +725,54 @@ body {
   background: #ffffff;
   border-radius: 18px;
   box-shadow: 0 10px 30px rgba(0, 0, 0, 0.08);
-  padding: 36px 24px;
+  padding: 32px 24px;
   text-align: center;
   height: fit-content;
+}
+
+.digi-avatar-wrapper {
+  position: relative;
+  width: 132px;
+  height: 132px;
+  margin: 0 auto 16px auto;
+  border-radius: 50%;
+  border: 4px solid #e0f2fe;
+  box-shadow: 0 6px 18px rgba(2, 132, 199, 0.16);
+  overflow: hidden;
+  background: linear-gradient(135deg, #0284c7 0%, #0369a1 100%);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.digi-avatar-img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  display: block;
+  cursor: pointer;
+  transition: transform 0.2s ease;
+}
+
+.digi-avatar-img:hover {
+  transform: scale(1.05);
+}
+
+.digi-avatar-placeholder {
+  color: #ffffff;
+  font-size: 42px;
+  font-weight: 800;
+  letter-spacing: 1px;
+  user-select: none;
+}
+
+.digi-photo-actions {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  flex-wrap: wrap;
+  margin-bottom: 18px;
 }
 
 .digi-profile-name {
@@ -717,7 +780,7 @@ body {
   font-weight: 800;
   color: #1e293b;
   text-transform: uppercase;
-  margin: 0 0 14px 0;
+  margin: 0 0 10px 0;
 }
 
 .digi-profile-right {
