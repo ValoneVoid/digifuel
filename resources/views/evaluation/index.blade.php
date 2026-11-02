@@ -244,11 +244,11 @@
                 </div>
                 <div class="digi-form-grid-3" style="margin-bottom: 0;">
                     <div class="digi-form-group">
-                        <label class="digi-form-label">HM/KM Awal (Opsional)</label>
+                        <label class="digi-form-label">KM Awal (Opsional)</label>
                         <input type="number" step="0.1" name="meter_start" class="digi-input" placeholder="Otomatis">
                     </div>
                     <div class="digi-form-group">
-                        <label class="digi-form-label">HM/KM Akhir (Opsional)</label>
+                        <label class="digi-form-label">KM Akhir (Opsional)</label>
                         <input type="number" step="0.1" name="meter_end" class="digi-input" placeholder="Otomatis">
                     </div>
                     <div class="digi-form-group">

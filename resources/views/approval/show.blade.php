@@ -203,11 +203,8 @@
                 </span>
             </div>
             <div class="digi-form-group">
-                <label class="digi-form-label">HM / KM Pengajuan</label>
-                <input type="text" class="digi-input" value="{{ $fuelRequest->hm_km ?? 79 }} {{ strtoupper($fuelRequest->meter_type ?? 'KM') }}" readonly disabled>
-                <span style="font-size: 11.5px; color: #64748b; margin-top: 4px; display: block;">
-                    Posisi odometer/hour meter saat pengajuan dibuat.
-                </span>
+                <label class="digi-form-label">KM</label>
+                <input type="text" class="digi-input" value="{{ $fuelRequest->hm_km ?? 79 }} KM" readonly disabled>
             </div>
         </div>
 
@@ -302,8 +299,8 @@
                         <input type="text" class="digi-input" value="{{ (float)$trx->actual_liters }} L (Disetujui: {{ (float)$trx->requested_liters }} L | Selisih: {{ (float)$trx->variance_liters }} L)" readonly disabled>
                     </div>
                     <div class="digi-form-group">
-                        <label class="digi-form-label">HM / KM Aktual Saat Pengisian</label>
-                        <input type="text" class="digi-input" value="{{ (float)$trx->meter_at_fueling }} {{ strtoupper($fuelRequest->meter_type ?? 'KM') }} (Oleh: {{ $trx->fuelman?->name ?? 'Fuel Man' }})" readonly disabled>
+                        <label class="digi-form-label">Kilometer (KM) Aktual Saat Pengisian</label>
+                        <input type="text" class="digi-input" value="{{ (float)$trx->meter_at_fueling }} KM (Oleh: {{ $trx->fuelman?->name ?? 'Fuel Man' }})" readonly disabled>
                     </div>
                 </div>
                 @if($trx->notes)
@@ -325,7 +322,7 @@
                             <input type="number" step="0.1" min="0.1" name="actual_liters" class="digi-input" value="{{ old('actual_liters', (float)($fuelRequest->actual_liters ?? $fuelRequest->total_liters)) }}" required>
                         </div>
                         <div class="digi-form-group">
-                            <label class="digi-form-label">HM / KM Aktual Saat Pengisian <span class="digi-required">*</span></label>
+                            <label class="digi-form-label">Kilometer (KM) Aktual Saat Pengisian <span class="digi-required">*</span></label>
                             <input type="number" step="0.1" min="0" name="meter_at_fueling" class="digi-input" value="{{ old('meter_at_fueling', (float)($fuelRequest->actual_hm_km ?? $fuelRequest->hm_km)) }}" required>
                         </div>
                         <div class="digi-form-group">

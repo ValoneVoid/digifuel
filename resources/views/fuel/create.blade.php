@@ -98,7 +98,7 @@
                 </div>
             </div>
 
-            <!-- Row 3: Total Liter & HM / KM -->
+            <!-- Row 3: Total Liter & KM -->
             <div class="digi-form-grid-2">
                 <div class="digi-form-group">
                     <label class="digi-form-label">Total (Jumlah) Liter <span class="digi-required">*</span></label>
@@ -106,8 +106,8 @@
                     @error('total_liters') <span style="color:#ef4444; font-size:12px;">{{ $message }}</span> @enderror
                 </div>
                 <div class="digi-form-group">
-                    <label class="digi-form-label"><span id="meterLabelText">HM / KM</span> Saat Pengajuan <span class="digi-required">*</span></label>
-                    <input type="number" step="0.1" min="0" name="hm_km" id="hm_km" class="digi-input" placeholder="Masukkan HM / KM kendaraan" value="{{ old('hm_km', 79) }}" required>
+                    <label class="digi-form-label">KM <span class="digi-required">*</span></label>
+                    <input type="number" step="0.1" min="0" name="hm_km" id="hm_km" class="digi-input" placeholder="Masukkan KM" value="{{ old('hm_km', 79) }}" required>
                     @error('hm_km') <span style="color:#ef4444; font-size:12px;">{{ $message }}</span> @enderror
                 </div>
             </div>
@@ -212,7 +212,7 @@
                 <tr><td style="padding: 6px 0; color:#64748b; width: 170px;">Employee</td><td style="font-weight:600;">: {{ $user->name }} ({{ $user->nrp ?? '-' }})</td></tr>
                 <tr><td style="padding: 6px 0; color:#64748b;">Perusahaan</td><td style="font-weight:600;">: PT UNITED TRACTORS Tbk - SITE SATUI</td></tr>
                 <tr><td style="padding: 6px 0; color:#64748b;">Unit Code & No. Polisi</td><td style="font-weight:600;" id="prev_unit">: -</td></tr>
-                <tr><td style="padding: 6px 0; color:#64748b;">HM / KM & Jumlah BBM</td><td style="font-weight:600;" id="prev_liters">: -</td></tr>
+                <tr><td style="padding: 6px 0; color:#64748b;">KM & Jumlah BBM</td><td style="font-weight:600;" id="prev_liters">: -</td></tr>
                 <tr><td style="padding: 6px 0; color:#64748b;">Area Operasional</td><td style="font-weight:600;" id="prev_area">: -</td></tr>
                 <tr><td style="padding: 6px 0; color:#64748b;">Tahap 1 (SPV)</td><td style="font-weight:600;" id="prev_spv">: -</td></tr>
                 <tr><td style="padding: 6px 0; color:#64748b;">Tahap 2 (Dept Head)</td><td style="font-weight:600;" id="prev_depthead">: -</td></tr>
@@ -234,12 +234,8 @@ const areaApproverMap = @json($areaApproverMap ?? []);
 function handleUnitChange(select) {
     const selectedOption = select.options[select.selectedIndex];
     const policeInput = document.getElementById('police_no');
-    const meterLabel = document.getElementById('meterLabelText');
     if (selectedOption && selectedOption.dataset.police) {
         policeInput.value = selectedOption.dataset.police;
-        if (meterLabel && selectedOption.dataset.meter) {
-            meterLabel.textContent = selectedOption.dataset.meter;
-        }
     } else {
         policeInput.value = '';
     }
@@ -329,7 +325,7 @@ function openPreviewModal() {
     const vendor = document.getElementById('vendor_select').value;
 
     document.getElementById('prev_unit').textContent = ': ' + (unitSel.value || '-') + ' / ' + (police || '-');
-    document.getElementById('prev_liters').textContent = ': ' + (hmKm || '-') + ' | ' + (liters || '0') + ' Liter';
+    document.getElementById('prev_liters').textContent = ': ' + (hmKm ? hmKm + ' KM' : '-') + ' | ' + (liters || '0') + ' Liter';
     document.getElementById('prev_area').textContent = ': ' + (area || '-');
     document.getElementById('prev_spv').textContent = ': ' + (spvSel.options[spvSel.selectedIndex]?.text || '-');
     document.getElementById('prev_depthead').textContent = ': ' + (dhSel.options[dhSel.selectedIndex]?.text || '-');

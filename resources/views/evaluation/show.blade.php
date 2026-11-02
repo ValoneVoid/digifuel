@@ -20,7 +20,7 @@
         <h3 class="digi-section-title">Rincian Rumus & Hasil Perhitungan</h3>
         <div class="digi-form-grid-3">
             <div class="digi-form-group">
-                <label class="digi-form-label">HM / KM Awal → Akhir</label>
+                <label class="digi-form-label">KM Awal → Akhir</label>
                 <input type="text" class="digi-input" value="{{ number_format($evaluation->meter_start ?? 0, 0, ',', '.') }} → {{ number_format($evaluation->meter_end ?? 0, 0, ',', '.') }}" readonly disabled>
             </div>
             <div class="digi-form-group">
@@ -82,7 +82,7 @@
                     <th>No. Transaksi</th>
                     <th>No. Fuel Request</th>
                     <th>Waktu Pengisian Aktual</th>
-                    <th>HM / KM Saat Isi</th>
+                    <th>KM Saat Isi</th>
                     <th>BBM Diminta (L)</th>
                     <th>BBM Aktual (L)</th>
                     <th>Petugas Fuel Man</th>

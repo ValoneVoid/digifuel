@@ -45,12 +45,12 @@
             <td class="val">{{ $fuelRequest->area }}</td>
         </tr>
         <tr>
-            <td class="lbl">HM / KM</td>
+            <td class="lbl">KM</td>
             <td class="col">:</td>
             <td class="val">
-                {{ $fuelRequest->hm_km ?? 79 }} {{ strtoupper($fuelRequest->meter_type ?? 'KM') }}
+                {{ $fuelRequest->hm_km ?? 79 }} KM
                 @if($fuelRequest->actual_hm_km !== null)
-                    (Aktual Saat Pengisian: {{ (float)$fuelRequest->actual_hm_km }} {{ strtoupper($fuelRequest->meter_type ?? 'KM') }})
+                    (Aktual Saat Pengisian: {{ (float)$fuelRequest->actual_hm_km }} KM)
                 @endif
             </td>
         </tr>

@@ -425,10 +425,10 @@
             <td style="width: 30%;" class="value-col">{{ $request['date'] }} {{ $request['time'] }}</td>
         </tr>
         <tr>
-            <td class="label-col">Meter Diajukan (HM/KM)</td>
+            <td class="label-col">KM</td>
             <td class="colon-col">:</td>
             <td class="value-col">
-                <strong>{{ number_format($request['hm_km'], 0, ',', '.') }}</strong> {{ $request['meter_type'] }}
+                <strong>{{ number_format($request['hm_km'], 0, ',', '.') }}</strong> KM
             </td>
             <td class="label-col">Vendor BBM Terpilih</td>
             <td class="colon-col">:</td>
