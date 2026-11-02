@@ -7,6 +7,8 @@
     <meta name="description" content="Sistem Pengajuan, Persetujuan Digital, dan Evaluasi Konsumsi BBM PT United Tractors Tbk Site Satui">
     <link rel="stylesheet" href="{{ asset('css/digifuel.css') }}">
     <link rel="icon" type="image/svg+xml" href="{{ asset('images/ut_logo_badge.svg') }}">
+    <!-- SweetAlert2 Library for Animated Success, Reject & Confirmation Popups -->
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
     <style>
         body {
             background-image: url('{{ \App\Models\SystemBackground::getActiveImageUrl() }}');
@@ -157,6 +159,107 @@
         if (menu && !e.target.closest('#digiNotifMenu') && !e.target.closest('button[onclick="toggleNotifMenu()"]')) {
             menu.style.display = 'none';
         }
+    });
+
+    // Global DigiFuel SweetAlert2 Helper & Automatic Flash / Confirm Integration
+    document.addEventListener('DOMContentLoaded', function() {
+        if (typeof Swal === 'undefined') return;
+
+        @if(session('success'))
+            @php
+                $successMsg = session('success');
+                $isApprovedMsg = str_contains(strtolower($successMsg), 'disetujui') || str_contains(strtolower($successMsg), 'realisasi');
+                $isSubmittedMsg = str_contains(strtolower($successMsg), 'diajukan') || str_contains(strtolower($successMsg), 'dikirim') || str_contains(strtolower($successMsg), 'berhasil dibuat');
+                $swalTitle = $isApprovedMsg
+                    ? 'Pengajuan Disetujui!'
+                    : ($isSubmittedMsg ? 'Pengajuan Berhasil Dikirim!' : 'Berhasil!');
+            @endphp
+            Swal.fire({
+                icon: 'success',
+                title: @json($swalTitle),
+                text: @json($successMsg),
+                confirmButtonText: 'OK, Mengerti',
+                confirmButtonColor: '#0284c7',
+                timer: 4500,
+                timerProgressBar: true,
+                customClass: {
+                    popup: 'digi-swal-popup'
+                }
+            });
+        @endif
+
+        @if(session('error'))
+            @php
+                $errorMsg = session('error');
+                $isRejectedMsg = str_contains(strtolower($errorMsg), 'ditolak') || str_contains(strtolower($errorMsg), 'dibatalkan');
+                $swalErrTitle = $isRejectedMsg ? 'Pengajuan Ditolak!' : 'Proses Gagal / Ditolak';
+            @endphp
+            Swal.fire({
+                icon: 'error',
+                title: @json($swalErrTitle),
+                text: @json($errorMsg),
+                confirmButtonText: 'Tutup',
+                confirmButtonColor: '#ef4444',
+                customClass: {
+                    popup: 'digi-swal-popup'
+                }
+            });
+        @endif
+
+        @if($errors->any())
+            Swal.fire({
+                icon: 'warning',
+                title: 'Periksa Kembali Input Anda',
+                html: `<ul style="text-align:left; margin: 6px 0 0 16px; font-size: 13.5px; color: #334155; line-height: 1.5;">
+                    @foreach($errors->all() as $err)
+                        <li>{{ addslashes($err) }}</li>
+                    @endforeach
+                </ul>`,
+                confirmButtonText: 'Perbaiki Data',
+                confirmButtonColor: '#f59e0b',
+                customClass: {
+                    popup: 'digi-swal-popup'
+                }
+            });
+        @endif
+
+        // Upgrade native onsubmit="return confirm('...')" forms into animated SweetAlert2 confirmation dialogs
+        document.querySelectorAll('form[onsubmit*="confirm("]').forEach(function(form) {
+            const rawOnsubmit = form.getAttribute('onsubmit') || '';
+            const match = rawOnsubmit.match(/confirm\(['"](.+?)['"]\)/);
+            if (!match) return;
+
+            const confirmMessage = match[1];
+            form.removeAttribute('onsubmit');
+
+            form.addEventListener('submit', function(e) {
+                if (form.dataset.swalConfirmed === 'true') {
+                    return true;
+                }
+                e.preventDefault();
+
+                const isDanger = /hapus|tolak|batal|nonaktif/i.test(confirmMessage);
+                Swal.fire({
+                    icon: isDanger ? 'warning' : 'question',
+                    title: isDanger ? 'Konfirmasi Tindakan' : 'Lanjutkan Proses?',
+                    text: confirmMessage,
+                    showCancelButton: true,
+                    confirmButtonText: isDanger ? 'Ya, Lanjutkan' : 'Ya, Proses',
+                    cancelButtonText: 'Batal',
+                    confirmButtonColor: isDanger ? '#ef4444' : '#0284c7',
+                    cancelButtonColor: '#64748b',
+                    reverseButtons: true,
+                    customClass: {
+                        popup: 'digi-swal-popup'
+                    }
+                }).then(function(result) {
+                    if (result.isConfirmed) {
+                        form.dataset.swalConfirmed = 'true';
+                        form.submit();
+                    }
+                });
+            });
+        });
     });
     </script>
     @yield('scripts')

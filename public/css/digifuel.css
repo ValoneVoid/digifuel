@@ -833,6 +833,34 @@ body {
   margin-bottom: 10px;
 }
 
+/* SWEETALERT2 DIGIFUEL CUSTOM STYLING */
+.digi-swal-popup {
+  border-radius: 18px !important;
+  font-family: inherit !important;
+  padding: 24px 22px !important;
+  box-shadow: 0 22px 48px rgba(15, 23, 42, 0.24) !important;
+}
+
+.digi-swal-popup .swal2-title {
+  font-size: 20px !important;
+  font-weight: 800 !important;
+  color: #0f172a !important;
+}
+
+.digi-swal-popup .swal2-html-container {
+  font-size: 14px !important;
+  color: #475569 !important;
+  line-height: 1.5 !important;
+}
+
+.digi-swal-popup .swal2-confirm,
+.digi-swal-popup .swal2-cancel {
+  border-radius: 8px !important;
+  font-weight: 700 !important;
+  font-size: 13.5px !important;
+  padding: 9px 22px !important;
+}
+
 /* MODAL */
 .digi-modal-backdrop {
   position: fixed;
