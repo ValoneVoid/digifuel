@@ -9,6 +9,8 @@
     <link rel="icon" type="image/svg+xml" href="{{ asset('images/ut_logo_badge.svg') }}">
     <!-- SweetAlert2 Library for Animated Success, Reject & Confirmation Popups -->
     <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+    <!-- Canvas Confetti for Celebration Checkmark Animation -->
+    <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.9.3/dist/confetti.browser.min.js"></script>
     <style>
         body {
             background-image: url('{{ \App\Models\SystemBackground::getActiveImageUrl() }}');
@@ -182,8 +184,26 @@
                 confirmButtonColor: '#0284c7',
                 timer: 4500,
                 timerProgressBar: true,
+                showClass: {
+                    popup: 'animate__animated animate__zoomIn animate__faster'
+                },
+                hideClass: {
+                    popup: 'animate__animated animate__zoomOut animate__faster'
+                },
                 customClass: {
-                    popup: 'digi-swal-popup'
+                    popup: 'digi-swal-popup digi-swal-success-popup'
+                },
+                didOpen: () => {
+                    if (typeof confetti === 'function') {
+                        // Confetti burst celebratory effect
+                        confetti({
+                            particleCount: 45,
+                            spread: 60,
+                            origin: { y: 0.6 },
+                            colors: ['#22c55e', '#0284c7', '#f59e0b', '#10b981'],
+                            zIndex: 100000
+                        });
+                    }
                 }
             });
         @endif
