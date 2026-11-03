@@ -87,7 +87,7 @@ class AdminMasterController extends Controller
         $users = User::with(['employee', 'vendor'])->orderBy('name')->paginate($perPage)->withQueryString();
         $areaApprovers = AreaApprover::with(['area', 'user'])->orderBy('area_id')->paginate($perPage)->withQueryString();
         $fuelStandards = FuelStandard::with('vehicle')->orderBy('vehicle_id')->orderBy('effective_start', 'desc')->paginate($perPage)->withQueryString();
-        $fuelPrices = FuelPrice::orderBy('effective_start', 'desc')->paginate($perPage)->withQueryString();
+        $fuelPrices = FuelPrice::with('vendor')->orderBy('effective_start', 'desc')->paginate($perPage)->withQueryString();
         $backgrounds = Schema::hasTable('system_backgrounds')
             ? SystemBackground::with('uploader')->orderBy('is_active', 'desc')->orderBy('id', 'desc')->paginate($perPage)->withQueryString()
             : new \Illuminate\Pagination\LengthAwarePaginator(collect(), 0, $perPage);
@@ -1123,6 +1123,7 @@ class AdminMasterController extends Controller
         }
 
         $validated = $request->validate([
+            'vendor_id' => 'required|exists:vendors,id',
             'fuel_type' => 'required|string|max:80',
             'price_per_liter' => 'required|numeric|gt:0',
             'effective_start' => 'required|date',
@@ -1131,21 +1132,27 @@ class AdminMasterController extends Controller
 
         if ($price) {
             $price->update([
+                'vendor_id' => $validated['vendor_id'],
                 'fuel_type' => $validated['fuel_type'],
                 'price_per_liter' => $validated['price_per_liter'],
                 'effective_start' => $validated['effective_start'],
                 'notes' => $validated['notes'] ?? null,
             ]);
-            FuelRequestHistory::record(null, $admin->id, 'price_updated', null, 'active', "Memperbarui harga BBM ID #{$price->id} ({$price->fuel_type}): Rp " . number_format($price->price_per_liter, 0, ',', '.') . "/Liter.");
-            return redirect()->route('admin.master', ['tab' => 'prices'])->with('success', 'Data harga BBM berhasil diperbarui.');
+            $venName = $price->vendor?->name ?? 'Vendor BBM';
+            FuelRequestHistory::record(null, $admin->id, 'price_updated', null, 'active', "Memperbarui harga BBM ID #{$price->id} untuk {$venName} ({$price->fuel_type}): Rp " . number_format($price->price_per_liter, 0, ',', '.') . "/Liter.");
+            return redirect()->route('admin.master', ['tab' => 'prices'])->with('success', "Data harga BBM untuk {$venName} berhasil diperbarui.");
         }
 
-        FuelPrice::where('is_active', true)->update([
-            'is_active' => false,
-            'effective_end' => $validated['effective_start'],
-        ]);
+        // Deactivate previous active price specifically for this vendor
+        FuelPrice::where('vendor_id', $validated['vendor_id'])
+            ->where('is_active', true)
+            ->update([
+                'is_active' => false,
+                'effective_end' => $validated['effective_start'],
+            ]);
 
         $price = FuelPrice::create([
+            'vendor_id' => $validated['vendor_id'],
             'fuel_type' => $validated['fuel_type'],
             'price_per_liter' => $validated['price_per_liter'],
             'effective_start' => $validated['effective_start'],
@@ -1153,9 +1160,10 @@ class AdminMasterController extends Controller
             'notes' => $validated['notes'] ?? null,
         ]);
 
-        FuelRequestHistory::record(null, $admin->id, 'price_updated', null, 'active', "Memperbarui harga BBM ({$price->fuel_type}): Rp " . number_format($price->price_per_liter, 0, ',', '.') . "/Liter mulai {$price->effective_start->format('d/m/Y')}.");
+        $venName = $price->vendor?->name ?? 'Vendor BBM';
+        FuelRequestHistory::record(null, $admin->id, 'price_updated', null, 'active', "Menambahkan harga BBM baru untuk {$venName} ({$price->fuel_type}): Rp " . number_format($price->price_per_liter, 0, ',', '.') . "/Liter mulai {$price->effective_start->format('d/m/Y')}.");
 
-        return redirect()->route('admin.master', ['tab' => 'prices'])->with('success', 'Harga BBM baru berhasil disimpan (riwayat harga lama tetap tersimpan).');
+        return redirect()->route('admin.master', ['tab' => 'prices'])->with('success', "Harga BBM baru untuk {$venName} berhasil disimpan.");
     }
 
     public function destroyFuelStandard(Request $request, $id)

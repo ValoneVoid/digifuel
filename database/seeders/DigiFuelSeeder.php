@@ -405,13 +405,31 @@ class DigiFuelSeeder extends Seeder
             }
 
             // =========================================================================
-            // 10. FUEL PRICES
+            // 10. FUEL PRICES (1 Vendor BBM memiliki 1-M Fuel Prices)
             // =========================================================================
+            $vendorPrima = $this->findVendorByCode('VND-002');
+            $vendorPertamina = $this->findVendorByCode('VND-003');
+
             $this->upsertFuelPrice(
                 'Solar Industri B35',
                 '2025-01-01',
                 27000.00,
-                'Harga resmi Solar Industri Site Satui sesuai laporan evaluasi BBM'
+                'Harga resmi Solar Industri Site Satui untuk Cv. Sudan Mandiri',
+                $vendorSudan->id
+            );
+            $this->upsertFuelPrice(
+                'Solar Industri B35',
+                '2025-01-01',
+                27000.00,
+                'Harga resmi Solar Industri Site Satui untuk CV. Prima Pertama',
+                $vendorPrima->id
+            );
+            $this->upsertFuelPrice(
+                'Solar Industri B35',
+                '2025-01-01',
+                27000.00,
+                'Harga resmi Pertamina Patra Niaga Depot Satui',
+                $vendorPertamina->id
             );
 
             // =========================================================================
@@ -905,19 +923,22 @@ class DigiFuelSeeder extends Seeder
     }
 
     /**
-     * Upsert FuelPrice safely across both MySQL and SQLite date formats.
+     * Upsert FuelPrice safely across both MySQL and SQLite date formats with vendor relation.
      */
     protected function upsertFuelPrice(
         string $fuelType,
         string $effectiveStart,
         float $pricePerLiter,
-        string $notes
+        string $notes,
+        ?int $vendorId = null
     ): FuelPrice {
         $existing = FuelPrice::where('fuel_type', $fuelType)
+            ->where('vendor_id', $vendorId)
             ->whereDate('effective_start', $effectiveStart)
             ->first();
 
         $payload = [
+            'vendor_id' => $vendorId,
             'fuel_type' => $fuelType,
             'price_per_liter' => $pricePerLiter,
             'effective_start' => $effectiveStart,

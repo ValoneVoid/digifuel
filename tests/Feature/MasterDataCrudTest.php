@@ -7,6 +7,7 @@ use App\Models\AreaApprover;
 use App\Models\Employee;
 use App\Models\FuelRequest;
 use App\Models\FuelStandard;
+use App\Models\FuelPrice;
 use App\Models\User;
 use App\Models\Vehicle;
 use App\Models\Vendor;
@@ -693,5 +694,46 @@ class MasterDataCrudTest extends TestCase
         $this->assertEquals(2, $paginatorPage2->currentPage());
         $this->assertEquals(11, $paginatorPage2->firstItem());
         $responsePage2->assertSee('Menampilkan <strong>11</strong> -', false);
+    }
+
+    /**
+     * Test Vendor BBM memiliki relasi 1-M dengan FuelPrice,
+     * dan Admin dapat mengelola harga BBM per Vendor.
+     */
+    public function test_vendor_has_many_fuel_prices_and_admin_can_manage_prices_per_vendor(): void
+    {
+        $vendor = Vendor::where('is_active', true)->firstOrFail();
+
+        // 1. Simpan harga BBM baru untuk vendor ini
+        $response = $this->actingAs($this->admin)
+            ->post(route('admin.master.price'), [
+                'vendor_id' => $vendor->id,
+                'fuel_type' => 'Solar Industri B35',
+                'price_per_liter' => 28500,
+                'effective_start' => now()->toDateString(),
+                'notes' => 'Penyesuaian tarif kontrak baru',
+            ]);
+
+        $response->assertRedirect(route('admin.master', ['tab' => 'prices']));
+        $response->assertSessionHas('success');
+
+        // Verifikasi di database
+        $this->assertDatabaseHas('fuel_prices', [
+            'vendor_id' => $vendor->id,
+            'fuel_type' => 'Solar Industri B35',
+            'price_per_liter' => 28500,
+            'is_active' => true,
+        ]);
+
+        // 2. Verifikasi relasi 1-M di Model
+        $vendorPrices = $vendor->fresh()->fuelPrices;
+        $this->assertGreaterThanOrEqual(1, $vendorPrices->count());
+        $this->assertEquals($vendor->id, $vendorPrices->first()->vendor_id);
+        $this->assertEquals($vendor->name, $vendorPrices->first()->vendor->name);
+
+        // 3. Verifikasi getCurrentPrice per vendor
+        $currentPrice = FuelPrice::getCurrentPrice(now()->toDateString(), $vendor->id);
+        $this->assertNotNull($currentPrice);
+        $this->assertEquals(28500, (float)$currentPrice->price_per_liter);
     }
 }

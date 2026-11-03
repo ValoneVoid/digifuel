@@ -15,16 +15,33 @@ class FuelPrice extends Model
         'is_active' => 'boolean',
     ];
 
-    public static function getCurrentPrice(string $date = null)
+    public function vendor()
+    {
+        return $this->belongsTo(Vendor::class);
+    }
+
+    public static function getCurrentPrice(?string $date = null, ?int $vendorId = null)
     {
         $targetDate = $date ?: now()->toDateString();
-        return static::where('is_active', true)
-            ->where('effective_start', '<=', $targetDate)
-            ->where(function ($query) use ($targetDate) {
-                $query->whereNull('effective_end')
-                    ->orWhere('effective_end', '>=', $targetDate);
-            })
-            ->latest('effective_start')
+        $query = static::where('is_active', true)
+            ->whereDate('effective_start', '<=', $targetDate)
+            ->where(function ($q) use ($targetDate) {
+                $q->whereNull('effective_end')
+                    ->orWhereDate('effective_end', '>=', $targetDate);
+            });
+
+        if ($vendorId !== null) {
+            $vendorPrice = (clone $query)->where('vendor_id', $vendorId)
+                ->orderBy('effective_start', 'desc')
+                ->orderBy('id', 'desc')
+                ->first();
+            if ($vendorPrice) {
+                return $vendorPrice;
+            }
+        }
+
+        return $query->orderBy('effective_start', 'desc')
+            ->orderBy('id', 'desc')
             ->first();
     }
 }

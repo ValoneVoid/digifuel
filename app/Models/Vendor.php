@@ -21,4 +21,14 @@ class Vendor extends Model
     {
         return $this->hasMany(FuelRequest::class);
     }
+
+    public function fuelPrices()
+    {
+        return $this->hasMany(FuelPrice::class);
+    }
+
+    public function activeFuelPrice()
+    {
+        return $this->hasOne(FuelPrice::class)->where('is_active', true)->latest('effective_start');
+    }
 }

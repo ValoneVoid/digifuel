@@ -8,7 +8,7 @@
         <div>
             <h1 class="digi-table-title">Manajemen Master Data & Konfigurasi DigiFuel</h1>
             <p style="font-size: 13.5px; color: #64748b; margin: 4px 0 0 0;">
-                Kelola Data Unit, Employee (DIGISIM Ready), Area, Vendor, Penugasan Approver per Area, Standar Konsumsi BBM, Harga BBM, Akun Pengguna, dan Audit Trail.
+                Kelola Data Unit, Employee (DIGISIM Ready), Area, Vendor BBM, Penugasan Approver per Area, Standar Konsumsi BBM, Harga BBM per Vendor, Akun Pengguna, dan Audit Trail.
             </p>
         </div>
     </div>
@@ -20,7 +20,7 @@
             'units' => 'Data Unit (' . $getCount($vehicles) . ')',
             'employees' => 'Data Employee (' . $getCount($employees) . ')',
             'areas' => 'Data Area (' . $getCount($areas) . ')',
-            'vendors' => 'Data Vendor (' . $getCount($vendors) . ')',
+            'vendors' => 'Data Vendor BBM (' . $getCount($vendors) . ')',
             'approvers' => 'Approver Area (' . $getCount($areaApprovers) . ')',
             'standards' => 'Standar BBM (' . $getCount($fuelStandards) . ')',
             'prices' => 'Harga BBM (' . $getCount($fuelPrices) . ')',
@@ -342,7 +342,7 @@
             </div>
             <div class="digi-form-grid-3" style="margin-bottom: 0; align-items: flex-end;">
                 <div class="digi-form-group">
-                    <label class="digi-form-label">Kode & Nama Perusahaan Vendor <span class="digi-required">*</span></label>
+                    <label class="digi-form-label">Kode & Nama Vendor BBM <span class="digi-required">*</span></label>
                     <div style="display: flex; gap: 6px;">
                         <input type="text" name="code" id="vendor_code" class="digi-input" placeholder="Kode" style="width: 105px;">
                         <input type="text" name="name" id="vendor_name" class="digi-input" placeholder="Contoh: Cv. Sudan Mandiri" required>
@@ -356,7 +356,7 @@
                     </div>
                 </div>
                 <div>
-                    <button type="submit" id="vendorSubmitBtn" class="btn-digi btn-digi-blue">Simpan Vendor</button>
+                    <button type="submit" id="vendorSubmitBtn" class="btn-digi btn-digi-blue">Simpan Vendor BBM</button>
                 </div>
             </div>
         </form>
@@ -368,8 +368,8 @@
                 <thead>
                     <tr>
                         <th style="width: 50px;">No</th>
-                        <th>Kode Vendor</th>
-                        <th>Nama Perusahaan Vendor</th>
+                        <th>Kode Vendor BBM</th>
+                        <th>Nama Vendor BBM</th>
                         <th>Kontak Petugas</th>
                         <th>Telepon</th>
                         <th>Status</th>
@@ -447,7 +447,7 @@
                         <select name="role_type" id="aa_role_type" class="digi-select" style="width: 145px;" required>
                             <option value="spv">SPV</option>
                             <option value="manager">Dept Head/Mgr</option>
-                            <option value="vendor">Vendor</option>
+                            <option value="vendor">Vendor BBM</option>
                             <option value="fuelman">Fuel Man</option>
                         </select>
                     </div>
@@ -698,7 +698,16 @@
                     Batal Edit
                 </button>
             </div>
-            <div class="digi-form-grid-3" style="margin-bottom: 0; align-items: flex-end;">
+            <div style="display: grid; grid-template-columns: 1.2fr 1.5fr 1fr auto; gap: 12px; margin-bottom: 0; align-items: flex-end;">
+                <div class="digi-form-group">
+                    <label class="digi-form-label">Vendor BBM <span class="digi-required">*</span></label>
+                    <select name="vendor_id" id="price_vendor_id" class="digi-select" required>
+                        <option value="">- Pilih Vendor BBM -</option>
+                        @foreach(($allVendors ?? $vendors) as $ven)
+                            <option value="{{ $ven->id }}">{{ ($ven->code ? $ven->code . ' - ' : '') . $ven->name }}</option>
+                        @endforeach
+                    </select>
+                </div>
                 <div class="digi-form-group">
                     <label class="digi-form-label">Jenis BBM & Harga per Liter (IDR) <span class="digi-required">*</span></label>
                     <div style="display:flex; gap:6px;">
@@ -723,6 +732,7 @@
                 <thead>
                     <tr>
                         <th style="width: 50px;">No</th>
+                        <th>Vendor BBM</th>
                         <th>Jenis BBM</th>
                         <th>Harga per Liter</th>
                         <th>Mulai Berlaku</th>
@@ -735,6 +745,11 @@
                     @foreach($fuelPrices as $idx => $fp)
                         <tr>
                             <td>{{ $fuelPrices->firstItem() ? ($fuelPrices->firstItem() + $idx) : ($idx + 1) }}</td>
+                            <td>
+                                <span class="digi-badge digi-badge-blue" style="font-weight:600;">
+                                    {{ $fp->vendor?->name ?? 'Semua Vendor' }}
+                                </span>
+                            </td>
                             <td style="font-weight:700; color: #0284c7;">{{ $fp->fuel_type }}</td>
                             <td><strong>Rp {{ number_format($fp->price_per_liter, 0, ',', '.') }}</strong> / Liter</td>
                             <td>{{ $fp->effective_start?->format('d/m/Y') }}</td>
@@ -804,7 +819,7 @@
                             <option value="driver">Employee / Driver</option>
                             <option value="spv">SPV / Dept Head</option>
                             <option value="depthead">Dept Head / Manager</option>
-                            <option value="vendor">Vendor</option>
+                            <option value="vendor">Vendor BBM</option>
                             <option value="fuelman">Fuel Man</option>
                             <option value="admin">Admin</option>
                         </select>
@@ -814,7 +829,7 @@
             </div>
             <div class="digi-form-grid-3" style="margin-bottom:0; align-items:flex-end;">
                 <div class="digi-form-group">
-                    <label class="digi-form-label">Perusahaan Vendor Terkait (Khusus Role Vendor)</label>
+                    <label class="digi-form-label">Perusahaan Vendor BBM Terkait (Khusus Role Vendor BBM)</label>
                     <select name="vendor_id" id="usr_vendor_id" class="digi-select">
                         <option value="">- Internal PT United Tractors -</option>
                         @foreach(($allVendors ?? $vendors) as $ven)
@@ -844,7 +859,7 @@
                         <th>NRP</th>
                         <th>Role Sistem</th>
                         <th>Jabatan</th>
-                        <th>Vendor Terkait</th>
+                        <th>Vendor BBM Terkait</th>
                         <th>Status</th>
                         <th>Aksi</th>
                     </tr>
@@ -1349,6 +1364,7 @@ function resetStandardForm() {
 // 7. Fuel Price Form Auto-Fill & Reset
 function editPrice(fp, startDate) {
     document.getElementById('price_id').value = fp.id;
+    document.getElementById('price_vendor_id').value = fp.vendor_id || '';
     document.getElementById('price_fuel_type').value = fp.fuel_type || '';
     document.getElementById('price_per_liter').value = parseFloat(fp.price_per_liter);
     if (startDate) document.getElementById('price_start').value = startDate;
@@ -1360,6 +1376,7 @@ function editPrice(fp, startDate) {
 function resetPriceForm() {
     document.getElementById('priceForm').reset();
     document.getElementById('price_id').value = '';
+    document.getElementById('price_vendor_id').value = '';
     document.getElementById('priceFormTitle').textContent = 'Tambah Riwayat Harga BBM per Liter';
     document.getElementById('priceSubmitBtn').textContent = 'Simpan Harga BBM';
     document.getElementById('priceCancelBtn').style.display = 'none';
