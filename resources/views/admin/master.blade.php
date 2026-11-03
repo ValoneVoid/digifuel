@@ -38,6 +38,10 @@
         @endforeach
     </div>
 
+    <div class="digi-mobile-swipe-hint">
+        <span>👉 Geser tab & tabel ke samping untuk melihat seluruh data</span>
+    </div>
+
     <!-- ============================================================ -->
     <!-- TAB 1: UNITS / VEHICLES                                      -->
     <!-- ============================================================ -->
@@ -88,7 +92,7 @@
 
         @include('partials.pagination_top', ['paginator' => $vehicles])
 
-        <div style="overflow-x: auto;">
+        <div class="digi-table-responsive" style="overflow-x: auto; border: 1px solid #e2e8f0; border-radius: 12px;">
             <table class="digi-table">
                 <thead>
                     <tr>
@@ -199,7 +203,7 @@
 
         @include('partials.pagination_top', ['paginator' => $unitVendors])
 
-        <div style="overflow-x: auto;">
+        <div class="digi-table-responsive" style="overflow-x: auto; border: 1px solid #e2e8f0; border-radius: 12px;">
             <table class="digi-table">
                 <thead>
                     <tr>
@@ -308,7 +312,7 @@
 
         @include('partials.pagination_top', ['paginator' => $employees])
 
-        <div style="overflow-x: auto;">
+        <div class="digi-table-responsive" style="overflow-x: auto; border: 1px solid #e2e8f0; border-radius: 12px;">
             <table class="digi-table">
                 <thead>
                     <tr>
@@ -393,7 +397,7 @@
 
         @include('partials.pagination_top', ['paginator' => $areas])
 
-        <div style="overflow-x: auto;">
+        <div class="digi-table-responsive" style="overflow-x: auto; border: 1px solid #e2e8f0; border-radius: 12px;">
             <table class="digi-table">
                 <thead>
                     <tr>
@@ -476,7 +480,7 @@
 
         @include('partials.pagination_top', ['paginator' => $vendors])
 
-        <div style="overflow-x: auto;">
+        <div class="digi-table-responsive" style="overflow-x: auto; border: 1px solid #e2e8f0; border-radius: 12px;">
             <table class="digi-table">
                 <thead>
                     <tr>
@@ -573,7 +577,7 @@
 
         @include('partials.pagination_top', ['paginator' => $areaApprovers])
 
-        <div style="overflow-x: auto;">
+        <div class="digi-table-responsive" style="overflow-x: auto; border: 1px solid #e2e8f0; border-radius: 12px;">
             <table class="digi-table">
                 <thead>
                     <tr>
@@ -726,7 +730,7 @@
         @include('partials.pagination_top', ['paginator' => $fuelStandards])
 
         <!-- Tabel Sederhana Standar Konsumsi BBM -->
-        <div style="overflow-x: auto;">
+        <div class="digi-table-responsive" style="overflow-x: auto; border: 1px solid #e2e8f0; border-radius: 12px;">
             <table class="digi-table">
                 <thead>
                     <tr>
@@ -826,7 +830,7 @@
 
         @include('partials.pagination_top', ['paginator' => $fuelPrices])
 
-        <div style="overflow-x: auto;">
+        <div class="digi-table-responsive" style="overflow-x: auto; border: 1px solid #e2e8f0; border-radius: 12px;">
             <table class="digi-table">
                 <thead>
                     <tr>
@@ -952,7 +956,7 @@
 
         @include('partials.pagination_top', ['paginator' => $users])
 
-        <div style="overflow-x: auto;">
+        <div class="digi-table-responsive" style="overflow-x: auto; border: 1px solid #e2e8f0; border-radius: 12px;">
             <table class="digi-table">
                 <thead>
                     <tr>
@@ -1060,7 +1064,7 @@
 
         @include('partials.pagination_top', ['paginator' => $backgrounds])
 
-        <div style="overflow-x: auto;">
+        <div class="digi-table-responsive" style="overflow-x: auto; border: 1px solid #e2e8f0; border-radius: 12px;">
             <table class="digi-table">
                 <thead>
                     <tr>
@@ -1143,7 +1147,7 @@
 
         @include('partials.pagination_top', ['paginator' => $auditLogs])
 
-        <div style="overflow-x: auto;">
+        <div class="digi-table-responsive" style="overflow-x: auto; border: 1px solid #e2e8f0; border-radius: 12px;">
             <table class="digi-table">
                 <thead>
                     <tr>

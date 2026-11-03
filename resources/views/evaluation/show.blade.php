@@ -75,7 +75,11 @@
     </div>
 
     <h3 class="digi-section-title" style="margin-top: 24px;">Transaksi Pengisian BBM Sumber ({{ $evaluation->transactions->count() }})</h3>
-    <div style="overflow-x: auto;">
+    <div class="digi-mobile-swipe-hint">
+        <span>👉 Geser tabel ke samping untuk melihat detail transaksi</span>
+    </div>
+
+    <div class="digi-table-responsive" style="overflow-x: auto; border: 1px solid #e2e8f0; border-radius: 12px;">
         <table class="digi-table">
             <thead>
                 <tr>

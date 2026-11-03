@@ -125,7 +125,11 @@
 
     <!-- Table Rangkuman Performa per Unit LV (Matches Dashboard_Monitoring_BBM MEI 2026.xlsx) -->
     <h2 class="digi-section-title" style="margin-bottom: 12px;">Rangkuman Performa per Unit LV ({{ $period }})</h2>
-    <div style="overflow-x: auto;">
+    <div class="digi-mobile-swipe-hint">
+        <span>👉 Geser tabel ke samping untuk melihat rasio, deviasi & biaya</span>
+    </div>
+
+    <div class="digi-table-responsive" style="overflow-x: auto; border: 1px solid #e2e8f0; border-radius: 12px;">
         <table class="digi-table">
             <thead>
                 <tr style="background: #1e3a8a; color: #ffffff;">

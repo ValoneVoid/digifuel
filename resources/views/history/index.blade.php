@@ -84,7 +84,11 @@
     </div>
 
     <!-- Table -->
-    <div style="overflow-x: auto;">
+    <div class="digi-mobile-swipe-hint">
+        <span>👉 Geser tabel ke samping untuk melihat seluruh riwayat & status</span>
+    </div>
+
+    <div class="digi-table-responsive" style="overflow-x: auto; border: 1px solid #e2e8f0; border-radius: 12px;">
         <table class="digi-table">
             <thead>
                 <tr>

@@ -217,10 +217,14 @@
     <!-- TABEL PERMINTAAN TERBARU & AKTIVITAS TERBARU -->
     <div class="digi-dashboard-split-grid">
         <!-- Kolom Kiri: Daftar Permintaan Fuel Terbaru -->
-        <div>
+        <div style="min-width: 0; max-width: 100%; width: 100%;">
             <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px;">
                 <h2 class="digi-section-title" style="margin: 0;">Permintaan Fuel Request Terbaru</h2>
                 <a href="{{ route('history.index') }}" style="font-size: 13px; color: #0284c7; font-weight: 600; text-decoration: none;">Lihat Semua →</a>
+            </div>
+
+            <div class="digi-mobile-swipe-hint">
+                <span>👉 Geser tabel ke samping untuk melihat detail BBM & aksi</span>
             </div>
 
             <div class="digi-table-responsive" style="overflow-x: auto; border: 1px solid #e2e8f0; border-radius: 12px;">
@@ -296,7 +300,7 @@
         </div>
 
         <!-- Kolom Kanan: Aktivitas Terbaru & Navigasi Cepat -->
-        <div>
+        <div style="min-width: 0; max-width: 100%; width: 100%;">
             <h2 class="digi-section-title" style="margin: 0 0 12px 0;">Aktivitas Terbaru</h2>
             <div style="background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 12px; padding: 16px;">
                 @forelse($recentActivities as $act)
