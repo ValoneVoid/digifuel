@@ -176,7 +176,7 @@
                     <a href="{{ route('fuel.document', $latestMyRequest->id) }}" target="_blank" class="btn-digi btn-digi-green" style="padding: 5px 14px; font-size: 12px;">Surat Fuel Request</a>
                 </div>
             </div>
-            <div style="display: grid; grid-template-columns: repeat(5, 1fr); gap: 8px; text-align: center; font-size: 12px;">
+            <div class="digi-stepper-scroll" style="text-align: center; font-size: 12px;">
                 <div style="background: #fff; border: 1px solid #bbf7d0; border-radius: 8px; padding: 10px;">
                     <div style="font-weight: 700; color: #15803d;">1. Employee</div>
                     <div style="color: #475569; margin: 2px 0;">{{ $latestMyRequest->driver_name }}</div>
@@ -215,7 +215,7 @@
     @endif
 
     <!-- TABEL PERMINTAAN TERBARU & AKTIVITAS TERBARU -->
-    <div style="display: grid; grid-template-columns: 1.8fr 1fr; gap: 22px; align-items: start;">
+    <div class="digi-dashboard-split-grid">
         <!-- Kolom Kiri: Daftar Permintaan Fuel Terbaru -->
         <div>
             <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px;">
@@ -223,7 +223,7 @@
                 <a href="{{ route('history.index') }}" style="font-size: 13px; color: #0284c7; font-weight: 600; text-decoration: none;">Lihat Semua →</a>
             </div>
 
-            <div style="overflow-x: auto; border: 1px solid #e2e8f0; border-radius: 12px;">
+            <div class="digi-table-responsive" style="overflow-x: auto; border: 1px solid #e2e8f0; border-radius: 12px;">
                 <table class="digi-table" style="margin-bottom: 0;">
                     <thead>
                         <tr style="background: #f8fafc;">

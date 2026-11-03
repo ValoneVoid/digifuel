@@ -30,7 +30,7 @@
             'audit' => 'Audit Trail (' . $getCount($auditLogs) . ')',
         ];
     @endphp
-    <div style="display: flex; gap: 8px; flex-wrap: wrap; border-bottom: 1px solid #e2e8f0; padding-bottom: 14px; margin-bottom: 22px;">
+    <div class="digi-tabs-nav">
         @foreach($tabs as $key => $label)
             <a href="{{ route('admin.master', array_merge(request()->query(), ['tab' => $key, 'page' => 1])) }}" class="btn-digi {{ $tab === $key ? 'btn-digi-blue' : 'btn-digi-gray' }}" style="padding: 7px 14px; font-size: 12.5px;">
                 {{ $label }}

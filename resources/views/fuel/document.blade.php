@@ -46,6 +46,8 @@
         </div>
     </div>
 
-    @include('fuel.document_partial', ['fuelRequest' => $fuelRequest])
+    <div class="digi-document-scroll-wrapper">
+        @include('fuel.document_partial', ['fuelRequest' => $fuelRequest])
+    </div>
 </body>
 </html>

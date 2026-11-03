@@ -21,7 +21,7 @@
         $fuelingDone = $fuelRequest->current_stage === 'completed' || $fuelRequest->transactions->count() > 0;
         $isRejected = $fuelRequest->overall_status === 'ditolak';
     @endphp
-    <div style="display: grid; grid-template-columns: repeat(5, 1fr); gap: 8px; background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 10px; padding: 14px 16px; margin-bottom: 20px; text-align: center; font-size: 12px;">
+    <div class="digi-stepper-scroll" style="background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 10px; padding: 14px 16px; margin-bottom: 20px; text-align: center; font-size: 12px;">
         <div>
             <div style="font-weight: 700; color: #15803d;">1. Employee</div>
             <div style="color: #475569;">{{ $fuelRequest->driver_name }}</div>

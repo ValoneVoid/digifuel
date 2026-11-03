@@ -65,7 +65,7 @@
 
     <!-- KPI Summary Box (Matches Dashboard Monitoring BBM Reference) -->
     <div class="digi-form-box" style="margin-bottom: 22px; padding: 18px 22px; background: #e0f2fe; border-color: #7dd3fc;">
-        <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(195px, 1fr)); gap: 14px; text-align: center;">
+        <div class="digi-kpi-summary-grid" style="display: grid; grid-template-columns: repeat(auto-fit, minmax(195px, 1fr)); gap: 14px; text-align: center;">
             <div style="background: #fff; border: 1px solid #bae6fd; border-radius: 8px; padding: 12px 14px;">
                 <div style="font-size: 11.5px; color: #334155; font-weight: 700;">TOTAL JARAK (KM)</div>
                 <div style="font-size: 21px; font-weight: 800; color: #0369a1; margin-top: 4px;">
