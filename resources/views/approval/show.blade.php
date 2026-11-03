@@ -157,8 +157,8 @@
             </div>
         </div>
 
-        <!-- Row 2 -->
-        <div class="digi-form-grid-3">
+        <!-- Row 2: Unit Information & Vendor Unit -->
+        <div class="digi-form-grid-4">
             <div class="digi-form-group">
                 <label class="digi-form-label">Unit Code (Kode Unit) <span class="digi-required">*</span></label>
                 <input type="text" class="digi-input" value="{{ $fuelRequest->unit_code }}" readonly disabled>
@@ -166,6 +166,10 @@
             <div class="digi-form-group">
                 <label class="digi-form-label">Police No (No. Polisi) <span class="digi-required">*</span></label>
                 <input type="text" class="digi-input" value="{{ $fuelRequest->police_no }}" readonly disabled>
+            </div>
+            <div class="digi-form-group">
+                <label class="digi-form-label">Vendor Unit (Penyedia Unit)</label>
+                <input type="text" class="digi-input" style="font-weight: 600; color: #0284c7;" value="{{ $fuelRequest->unitVendor?->name ?? ($fuelRequest->vehicle?->unitVendor?->name ?? 'Internal UT') }}" readonly disabled>
             </div>
             <div class="digi-form-group">
                 <label class="digi-form-label">Company (Perusahaan)</label>

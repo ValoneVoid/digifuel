@@ -12,6 +12,7 @@ use App\Models\FuelStandard;
 use App\Models\Vehicle;
 use App\Models\Area;
 use App\Models\Vendor;
+use App\Models\UnitVendor;
 use App\Models\User;
 use App\Services\FuelEvaluationService;
 use App\Services\ExcelExportService;
@@ -34,7 +35,7 @@ class EvaluationController extends Controller
         $user = $this->getActiveUser();
         $period = $request->get('period', '2026-05');
 
-        $query = FuelEvaluation::with(['vehicle', 'calculator']);
+        $query = FuelEvaluation::with(['vehicle.unitVendor', 'calculator']);
 
         if ($request->filled('period')) {
             $query->where('period', $request->period);
@@ -45,6 +46,11 @@ class EvaluationController extends Controller
         if ($request->filled('unit_code')) {
             $unitCode = $request->unit_code;
             $query->whereHas('vehicle', fn($q) => $q->where('unit_code', $unitCode));
+        }
+
+        if ($request->filled('unit_vendor_id')) {
+            $uvId = $request->unit_vendor_id;
+            $query->whereHas('vehicle', fn($q) => $q->where('unit_vendor_id', $uvId));
         }
 
         if ($request->filled('status')) {
@@ -110,6 +116,7 @@ class EvaluationController extends Controller
         ];
 
         $vehicles = Vehicle::where('is_active', true)->orderBy('unit_code')->get();
+        $unitVendors = UnitVendor::where('is_active', true)->orderBy('name')->get();
         $periods = FuelEvaluation::select('period')->distinct()->orderBy('period', 'desc')->pluck('period');
         if ($periods->isEmpty()) {
             $periods = collect(['2026-05', '2025-05', '2025-03']);
@@ -120,6 +127,7 @@ class EvaluationController extends Controller
             'summary',
             'chartData',
             'vehicles',
+            'unitVendors',
             'periods',
             'period',
             'user'
@@ -275,6 +283,7 @@ class EvaluationController extends Controller
             $masterVehicles[] = [
                 'unit_code' => $unitCode,
                 'model' => $v?->model ?? $v?->unit_type ?? 'Light Vehicle',
+                'unit_vendor' => $v?->unitVendor?->name ?? 'Internal UT',
                 'target_ratio' => (float)$eval->standard_used,
                 'tank_capacity' => (float)($v?->tank_capacity ?? 80),
             ];

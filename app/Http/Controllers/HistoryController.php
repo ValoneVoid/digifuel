@@ -7,6 +7,7 @@ use App\Models\FuelRequest;
 use App\Models\FuelRequestHistory;
 use App\Models\Area;
 use App\Models\Vendor;
+use App\Models\UnitVendor;
 use App\Models\User;
 use App\Services\ExcelExportService;
 use Illuminate\Support\Facades\Auth;
@@ -25,7 +26,7 @@ class HistoryController extends Controller
 
     protected function buildFilteredQuery(Request $request, User $user)
     {
-        $query = FuelRequest::with(['latestTransaction']);
+        $query = FuelRequest::with(['latestTransaction', 'unitVendor', 'vehicle.unitVendor']);
 
         // Role-based access isolation
         if ($user->isDriver() && !$user->isAdmin()) {
@@ -51,9 +52,18 @@ class HistoryController extends Controller
             $query->where('area', $request->area);
         }
 
-        // Filter Vendor
+        // Filter Vendor BBM
         if ($request->filled('vendor')) {
             $query->where('vendor_name', $request->vendor);
+        }
+
+        // Filter Vendor Unit
+        if ($request->filled('unit_vendor_id')) {
+            $uvId = $request->unit_vendor_id;
+            $query->where(function ($q) use ($uvId) {
+                $q->where('unit_vendor_id', $uvId)
+                  ->orWhereHas('vehicle', fn($vq) => $vq->where('unit_vendor_id', $uvId));
+            });
         }
 
         // Filter Status
@@ -86,8 +96,9 @@ class HistoryController extends Controller
 
         $areas = Area::where('is_active', true)->orderBy('name')->get();
         $vendors = Vendor::where('is_active', true)->orderBy('name')->get();
+        $unitVendors = UnitVendor::where('is_active', true)->orderBy('name')->get();
 
-        return view('history.index', compact('requests', 'user', 'areas', 'vendors'));
+        return view('history.index', compact('requests', 'user', 'areas', 'vendors', 'unitVendors'));
     }
 
     public function export(Request $request, ExcelExportService $excel)
@@ -115,17 +126,18 @@ class HistoryController extends Controller
             'Perusahaan',
             'Unit Code',
             'Nomor Polisi',
+            'Vendor Unit',
             'Area Operasional',
-            'HM/KM Pengajuan',
+            'KM Pengajuan',
             'BBM Diminta (Liter)',
             'BBM Aktual (Liter)',
             'Selisih BBM (Liter)',
-            'HM/KM Aktual Pengisian',
+            'KM Aktual Pengisian',
             'Tanggal Pengisian Aktual',
-            'Vendor',
+            'Vendor BBM',
             'Status SPV',
             'Status Dept Head',
-            'Status Vendor',
+            'Status Vendor BBM',
             'Tahap Proses',
             'Status Akhir',
         ];
@@ -148,6 +160,7 @@ class HistoryController extends Controller
                 $row->company,
                 $row->unit_code,
                 $row->police_no,
+                $row->unitVendor?->name ?? ($row->vehicle?->unitVendor?->name ?? 'Internal UT'),
                 $row->area,
                 $row->hm_km,
                 (float)$row->total_liters,

@@ -399,6 +399,11 @@
                         <td class="value-col">{{ $unit['unit_type'] }}</td>
                     </tr>
                     <tr>
+                        <td class="label-col">Vendor Unit</td>
+                        <td class="colon-col">:</td>
+                        <td class="value-col">{{ $unit['unit_vendor'] }}</td>
+                    </tr>
+                    <tr>
                         <td class="label-col">Area Unit</td>
                         <td class="colon-col">:</td>
                         <td class="value-col">{{ $unit['area'] }}</td>

@@ -164,6 +164,7 @@ class FuelRequestPdfService
                 'code' => $fuelRequest->unit_code,
                 'police_no' => $fuelRequest->police_no ?? $fuelRequest->vehicle?->police_no ?? '-',
                 'unit_type' => $fuelRequest->unit_type ?? $fuelRequest->vehicle?->unit_type ?? 'Light Vehicle',
+                'unit_vendor' => $fuelRequest->unitVendor?->name ?? ($fuelRequest->vehicle?->unitVendor?->name ?? 'Internal UT'),
                 'area' => $fuelRequest->area ?? $fuelRequest->areaModel?->name ?? 'Satui Site',
             ],
 

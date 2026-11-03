@@ -301,6 +301,7 @@ class ExcelExportService
         $xml .= '<c r="B1" s="4" t="inlineStr"><is><t>Tipe Unit</t></is></c>';
         $xml .= '<c r="C1" s="4" t="inlineStr"><is><t>Target Rasio (Km/L)</t></is></c>';
         $xml .= '<c r="D1" s="4" t="inlineStr"><is><t>Kapasitas Tangki (L)</t></is></c>';
+        $xml .= '<c r="E1" s="4" t="inlineStr"><is><t>Vendor Unit</t></is></c>';
         $xml .= "</row>\n";
 
         // Data Rows starting at Row 2
@@ -310,12 +311,14 @@ class ExcelExportService
             $model = htmlspecialchars($mv['model'], ENT_XML1);
             $ratio = (float)($mv['target_ratio'] ?? 8.0);
             $tank = (float)($mv['tank_capacity'] ?? 80.0);
+            $vendor = htmlspecialchars($mv['unit_vendor'] ?? 'Internal UT', ENT_XML1);
 
             $xml .= "<row r=\"{$rowNum}\" ht=\"20\" customHeight=\"1\">";
             $xml .= "<c r=\"A{$rowNum}\" s=\"5\" t=\"inlineStr\"><is><t>{$code}</t></is></c>";
             $xml .= "<c r=\"B{$rowNum}\" s=\"6\" t=\"inlineStr\"><is><t>{$model}</t></is></c>";
             $xml .= "<c r=\"C{$rowNum}\" s=\"8\"><v>{$ratio}</v></c>";
             $xml .= "<c r=\"D{$rowNum}\" s=\"8\"><v>{$tank}</v></c>";
+            $xml .= "<c r=\"E{$rowNum}\" s=\"6\" t=\"inlineStr\"><is><t>{$vendor}</t></is></c>";
             $xml .= "</row>\n";
         }
 

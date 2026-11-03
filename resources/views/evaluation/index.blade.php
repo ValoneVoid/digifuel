@@ -29,6 +29,16 @@
             </div>
 
             <div class="digi-filter-group">
+                <label class="digi-filter-label">Vendor Unit</label>
+                <select name="unit_vendor_id" class="digi-select" style="padding: 7px 12px; font-size: 13px; min-width: 160px;">
+                    <option value="">Semua Vendor Unit</option>
+                    @foreach($unitVendors as $uv)
+                        <option value="{{ $uv->id }}" {{ request('unit_vendor_id') == $uv->id ? 'selected' : '' }}>{{ $uv->name }}</option>
+                    @endforeach
+                </select>
+            </div>
+
+            <div class="digi-filter-group">
                 <label class="digi-filter-label">Status Evaluasi</label>
                 <select name="status" class="digi-select" style="padding: 7px 12px; font-size: 13px; min-width: 145px;">
                     <option value="">Semua Status</option>
@@ -121,6 +131,7 @@
                 <tr style="background: #1e3a8a; color: #ffffff;">
                     <th style="color: #ffffff; background: #1e3a8a;">ID Kendaraan</th>
                     <th style="color: #ffffff; background: #1e3a8a;">Tipe Unit</th>
+                    <th style="color: #ffffff; background: #1e3a8a;">Vendor Unit</th>
                     <th style="color: #ffffff; background: #1e3a8a; text-align: right;">Total Jarak (Km)</th>
                     <th style="color: #ffffff; background: #1e3a8a; text-align: right;">Total Pengisian Fuel (L)</th>
                     <th style="color: #ffffff; background: #1e3a8a; text-align: right;">Rasio Aktual (Km/L)</th>
@@ -141,6 +152,11 @@
                             </a>
                         </td>
                         <td style="font-size: 13px;">{{ $eval->vehicle?->model ?? $eval->vehicle?->unit_type ?? '-' }}</td>
+                        <td>
+                            <span class="digi-badge digi-badge-blue" style="font-size: 11px; white-space: nowrap;">
+                                {{ $eval->vehicle?->unitVendor?->name ?? 'Internal UT' }}
+                            </span>
+                        </td>
                         <td style="text-align: right;">{{ number_format($eval->total_distance_or_hours, 0, ',', '.') }}</td>
                         <td style="text-align: right;">{{ number_format($eval->total_actual_liters, 1, ',', '.') }}</td>
                         <td style="text-align: right;">{{ number_format($eval->actual_ratio, 1, ',', '.') }}</td>
@@ -175,7 +191,7 @@
                     </tr>
                 @empty
                     <tr>
-                        <td colspan="11" style="text-align: center; color: #94a3b8; padding: 36px;">
+                        <td colspan="12" style="text-align: center; color: #94a3b8; padding: 36px;">
                             Belum ada data evaluasi pada periode <strong>{{ $period }}</strong>. Klik tombol <strong>Hitung Evaluasi</strong> untuk menjalankan kalkulasi otomatis dari transaksi BBM.
                         </td>
                     </tr>
@@ -185,7 +201,7 @@
                 <tfoot>
                     <tr style="background: #f8fafc; font-weight: 800; border-top: 2px solid #cbd5e1;">
                         <td></td>
-                        <td>Total / Rata-rata Nasional</td>
+                        <td colspan="2">Total / Rata-rata Nasional</td>
                         <td style="text-align: right;">{{ number_format($summary['total_distance'], 0, ',', '.') }}</td>
                         <td style="text-align: right;">{{ number_format($summary['total_actual_liters'], 1, ',', '.') }}</td>
                         <td style="text-align: right;">{{ number_format($summary['avg_ratio'], 1, ',', '.') }}</td>

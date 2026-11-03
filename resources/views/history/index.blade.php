@@ -26,6 +26,18 @@
                 </div>
             @endif
 
+            @if(isset($unitVendors) && $unitVendors->count() > 0)
+                <div class="digi-filter-group">
+                    <label class="digi-filter-label">Vendor Unit</label>
+                    <select name="unit_vendor_id" class="digi-select" style="padding: 7px 12px; font-size: 13px; min-width: 150px;">
+                        <option value="">Semua Vendor Unit</option>
+                        @foreach($unitVendors as $uv)
+                            <option value="{{ $uv->id }}" {{ request('unit_vendor_id') == $uv->id ? 'selected' : '' }}>{{ $uv->name }}</option>
+                        @endforeach
+                    </select>
+                </div>
+            @endif
+
             <div class="digi-filter-group">
                 <label class="digi-filter-label">Pilih Status</label>
                 <select name="status" class="digi-select" style="padding: 7px 12px; font-size: 13px; min-width: 140px;">
@@ -102,6 +114,7 @@
                         <td>
                             <div style="font-weight: 600;">{{ $req->unit_code }}</div>
                             <div style="font-size: 11.5px; color: #64748b;">{{ $req->police_no }}</div>
+                            <div style="font-size: 11px; color: #0284c7; font-weight: 600;">{{ $req->unitVendor?->name ?? ($req->vehicle?->unitVendor?->name ?? 'Internal UT') }}</div>
                         </td>
                         <td>
                             <div><strong>{{ (float)$req->total_liters }}</strong> L</div>

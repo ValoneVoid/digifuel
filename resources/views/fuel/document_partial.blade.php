@@ -35,6 +35,11 @@
             <td class="val">{{ $fuelRequest->police_no }}</td>
         </tr>
         <tr>
+            <td class="lbl">VENDOR UNIT <em>(Penyedia Unit)</em></td>
+            <td class="col">:</td>
+            <td class="val" style="font-weight: 600; color: #0284c7;">{{ $fuelRequest->unitVendor?->name ?? ($fuelRequest->vehicle?->unitVendor?->name ?? 'Internal UT') }}</td>
+        </tr>
+        <tr>
             <td class="lbl">COMPANY <em>(Perusahaan)</em></td>
             <td class="col">:</td>
             <td class="val">{{ $fuelRequest->company }}</td>
