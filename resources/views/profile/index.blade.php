@@ -171,7 +171,7 @@
 
             <div class="digi-profile-row">
                 <div class="digi-profile-label">
-                    No. Telepon / HP
+                    No. WhatsApp / HP
                 </div>
                 <div class="digi-profile-value">
                     {{ $user->phone ?: '-' }}
@@ -246,8 +246,8 @@
                     </div>
 
                     <div>
-                        <label style="display: block; font-size: 12.5px; font-weight: 600; color: #334155; margin-bottom: 6px;">No. Telepon / WhatsApp</label>
-                        <input type="text" name="phone" value="{{ old('phone', $user->phone) }}" class="digi-input" placeholder="Contoh: 0812-xxxx-xxxx">
+                        <label style="display: block; font-size: 12.5px; font-weight: 600; color: #334155; margin-bottom: 6px;">No. WhatsApp / HP <span style="font-size:11px; font-weight:normal; color:#64748b;">(08xxx)</span></label>
+                        <input type="text" name="phone" value="{{ old('phone', $user->phone) }}" class="digi-input" placeholder="Contoh: 081234567890">
                     </div>
 
                     <div>

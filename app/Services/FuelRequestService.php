@@ -19,6 +19,13 @@ class FuelRequestService
 {
     public const DEFAULT_DOCUMENT_COMPANY = 'PT UNITED TRACTORS Tbk - SITE SATUI';
 
+    protected FonnteWhatsappService $whatsappService;
+
+    public function __construct(?FonnteWhatsappService $whatsappService = null)
+    {
+        $this->whatsappService = $whatsappService ?? app(FonnteWhatsappService::class);
+    }
+
     /**
      * Create a new Fuel Request (either as Draft or Submitted to Pending SPV)
      */
@@ -180,6 +187,8 @@ class FuelRequestService
                     "Fuel Request {$requestNo} dari {$user->name} ({$vehicle->unit_code} - {$data['total_liters']} L) menunggu persetujuan SPV Anda.",
                     'warning'
                 );
+
+                $this->whatsappService->notifyPendingSpv($fuelRequest, $user);
             }
 
             return $fuelRequest;
@@ -221,6 +230,8 @@ class FuelRequestService
                 "Fuel Request {$locked->request_no} menunggu persetujuan SPV Anda.",
                 'warning'
             );
+
+            $this->whatsappService->notifyPendingSpv($locked, $user);
 
             return $locked;
         });
@@ -377,6 +388,8 @@ class FuelRequestService
                     'warning'
                 );
 
+                $this->whatsappService->notifyPendingDepthead($locked, $user);
+
                 $successMsg = $literAdjusted
                     ? "Pengajuan {$locked->request_no} berhasil disetujui pada Tahap 1 (SPV) dengan penyesuaian {$finalLiters} L dan diteruskan ke Dept Head/Manager!"
                     : "Pengajuan {$locked->request_no} berhasil disetujui pada Tahap 1 (SPV) dan diteruskan ke Dept Head/Manager!";
@@ -435,6 +448,8 @@ class FuelRequestService
                         'warning'
                     );
                 }
+
+                $this->whatsappService->notifyReadyForVendor($locked, $user);
 
                 return [
                     'ok' => true,

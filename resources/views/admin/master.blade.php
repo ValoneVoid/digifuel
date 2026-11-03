@@ -912,6 +912,12 @@
                     </div>
                 </div>
                 <div class="digi-form-group">
+                    <label class="digi-form-label">No. WhatsApp / HP (08xxx)</label>
+                    <input type="text" name="phone" id="usr_phone" class="digi-input" placeholder="Contoh: 081234567890">
+                </div>
+            </div>
+            <div class="digi-form-grid-3" style="margin-bottom:0; align-items:flex-end;">
+                <div class="digi-form-group">
                     <label class="digi-form-label">Role & Jabatan <span class="digi-required">*</span></label>
                     <div style="display:flex; gap:6px;">
                         <select name="role" id="usr_role" class="digi-select" required>
@@ -925,8 +931,6 @@
                         <input type="text" name="jabatan" id="usr_jabatan" class="digi-input" placeholder="Jabatan" required>
                     </div>
                 </div>
-            </div>
-            <div class="digi-form-grid-3" style="margin-bottom:0; align-items:flex-end;">
                 <div class="digi-form-group">
                     <label class="digi-form-label">Perusahaan Vendor BBM Terkait (Khusus Role Vendor BBM)</label>
                     <select name="vendor_id" id="usr_vendor_id" class="digi-select">
@@ -940,9 +944,9 @@
                     <label class="digi-form-label">Password Baru (Default: password123)</label>
                     <input type="password" name="password" id="usr_password" class="digi-input" placeholder="Kosongkan jika tidak diubah">
                 </div>
-                <div>
-                    <button type="submit" id="usrSubmitBtn" class="btn-digi btn-digi-blue">Simpan Akun Pengguna</button>
-                </div>
+            </div>
+            <div style="display: flex; justify-content: flex-end; margin-top: 14px;">
+                <button type="submit" id="usrSubmitBtn" class="btn-digi btn-digi-blue">Simpan Akun Pengguna</button>
             </div>
         </form>
 
@@ -955,6 +959,7 @@
                         <th style="width: 50px;">No</th>
                         <th>Nama Pengguna</th>
                         <th>Username</th>
+                        <th>No. WhatsApp</th>
                         <th>NRP</th>
                         <th>Role Sistem</th>
                         <th>Jabatan</th>
@@ -969,6 +974,13 @@
                             <td>{{ $users->firstItem() ? ($users->firstItem() + $idx) : ($idx + 1) }}</td>
                             <td style="font-weight:700; color: #0284c7;">{{ $u->name }}</td>
                             <td style="font-weight:600;">{{ $u->username }}</td>
+                            <td>
+                                @if($u->phone)
+                                    <span style="font-family: monospace; font-weight: 600; color: #0369a1;">{{ $u->phone }}</span>
+                                @else
+                                    <span style="color: #94a3b8; font-size: 12px;">-</span>
+                                @endif
+                            </td>
                             <td>{{ $u->nrp ?? '-' }}</td>
                             <td><span class="digi-badge digi-badge-blue">{{ strtoupper($u->role) }}</span></td>
                             <td>{{ $u->jabatan }}</td>
@@ -1509,6 +1521,7 @@ function editUser(u) {
     document.getElementById('usr_nrp').value = u.nrp || '';
     document.getElementById('usr_username').value = u.username || '';
     document.getElementById('usr_email').value = u.email || '';
+    document.getElementById('usr_phone').value = u.phone || '';
     document.getElementById('usr_role').value = u.role || 'driver';
     document.getElementById('usr_jabatan').value = u.jabatan || '';
     document.getElementById('usr_vendor_id').value = u.vendor_id || '';
@@ -1521,6 +1534,7 @@ function editUser(u) {
 function resetUserForm() {
     document.getElementById('userForm').reset();
     document.getElementById('usr_id').value = '';
+    document.getElementById('usr_phone').value = '';
     document.getElementById('usrFormTitle').textContent = 'Tambah / Kelola Akun Pengguna & Role';
     document.getElementById('usrSubmitBtn').textContent = 'Simpan Akun Pengguna';
     document.getElementById('usrCancelBtn').style.display = 'none';

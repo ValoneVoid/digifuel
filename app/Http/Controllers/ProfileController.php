@@ -36,6 +36,12 @@ class ProfileController extends Controller
     {
         $user = $this->getActiveUser();
 
+        if ($request->filled('phone')) {
+            $request->merge([
+                'phone' => preg_replace('/[^0-9]/', '', (string)$request->input('phone')),
+            ]);
+        }
+
         $validated = $request->validate([
             'name' => ['required', 'string', 'max:150'],
             'username' => [
@@ -50,7 +56,7 @@ class ProfileController extends Controller
                 'max:150',
                 Rule::unique('users', 'email')->ignore($user->id),
             ],
-            'phone' => ['nullable', 'string', 'max:30'],
+            'phone' => ['nullable', 'string', 'max:25', 'regex:/^08[0-9]{8,12}$/'],
             'nrp' => ['nullable', 'string', 'max:50'],
             'jabatan' => ['required', 'string', 'max:100'],
             'company' => ['required', 'string', 'max:150'],
@@ -62,6 +68,7 @@ class ProfileController extends Controller
             'email.required' => 'Alamat email wajib diisi.',
             'email.email' => 'Format alamat email tidak valid.',
             'email.unique' => 'Email tersebut sudah terdaftar pada akun lain.',
+            'phone.regex' => 'Nomor HP / WhatsApp harus diawali dengan 08 dan terdiri dari 10-14 digit angka (contoh: 081234567890).',
             'jabatan.required' => 'Jabatan wajib diisi.',
             'company.required' => 'Nama perusahaan / site wajib diisi.',
             'password.min' => 'Password baru minimal 6 karakter.',

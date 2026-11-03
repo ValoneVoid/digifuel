@@ -258,6 +258,7 @@ class DigiFuelSeeder extends Seeder
                 [
                     'username' => 'adji',
                     'email' => 'adji@satui.unitedtractors.com',
+                    'phone' => '081234567801',
                     'employee_id' => $empAdji->id,
                     'vendor_id' => null,
                     'name' => 'Adji Tri Irianto',
@@ -272,6 +273,7 @@ class DigiFuelSeeder extends Seeder
                 [
                     'username' => 'rachmat',
                     'email' => 'rachmat@satui.unitedtractors.com',
+                    'phone' => '081234567802',
                     'employee_id' => $empRachmat->id,
                     'vendor_id' => null,
                     'name' => 'Rachmat Hidayat',
@@ -286,6 +288,7 @@ class DigiFuelSeeder extends Seeder
                 [
                     'username' => 'hamdi',
                     'email' => 'hamdi@satui.unitedtractors.com',
+                    'phone' => '081234567803',
                     'employee_id' => $empHamdi->id,
                     'vendor_id' => null,
                     'name' => 'Muhammad Hamdi',
@@ -300,6 +303,7 @@ class DigiFuelSeeder extends Seeder
                 [
                     'username' => 'aklis',
                     'email' => 'aklis@satui.unitedtractors.com',
+                    'phone' => '081255667788',
                     'employee_id' => null,
                     'vendor_id' => null,
                     'name' => 'Aklis',
@@ -314,6 +318,7 @@ class DigiFuelSeeder extends Seeder
                 [
                     'username' => 'adya',
                     'email' => 'adya@satui.unitedtractors.com',
+                    'phone' => '081299887766',
                     'employee_id' => null,
                     'vendor_id' => null,
                     'name' => 'ADYA',
@@ -328,6 +333,7 @@ class DigiFuelSeeder extends Seeder
                 [
                     'username' => 'Pdh-kusan',
                     'email' => 'garius@satui.unitedtractors.com',
+                    'phone' => '081344556677',
                     'employee_id' => null,
                     'vendor_id' => null,
                     'name' => 'Garius',
@@ -342,6 +348,7 @@ class DigiFuelSeeder extends Seeder
                 [
                     'username' => 'vendor_sudan',
                     'email' => 'vendor.sudan@satui.unitedtractors.com',
+                    'phone' => '081251001122',
                     'employee_id' => null,
                     'vendor_id' => $vendorSudan->id,
                     'name' => 'Cv. Sudan Mandiri (Approver)',
@@ -356,6 +363,7 @@ class DigiFuelSeeder extends Seeder
                 [
                     'username' => 'admin',
                     'email' => 'admin@satui.unitedtractors.com',
+                    'phone' => '081200001111',
                     'employee_id' => null,
                     'vendor_id' => null,
                     'name' => 'Administrator UT Satui',

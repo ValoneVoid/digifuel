@@ -718,11 +718,18 @@ class AdminMasterController extends Controller
             return $this->updateUser($request, $id);
         }
 
+        if ($request->filled('phone')) {
+            $request->merge([
+                'phone' => preg_replace('/[^0-9]/', '', (string)$request->input('phone')),
+            ]);
+        }
+
         $admin = $this->getActiveUser();
         $validated = $request->validate([
             'name' => ['required', 'string', 'max:120'],
             'username' => ['required', 'string', 'max:80', Rule::unique('users', 'username')],
             'email' => ['required', 'email', 'max:150', Rule::unique('users', 'email')],
+            'phone' => ['nullable', 'string', 'max:25', 'regex:/^08[0-9]{8,12}$/'],
             'role' => ['required', 'in:admin,driver,spv,depthead,vendor,fuelman'],
             'jabatan' => ['required', 'string', 'max:100'],
             'nrp' => ['nullable', 'string', 'max:50', Rule::unique('users', 'nrp')],
@@ -730,12 +737,15 @@ class AdminMasterController extends Controller
             'vendor_id' => ['nullable', 'exists:vendors,id'],
             'password' => ['nullable', 'string', 'min:6'],
             'is_active' => ['nullable', 'boolean'],
+        ], [
+            'phone.regex' => 'Nomor HP / WhatsApp harus diawali dengan 08 dan terdiri dari 10-14 digit angka (contoh: 081234567890).',
         ]);
 
         $payload = [
             'name' => $validated['name'],
             'username' => $validated['username'],
             'email' => $validated['email'],
+            'phone' => $validated['phone'] ?? null,
             'role' => $validated['role'],
             'jabatan' => $validated['jabatan'],
             'nrp' => $validated['nrp'] ?? null,
@@ -758,10 +768,17 @@ class AdminMasterController extends Controller
         $admin = $this->getActiveUser();
         $targetUser = User::findOrFail($id);
 
+        if ($request->filled('phone')) {
+            $request->merge([
+                'phone' => preg_replace('/[^0-9]/', '', (string)$request->input('phone')),
+            ]);
+        }
+
         $validated = $request->validate([
             'name' => ['required', 'string', 'max:120'],
             'username' => ['required', 'string', 'max:80', Rule::unique('users', 'username')->ignore($targetUser->id)],
             'email' => ['required', 'email', 'max:150', Rule::unique('users', 'email')->ignore($targetUser->id)],
+            'phone' => ['nullable', 'string', 'max:25', 'regex:/^08[0-9]{8,12}$/'],
             'role' => ['required', 'in:admin,driver,spv,depthead,vendor,fuelman'],
             'jabatan' => ['nullable', 'string', 'max:100'],
             'nrp' => ['nullable', 'string', 'max:50', Rule::unique('users', 'nrp')->ignore($targetUser->id)],
@@ -769,12 +786,15 @@ class AdminMasterController extends Controller
             'vendor_id' => ['nullable', 'exists:vendors,id'],
             'password' => ['nullable', 'string', 'min:6'],
             'is_active' => ['nullable', 'boolean'],
+        ], [
+            'phone.regex' => 'Nomor HP / WhatsApp harus diawali dengan 08 dan terdiri dari 10-14 digit angka (contoh: 081234567890).',
         ]);
 
         $payload = [
             'name' => $validated['name'],
             'username' => $validated['username'],
             'email' => $validated['email'],
+            'phone' => array_key_exists('phone', $validated) ? $validated['phone'] : $targetUser->phone,
             'role' => $validated['role'],
             'jabatan' => $validated['jabatan'] ?? $targetUser->jabatan ?? ucfirst($validated['role']),
             'nrp' => array_key_exists('nrp', $validated) ? $validated['nrp'] : $targetUser->nrp,
