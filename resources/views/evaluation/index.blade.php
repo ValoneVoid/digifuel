@@ -8,7 +8,7 @@
         <div>
             <h1 class="digi-table-title">Evaluasi Konsumsi BBM & Estimasi Biaya Kerugian</h1>
             <p style="font-size: 13.5px; color: #64748b; margin: 4px 0 0 0;">
-                Analisis perbandingan konsumsi aktual vs standar (KM/L atau L/Jam), varian pemborosan, dan estimasi kerugian biaya BBM per unit.
+                Analisis perbandingan konsumsi aktual vs standar (KM/L), varian pemborosan, dan estimasi kerugian biaya BBM per unit.
             </p>
         </div>
 

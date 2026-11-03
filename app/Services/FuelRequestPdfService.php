@@ -173,7 +173,7 @@ class FuelRequestPdfService
                 'date' => $fuelRequest->request_date ? $fuelRequest->request_date->format('d/m/Y') : '-',
                 'time' => $fuelRequest->request_date ? $fuelRequest->request_date->format('H:i') : '-',
                 'planned_time' => $fuelRequest->planned_fuel_time ? $fuelRequest->planned_fuel_time->format('d/m/Y H:i') : null,
-                'meter_type' => strtoupper($fuelRequest->meter_type ?? $fuelRequest->vehicle?->meter_type ?? 'KM'),
+                'meter_type' => 'KM',
                 'hm_km' => $fuelRequest->hm_km !== null ? (float)$fuelRequest->hm_km : 0,
                 'total_liters' => (float)$fuelRequest->total_liters,
                 'vendor_name' => $vendorName,

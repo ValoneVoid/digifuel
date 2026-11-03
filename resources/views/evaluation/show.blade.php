@@ -24,12 +24,12 @@
                 <input type="text" class="digi-input" value="{{ number_format($evaluation->meter_start ?? 0, 0, ',', '.') }} → {{ number_format($evaluation->meter_end ?? 0, 0, ',', '.') }}" readonly disabled>
             </div>
             <div class="digi-form-group">
-                <label class="digi-form-label">Total Jarak Tempuh / Jam Operasi</label>
-                <input type="text" class="digi-input" value="{{ number_format($evaluation->total_distance_or_hours, 2, ',', '.') }} {{ strtoupper($evaluation->vehicle?->meter_type ?? 'KM') }}" readonly disabled>
+                <label class="digi-form-label">Total Jarak Tempuh (KM)</label>
+                <input type="text" class="digi-input" value="{{ number_format($evaluation->total_distance_or_hours, 2, ',', '.') }} KM" readonly disabled>
             </div>
             <div class="digi-form-group">
                 <label class="digi-form-label">Standar Konsumsi Berlaku</label>
-                <input type="text" class="digi-input" value="{{ number_format($evaluation->standard_used, 2, ',', '.') }} {{ $evaluation->standard_type === 'liter_per_hour' ? 'Liter / Jam' : 'KM / Liter' }} (Toleransi: {{ (float)$evaluation->tolerance_used }}%)" readonly disabled>
+                <input type="text" class="digi-input" value="{{ number_format($evaluation->standard_used, 2, ',', '.') }} KM / Liter (Toleransi: {{ (float)$evaluation->tolerance_used }}%)" readonly disabled>
             </div>
         </div>
 

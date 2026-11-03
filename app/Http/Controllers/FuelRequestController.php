@@ -173,7 +173,7 @@ class FuelRequestController extends Controller
             'unit_code' => $vehicle->unit_code,
             'police_no' => $vehicle->police_no,
             'unit_type' => $vehicle->unit_type ?? $vehicle->model,
-            'meter_type' => strtoupper($vehicle->meter_type ?? 'km'),
+            'meter_type' => 'KM',
             'tank_capacity' => $vehicle->tank_capacity,
         ]);
     }

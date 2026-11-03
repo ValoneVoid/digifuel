@@ -406,7 +406,7 @@
                     <tr>
                         <td class="label-col">Tipe Meter</td>
                         <td class="colon-col">:</td>
-                        <td class="value-col">{{ $request['meter_type'] }}</td>
+                        <td class="value-col">KM</td>
                     </tr>
                 </table>
             </td>

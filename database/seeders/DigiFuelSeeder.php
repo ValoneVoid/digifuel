@@ -180,10 +180,10 @@ class DigiFuelSeeder extends Seeder
             // 5. MASTER VEHICLES (PPT Units + 15 LV Units from Monitoring BBM Mei 2026)
             // =========================================================================
             $pptVehicles = [
-                ['unit_code' => 'unit_26376G', 'police_no' => 'police_8793unk', 'model' => 'Komatsu PC650LC-11', 'unit_type' => 'Heavy Equipment', 'meter_type' => 'hm', 'std_type' => 'liter_per_hour', 'std_val' => 35.0, 'cap' => 880],
-                ['unit_code' => 'unit_10284A', 'police_no' => 'DA 8291 UT', 'model' => 'Komatsu HD785-7', 'unit_type' => 'Heavy Equipment', 'meter_type' => 'hm', 'std_type' => 'liter_per_hour', 'std_val' => 45.0, 'cap' => 1000],
+                ['unit_code' => 'unit_26376G', 'police_no' => 'police_8793unk', 'model' => 'Komatsu PC650LC-11', 'unit_type' => 'Heavy Equipment', 'meter_type' => 'km', 'std_type' => 'km_per_liter', 'std_val' => 2.5, 'cap' => 880],
+                ['unit_code' => 'unit_10284A', 'police_no' => 'DA 8291 UT', 'model' => 'Komatsu HD785-7', 'unit_type' => 'Heavy Equipment', 'meter_type' => 'km', 'std_type' => 'km_per_liter', 'std_val' => 1.8, 'cap' => 1000],
                 ['unit_code' => 'unit_77812B', 'police_no' => 'DA 7102 UT', 'model' => 'Toyota Hilux 4x4 Double Cabin', 'unit_type' => 'Light Vehicle', 'meter_type' => 'km', 'std_type' => 'km_per_liter', 'std_val' => 8.0, 'cap' => 80],
-                ['unit_code' => 'unit_33190K', 'police_no' => 'DA 9014 SP', 'model' => 'Komatsu GD825A-2 Motor Grader', 'unit_type' => 'Heavy Equipment', 'meter_type' => 'hm', 'std_type' => 'liter_per_hour', 'std_val' => 30.0, 'cap' => 500],
+                ['unit_code' => 'unit_33190K', 'police_no' => 'DA 9014 SP', 'model' => 'Komatsu GD825A-2 Motor Grader', 'unit_type' => 'Heavy Equipment', 'meter_type' => 'km', 'std_type' => 'km_per_liter', 'std_val' => 3.0, 'cap' => 500],
                 ['unit_code' => 'unit_90123M', 'police_no' => 'DA 6543 UT', 'model' => 'Scania P460 Heavy Tipper', 'unit_type' => 'Dump Truck', 'meter_type' => 'km', 'std_type' => 'km_per_liter', 'std_val' => 4.0, 'cap' => 400],
             ];
 
@@ -524,7 +524,7 @@ class DigiFuelSeeder extends Seeder
                     'unit_type' => $veh26376G->unit_type,
                     'company' => 'PT UNITED TRACTORS Tbk - SITE SATUI',
                     'hm_km' => '79',
-                    'meter_type' => 'hm',
+                    'meter_type' => 'km',
                     'total_liters' => 80,
                     'area' => $areaSdu->name,
                     'area_id' => $areaSdu->id,
@@ -569,7 +569,7 @@ class DigiFuelSeeder extends Seeder
                     'unit_type' => $veh26376G->unit_type,
                     'company' => 'PT UNITED TRACTORS Tbk - SITE SATUI',
                     'hm_km' => '85',
-                    'meter_type' => 'hm',
+                    'meter_type' => 'km',
                     'total_liters' => 78,
                     'area' => $areaSdu->name,
                     'area_id' => $areaSdu->id,
@@ -614,7 +614,7 @@ class DigiFuelSeeder extends Seeder
                     'unit_type' => $veh10284A->unit_type,
                     'company' => 'PT UNITED TRACTORS Tbk - SITE SATUI',
                     'hm_km' => '120',
-                    'meter_type' => 'hm',
+                    'meter_type' => 'km',
                     'total_liters' => 65,
                     'actual_liters' => 65,
                     'actual_hm_km' => 120,

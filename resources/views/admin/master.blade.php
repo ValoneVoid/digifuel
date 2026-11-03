@@ -120,7 +120,7 @@
                             <td>{{ (float)($v->tank_capacity ?? 80) }} L</td>
                             <td>
                                 @if($v->activeFuelStandard)
-                                    <strong>{{ (float)$v->activeFuelStandard->standard_value }}</strong> {{ $v->activeFuelStandard->standard_type === 'liter_per_hour' ? 'L/Jam' : 'Km/L' }}
+                                    <strong>{{ (float)$v->activeFuelStandard->standard_value }}</strong> Km/L
                                 @else
                                     -
                                 @endif
@@ -638,8 +638,7 @@
                         Standar konsumsi BBM merupakan nilai acuan yang digunakan DigiFuel untuk mengevaluasi penggunaan BBM setiap unit. Nilai standar diperoleh dari ketentuan perusahaan dan dimasukkan oleh Admin secara manual. Standar cukup dimasukkan satu kali untuk setiap unit dan hanya perlu diperbarui apabila terdapat perubahan ketentuan perusahaan atau penambahan unit baru.
                     </p>
                     <div style="display: flex; gap: 16px; flex-wrap: wrap; font-size: 12px; color: #64748b; line-height: 1.4;">
-                        <span>• <strong>KM/Liter:</strong> Digunakan untuk kendaraan yang menggunakan Odometer (Light Vehicle & Bus).</span>
-                        <span>• <strong>Liter/Jam:</strong> Digunakan untuk alat berat yang menggunakan Hour Meter (HM).</span>
+                        <span>• <strong>KM/Liter (KM/L):</strong> Standar efisiensi jarak tempuh per liter untuk seluruh unit kendaraan & alat berat operasional.</span>
                         <span>• <strong>Komparasi:</strong> Sistem membandingkan konsumsi aktual dengan standar untuk mendeteksi potensi pemborosan BBM.</span>
                         <span>• <strong>Edit vs Tambah Baru:</strong> Gunakan <em>Edit</em> untuk memperbaiki salah ketik. Gunakan <em>Tambah Baru</em> jika perusahaan menetapkan standar baru agar histori periode lama tetap tersimpan utuh.</span>
                     </div>
@@ -674,7 +673,6 @@
                         @foreach(($allVehicles ?? $vehicles) as $v)
                             <option value="{{ $v->id }}"
                                 data-type="{{ $v->unit_type ?? $v->model }}"
-                                data-meter="{{ $v->meter_type }}"
                                 data-code="{{ $v->unit_code }}"
                                 data-active="{{ $v->is_active ? '1' : '0' }}">
                                 {{ $v->unit_code }} ({{ $v->unit_type ?? $v->model }}){{ !$v->is_active ? ' - [Nonaktif]' : '' }}
@@ -683,7 +681,7 @@
                     </select>
                     <!-- Indikator otomatis jenis unit & tipe meter -->
                     <div id="std_vehicle_info" style="font-size: 12px; color: #0284c7; margin-top: 5px; display: none;">
-                        Jenis Unit: <strong id="std_info_type">-</strong> | Tipe Meter: <strong id="std_info_meter">-</strong>
+                        Jenis Unit: <strong id="std_info_type">-</strong> | Meter: <strong>KM</strong>
                     </div>
                 </div>
 
@@ -711,21 +709,9 @@
                 </div>
             </div>
 
-            <!-- Pengaturan Toleransi Khusus Alat Berat (HM) - Ditampilkan otomatis jika relevan -->
-            <div id="std_tolerance_box" style="display: none; background: #f8fafc; border: 1px dashed #cbd5e1; border-radius: 8px; padding: 10px 14px; margin-bottom: 14px;">
-                <div style="display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 10px;">
-                    <div>
-                        <span style="font-size: 13px; font-weight: 600; color: #1e293b;">Toleransi Konsumsi Alat Berat (HM):</span>
-                        <span style="font-size: 12px; color: #64748b; margin-left: 6px;">Batas toleransi deviasi konsumsi maksimum untuk alat berat (default 5.0%).</span>
-                    </div>
-                    <div style="display: flex; align-items: center; gap: 6px;">
-                        <input type="number" step="0.1" min="0" max="100" name="tolerance_percentage" id="std_tolerance" class="digi-input" value="5.0" style="width: 80px; text-align: center;">
-                        <span style="font-size: 13px; font-weight: 600; color: #475569;">%</span>
-                    </div>
-                </div>
-            </div>
+            <input type="hidden" name="tolerance_percentage" id="std_tolerance" value="5.0">
 
-            <div style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 12px; margin-top: 4px;">
+            <div style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 12px; margin-top: 14px;">
                 <div style="flex: 1; min-width: 260px;">
                     <input type="text" name="notes" id="std_notes" class="digi-input" placeholder="Catatan opsional (misal: penyesuaian rasio operasional tambang 2026)">
                 </div>
@@ -765,7 +751,7 @@
                             <td style="text-align: right;">
                                 <span style="font-weight: 700; color: #0f172a; font-size: 13.5px;">{{ (float)$std->standard_value }}</span>
                                 <span style="font-size: 12px; font-weight: 600; color: #64748b; margin-left: 2px;">
-                                    {{ $std->standard_type === 'liter_per_hour' ? 'Liter/Jam' : 'KM/L' }}
+                                    KM/L
                                 </span>
                             </td>
                             <td>
@@ -1432,31 +1418,20 @@ function onVehicleSelectChange(selectElem) {
     }
 
     const unitType = selectedOpt.getAttribute('data-type') || 'Kendaraan Operasional';
-    const meterType = (selectedOpt.getAttribute('data-meter') || 'km').toLowerCase();
 
     const infoElem = document.getElementById('std_vehicle_info');
     if (infoElem) {
         document.getElementById('std_info_type').textContent = unitType;
-        document.getElementById('std_info_meter').textContent = meterType.toUpperCase();
         infoElem.style.display = 'block';
     }
 
     const unitBadge = document.getElementById('std_unit_badge');
     const stdTypeInput = document.getElementById('std_type');
-    const tolBox = document.getElementById('std_tolerance_box');
     const hint = document.getElementById('std_type_hint');
 
-    if (meterType === 'hm') {
-        if (stdTypeInput) stdTypeInput.value = 'liter_per_hour';
-        if (unitBadge) unitBadge.textContent = 'Liter/Jam';
-        if (hint) hint.textContent = 'Target konsumsi BBM alat berat per Jam Operasi (HM).';
-        if (tolBox) tolBox.style.display = 'block';
-    } else {
-        if (stdTypeInput) stdTypeInput.value = 'km_per_liter';
-        if (unitBadge) unitBadge.textContent = 'KM/L';
-        if (hint) hint.textContent = 'Target efisiensi bahan bakar (Kilometer per Liter).';
-        if (tolBox) tolBox.style.display = 'none';
-    }
+    if (stdTypeInput) stdTypeInput.value = 'km_per_liter';
+    if (unitBadge) unitBadge.textContent = 'KM/L';
+    if (hint) hint.textContent = 'Target efisiensi bahan bakar (Kilometer per Liter).';
 }
 
 function editStandard(std, startDate) {
