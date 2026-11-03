@@ -47,6 +47,11 @@ class FuelRequest extends Model
         return $this->belongsTo(Vendor::class, 'vendor_id');
     }
 
+    public function unitVendor()
+    {
+        return $this->belongsTo(UnitVendor::class, 'unit_vendor_id');
+    }
+
     public function spv()
     {
         return $this->belongsTo(User::class, 'spv_id');

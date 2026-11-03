@@ -12,6 +12,7 @@ use App\Models\Employee;
 use App\Models\Vehicle;
 use App\Models\Area;
 use App\Models\Vendor;
+use App\Models\UnitVendor;
 use App\Models\AreaApprover;
 use App\Models\FuelStandard;
 use App\Models\FuelPrice;
@@ -103,6 +104,30 @@ class DigiFuelSeeder extends Seeder
             }
 
             // =========================================================================
+            // 3b. MASTER VENDOR UNIT (Penyedia Unit Kendaraan / Rental / Internal)
+            // =========================================================================
+            $unitVendorsData = [
+                ['code' => 'UVND-001', 'name' => 'PT United Tractors Tbk (Internal UT)', 'contact_person' => 'Asset & Fleet Management UT', 'phone' => '0512-88001', 'email' => 'fleet@unitedtractors.com', 'address' => 'Site Satui, Tanah Bumbu, Kalimantan Selatan'],
+                ['code' => 'UVND-002', 'name' => 'PT Serasi Autoraya (TRAC)', 'contact_person' => 'Bpk. Wahyu TRAC', 'phone' => '0812-3344-5566', 'email' => 'satui.ops@trac.astra.co.id', 'address' => 'Jl. A. Yani KM 10, Banjarmasin'],
+                ['code' => 'UVND-003', 'name' => 'CV Bagong Transport', 'contact_person' => 'Bpk. Sugeng Bagong', 'phone' => '0811-7788-9900', 'email' => 'operasional@bagongtransport.com', 'address' => 'Pool Bus Satui Km 4, Tanah Bumbu'],
+                ['code' => 'UVND-004', 'name' => 'PT Mitra Pinasthika Mustika Rent', 'contact_person' => 'Bpk. Deni MPM', 'phone' => '0813-2211-4455', 'email' => 'fleet.kalimantan@mpm-rent.com', 'address' => 'Banjarbaru, Kalimantan Selatan'],
+            ];
+
+            foreach ($unitVendorsData as $uv) {
+                UnitVendor::updateOrCreate(
+                    ['name' => $uv['name']],
+                    [
+                        'code' => $uv['code'],
+                        'contact_person' => $uv['contact_person'],
+                        'phone' => $uv['phone'],
+                        'email' => $uv['email'],
+                        'address' => $uv['address'],
+                        'is_active' => true,
+                    ]
+                );
+            }
+
+            // =========================================================================
             // 4. MASTER EMPLOYEES (Local & DIGISIM Prepared)
             // =========================================================================
             $employeesData = [
@@ -162,7 +187,12 @@ class DigiFuelSeeder extends Seeder
                 ['unit_code' => 'unit_90123M', 'police_no' => 'DA 6543 UT', 'model' => 'Scania P460 Heavy Tipper', 'unit_type' => 'Dump Truck', 'meter_type' => 'km', 'std_type' => 'km_per_liter', 'std_val' => 4.0, 'cap' => 400],
             ];
 
+            $vendorUtInternal = $this->findUnitVendorByCode('UVND-001');
+            $vendorTrac = $this->findUnitVendorByCode('UVND-002');
+            $vendorBagong = $this->findUnitVendorByCode('UVND-003');
+
             foreach ($pptVehicles as $pv) {
+                $uvId = str_contains($pv['model'], 'Hilux') ? $vendorTrac->id : $vendorUtInternal->id;
                 Vehicle::updateOrCreate(
                     ['unit_code' => $pv['unit_code']],
                     [
@@ -171,6 +201,7 @@ class DigiFuelSeeder extends Seeder
                         'unit_type' => $pv['unit_type'],
                         'meter_type' => $pv['meter_type'],
                         'default_area_id' => $defaultArea->id,
+                        'unit_vendor_id' => $uvId,
                         'tank_capacity' => $pv['cap'],
                         'is_active' => true,
                     ]
@@ -196,6 +227,10 @@ class DigiFuelSeeder extends Seeder
             ];
 
             foreach ($excelLvUnits as $lv) {
+                $uvId = (stripos($lv['type'], 'BAGONG') !== false)
+                    ? $vendorBagong->id
+                    : ((stripos($lv['type'], 'HILUX') !== false || stripos($lv['type'], 'HAICE') !== false) ? $vendorTrac->id : $vendorUtInternal->id);
+
                 Vehicle::updateOrCreate(
                     ['unit_code' => $lv['code']],
                     [
@@ -204,6 +239,7 @@ class DigiFuelSeeder extends Seeder
                         'unit_type' => 'Light Vehicle',
                         'meter_type' => 'km',
                         'default_area_id' => $defaultArea->id,
+                        'unit_vendor_id' => $uvId,
                         'tank_capacity' => 80,
                         'is_active' => true,
                     ]
@@ -483,6 +519,7 @@ class DigiFuelSeeder extends Seeder
                     'planned_fuel_time' => '2025-05-11 23:00:00',
                     'unit_code' => $veh26376G->unit_code,
                     'vehicle_id' => $veh26376G->id,
+                    'unit_vendor_id' => $veh26376G->unit_vendor_id,
                     'police_no' => $veh26376G->police_no,
                     'unit_type' => $veh26376G->unit_type,
                     'company' => 'PT UNITED TRACTORS Tbk - SITE SATUI',
@@ -527,6 +564,7 @@ class DigiFuelSeeder extends Seeder
                     'planned_fuel_time' => '2025-05-12 16:30:00',
                     'unit_code' => $veh26376G->unit_code,
                     'vehicle_id' => $veh26376G->id,
+                    'unit_vendor_id' => $veh26376G->unit_vendor_id,
                     'police_no' => $veh26376G->police_no,
                     'unit_type' => $veh26376G->unit_type,
                     'company' => 'PT UNITED TRACTORS Tbk - SITE SATUI',
@@ -571,6 +609,7 @@ class DigiFuelSeeder extends Seeder
                     'planned_fuel_time' => '2025-03-11 15:00:00',
                     'unit_code' => $veh10284A->unit_code,
                     'vehicle_id' => $veh10284A->id,
+                    'unit_vendor_id' => $veh10284A->unit_vendor_id,
                     'police_no' => $veh10284A->police_no,
                     'unit_type' => $veh10284A->unit_type,
                     'company' => 'PT UNITED TRACTORS Tbk - SITE SATUI',
@@ -627,6 +666,7 @@ class DigiFuelSeeder extends Seeder
                     'planned_fuel_time' => '2025-03-12 10:00:00',
                     'unit_code' => $veh77812B->unit_code,
                     'vehicle_id' => $veh77812B->id,
+                    'unit_vendor_id' => $veh77812B->unit_vendor_id,
                     'police_no' => $veh77812B->police_no,
                     'unit_type' => $veh77812B->unit_type,
                     'company' => 'PT UNITED TRACTORS Tbk - SITE SATUI',
@@ -806,6 +846,18 @@ class DigiFuelSeeder extends Seeder
         $vendor = Vendor::where('code', $code)->first();
         if (!$vendor) {
             throw new RuntimeException("Data referensi Vendor dengan kode '{$code}' tidak ditemukan pada tabel vendors.");
+        }
+        return $vendor;
+    }
+
+    /**
+     * Find UnitVendor by unique code or fail with descriptive message.
+     */
+    protected function findUnitVendorByCode(string $code): UnitVendor
+    {
+        $vendor = UnitVendor::where('code', $code)->first();
+        if (!$vendor) {
+            throw new RuntimeException("Data referensi Unit Vendor dengan kode '{$code}' tidak ditemukan pada tabel unit_vendors.");
         }
         return $vendor;
     }

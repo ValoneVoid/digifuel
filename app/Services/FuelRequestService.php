@@ -131,6 +131,7 @@ class FuelRequestService
                 'planned_fuel_time' => $data['planned_fuel_time'] ?? $data['request_date'],
                 'unit_code' => $vehicle->unit_code,
                 'vehicle_id' => $vehicle->id,
+                'unit_vendor_id' => $vehicle->unit_vendor_id,
                 'police_no' => $vehicle->police_no,
                 'unit_type' => $vehicle->unit_type ?? $vehicle->model,
                 'hm_km' => (string)$data['hm_km'],

@@ -18,6 +18,11 @@ class Vehicle extends Model
         return $this->belongsTo(Area::class, 'default_area_id');
     }
 
+    public function unitVendor()
+    {
+        return $this->belongsTo(UnitVendor::class, 'unit_vendor_id');
+    }
+
     public function fuelStandards()
     {
         return $this->hasMany(FuelStandard::class);

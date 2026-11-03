@@ -11,6 +11,7 @@ use App\Models\FuelPrice;
 use App\Models\User;
 use App\Models\Vehicle;
 use App\Models\Vendor;
+use App\Models\UnitVendor;
 use Database\Seeders\DigiFuelSeeder;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\Hash;
@@ -735,5 +736,76 @@ class MasterDataCrudTest extends TestCase
         $currentPrice = FuelPrice::getCurrentPrice(now()->toDateString(), $vendor->id);
         $this->assertNotNull($currentPrice);
         $this->assertEquals(28500, (float)$currentPrice->price_per_liter);
+    }
+
+    /**
+     * Test UnitVendor memiliki relasi 1-M dengan Vehicle,
+     * dan Admin dapat mengelola Vendor Unit serta menugaskannya pada Data Unit.
+     */
+    public function test_unit_vendor_has_many_vehicles_and_admin_can_manage_unit_vendors(): void
+    {
+        // 1. Admin membuat Unit Vendor baru
+        $response = $this->actingAs($this->admin)
+            ->post(route('admin.master.unit-vendor'), [
+                'code' => 'UVND-TEST',
+                'name' => 'PT Rental Perkasa Mandiri',
+                'contact_person' => 'Bpk. Perkasa',
+                'phone' => '081299887766',
+                'address' => 'Satui Workshop KM 5',
+            ]);
+
+        $response->assertRedirect(route('admin.master', ['tab' => 'unit_vendors']));
+
+        $unitVendor = UnitVendor::where('code', 'UVND-TEST')->firstOrFail();
+        $this->assertEquals('PT Rental Perkasa Mandiri', $unitVendor->name);
+
+        // 2. Admin membuat Unit baru yang terhubung ke Unit Vendor (1-to-many)
+        $vehResponse = $this->actingAs($this->admin)
+            ->post(route('admin.master.vehicle'), [
+                'unit_code' => 'LV-PERKASA-01',
+                'police_no' => 'DA 1234 XY',
+                'model' => 'Mitsubishi Triton 4x4',
+                'unit_vendor_id' => $unitVendor->id,
+                'tank_capacity' => 75,
+            ]);
+
+        $vehResponse->assertRedirect(route('admin.master', ['tab' => 'units']));
+
+        $vehicle = Vehicle::where('unit_code', 'LV-PERKASA-01')->firstOrFail();
+        $this->assertEquals($unitVendor->id, $vehicle->unit_vendor_id);
+        $this->assertEquals('km', $vehicle->meter_type);
+
+        // 3. Verifikasi relasi 1-M
+        $this->assertTrue($unitVendor->vehicles->contains($vehicle));
+        $this->assertEquals('PT Rental Perkasa Mandiri', $vehicle->unitVendor->name);
+
+        // 4. Admin dapat fetch edit Unit Vendor
+        $editResp = $this->actingAs($this->admin)
+            ->getJson(route('admin.master.unit-vendors.edit', $unitVendor->id));
+        $editResp->assertStatus(200)
+            ->assertJsonPath('data.name', 'PT Rental Perkasa Mandiri');
+
+        // 5. Admin dapat update Unit Vendor
+        $updateResp = $this->actingAs($this->admin)
+            ->put(route('admin.master.unit-vendors.update', $unitVendor->id), [
+                'name' => 'PT Rental Perkasa Mandiri Tbk',
+                'contact_person' => 'Bpk. Perkasa Utama',
+                'phone' => '081299880000',
+            ]);
+        $updateResp->assertRedirect(route('admin.master', ['tab' => 'unit_vendors']));
+        $this->assertEquals('PT Rental Perkasa Mandiri Tbk', $unitVendor->fresh()->name);
+
+        // 6. Admin dapat toggle status Unit Vendor
+        $toggleResp = $this->actingAs($this->admin)
+            ->patch(route('admin.master.unit-vendors.toggle', $unitVendor->id));
+        $toggleResp->assertRedirect();
+        $this->assertFalse($unitVendor->fresh()->is_active);
+
+        // 7. View Master Data memuat Unit Vendor tab dan Vendor Unit pada tabel unit
+        $pageResp = $this->actingAs($this->admin)
+            ->get(route('admin.master', ['tab' => 'units']));
+        $pageResp->assertStatus(200)
+            ->assertSee('Vendor Unit (Penyedia Unit)')
+            ->assertSee('PT Rental Perkasa Mandiri Tbk');
     }
 }

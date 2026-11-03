@@ -9,6 +9,7 @@ use App\Models\Employee;
 use App\Models\Vehicle;
 use App\Models\Area;
 use App\Models\Vendor;
+use App\Models\UnitVendor;
 use App\Models\User;
 use App\Models\Role;
 use App\Models\AreaApprover;
@@ -77,12 +78,14 @@ class AdminMasterController extends Controller
         $allVehicles = Vehicle::where('is_active', true)->orderBy('unit_code')->get();
         $allAreas = Area::where('is_active', true)->orderBy('name')->get();
         $allVendors = Vendor::where('is_active', true)->orderBy('name')->get();
+        $allUnitVendors = UnitVendor::where('is_active', true)->orderBy('name')->get();
         $allUsers = User::where('is_active', true)->orderBy('name')->get();
         $roles = Role::all();
 
         $employees = Employee::orderBy('name')->paginate($perPage)->withQueryString();
-        $vehicles = Vehicle::with(['defaultArea', 'activeFuelStandard'])->orderBy('unit_code')->paginate($perPage)->withQueryString();
+        $vehicles = Vehicle::with(['defaultArea', 'activeFuelStandard', 'unitVendor'])->orderBy('unit_code')->paginate($perPage)->withQueryString();
         $areas = Area::orderBy('name')->paginate($perPage)->withQueryString();
+        $unitVendors = UnitVendor::withCount('vehicles')->orderBy('name')->paginate($perPage)->withQueryString();
         $vendors = Vendor::orderBy('name')->paginate($perPage)->withQueryString();
         $users = User::with(['employee', 'vendor'])->orderBy('name')->paginate($perPage)->withQueryString();
         $areaApprovers = AreaApprover::with(['area', 'user'])->orderBy('area_id')->paginate($perPage)->withQueryString();
@@ -100,6 +103,7 @@ class AdminMasterController extends Controller
             'employees',
             'vehicles',
             'areas',
+            'unitVendors',
             'vendors',
             'users',
             'roles',
@@ -111,6 +115,7 @@ class AdminMasterController extends Controller
             'allVehicles',
             'allAreas',
             'allVendors',
+            'allUnitVendors',
             'allUsers'
         ));
     }
@@ -238,7 +243,7 @@ class AdminMasterController extends Controller
 
     public function editVehicle($id)
     {
-        $vehicle = Vehicle::with(['defaultArea', 'activeFuelStandard'])->findOrFail($id);
+        $vehicle = Vehicle::with(['defaultArea', 'activeFuelStandard', 'unitVendor'])->findOrFail($id);
 
         return response()->json([
             'success' => true,
@@ -259,7 +264,8 @@ class AdminMasterController extends Controller
             'police_no' => ['required', 'string', 'max:50'],
             'model' => ['nullable', 'string', 'max:120'],
             'unit_type' => ['nullable', 'string', 'max:80'],
-            'meter_type' => ['required', 'in:km,hm'],
+            'unit_vendor_id' => ['nullable', 'exists:unit_vendors,id'],
+            'meter_type' => ['nullable', 'in:km,hm'],
             'tank_capacity' => ['nullable', 'numeric', 'min:1'],
             'default_area_id' => ['nullable', 'exists:areas,id'],
             'is_active' => ['nullable', 'boolean'],
@@ -270,7 +276,8 @@ class AdminMasterController extends Controller
             'police_no' => $validated['police_no'],
             'model' => $validated['model'] ?? ($validated['unit_type'] ?? 'Light Vehicle'),
             'unit_type' => $validated['unit_type'] ?? ($validated['model'] ?? 'Light Vehicle'),
-            'meter_type' => $validated['meter_type'],
+            'unit_vendor_id' => $validated['unit_vendor_id'] ?? null,
+            'meter_type' => $validated['meter_type'] ?? 'km',
             'tank_capacity' => $validated['tank_capacity'] ?? 80,
             'default_area_id' => $validated['default_area_id'] ?? null,
             'is_active' => $request->has('is_active') ? $request->boolean('is_active') : true,
@@ -291,7 +298,8 @@ class AdminMasterController extends Controller
             'police_no' => ['required', 'string', 'max:50'],
             'model' => ['nullable', 'string', 'max:120'],
             'unit_type' => ['nullable', 'string', 'max:80'],
-            'meter_type' => ['required', 'in:km,hm'],
+            'unit_vendor_id' => ['nullable', 'exists:unit_vendors,id'],
+            'meter_type' => ['nullable', 'in:km,hm'],
             'tank_capacity' => ['nullable', 'numeric', 'min:1'],
             'default_area_id' => ['nullable', 'exists:areas,id'],
             'is_active' => ['nullable', 'boolean'],
@@ -302,7 +310,8 @@ class AdminMasterController extends Controller
             'police_no' => $validated['police_no'],
             'model' => $validated['model'] ?? ($validated['unit_type'] ?? $veh->model),
             'unit_type' => $validated['unit_type'] ?? ($validated['model'] ?? $veh->unit_type ?? 'Light Vehicle'),
-            'meter_type' => $validated['meter_type'],
+            'unit_vendor_id' => array_key_exists('unit_vendor_id', $validated) ? $validated['unit_vendor_id'] : $veh->unit_vendor_id,
+            'meter_type' => $validated['meter_type'] ?? $veh->meter_type ?? 'km',
             'tank_capacity' => $validated['tank_capacity'] ?? $veh->tank_capacity ?? 80,
             'default_area_id' => array_key_exists('default_area_id', $validated) ? $validated['default_area_id'] : $veh->default_area_id,
             'is_active' => $request->has('is_active') ? $request->boolean('is_active') : $veh->is_active,
@@ -562,6 +571,128 @@ class AdminMasterController extends Controller
         do {
             $code = 'VND-' . rand(100, 999);
         } while (Vendor::where('code', $code)->when($ignoreId, fn($q) => $q->where('id', '!=', $ignoreId))->exists());
+
+        return $code;
+    }
+
+    // =========================================================================
+    // 4b. UNIT VENDOR (PENYEDIA UNIT KENDARAAN) CRUD
+    // =========================================================================
+
+    public function editUnitVendor($id)
+    {
+        $vendor = UnitVendor::findOrFail($id);
+
+        return response()->json([
+            'success' => true,
+            'data' => $vendor,
+        ]);
+    }
+
+    public function storeUnitVendor(Request $request)
+    {
+        $id = $request->input('id');
+        if ($id !== null && $id !== '') {
+            return $this->updateUnitVendor($request, $id);
+        }
+
+        $user = $this->getActiveUser();
+        $validated = $request->validate([
+            'code' => ['nullable', 'string', 'max:30', Rule::unique('unit_vendors', 'code')],
+            'name' => ['required', 'string', 'max:150', Rule::unique('unit_vendors', 'name')],
+            'contact_person' => ['nullable', 'string', 'max:100'],
+            'phone' => ['nullable', 'string', 'max:40'],
+            'email' => ['nullable', 'email', 'max:100'],
+            'address' => ['nullable', 'string', 'max:255'],
+            'is_active' => ['nullable', 'boolean'],
+        ]);
+
+        $code = !empty($validated['code'])
+            ? $validated['code']
+            : $this->generateUniqueUnitVendorCode();
+
+        $vendor = UnitVendor::create([
+            'name' => $validated['name'],
+            'code' => $code,
+            'contact_person' => $validated['contact_person'] ?? null,
+            'phone' => $validated['phone'] ?? null,
+            'email' => $validated['email'] ?? null,
+            'address' => $validated['address'] ?? null,
+            'is_active' => $request->has('is_active') ? $request->boolean('is_active') : true,
+        ]);
+
+        FuelRequestHistory::record(null, $user->id, 'master_updated', null, 'active', "Menambahkan data Vendor Unit: {$vendor->name} ({$vendor->code}).");
+
+        return $this->respondSuccess($request, 'unit_vendors', "Data Vendor Unit {$vendor->name} berhasil disimpan.", $vendor);
+    }
+
+    public function updateUnitVendor(Request $request, $id)
+    {
+        $user = $this->getActiveUser();
+        $vendor = UnitVendor::findOrFail($id);
+
+        $validated = $request->validate([
+            'code' => ['nullable', 'string', 'max:30', Rule::unique('unit_vendors', 'code')->ignore($vendor->id)],
+            'name' => ['required', 'string', 'max:150', Rule::unique('unit_vendors', 'name')->ignore($vendor->id)],
+            'contact_person' => ['nullable', 'string', 'max:100'],
+            'phone' => ['nullable', 'string', 'max:40'],
+            'email' => ['nullable', 'email', 'max:100'],
+            'address' => ['nullable', 'string', 'max:255'],
+            'is_active' => ['nullable', 'boolean'],
+        ]);
+
+        $payload = [
+            'name' => $validated['name'],
+            'contact_person' => $validated['contact_person'] ?? null,
+            'phone' => $validated['phone'] ?? null,
+            'email' => $validated['email'] ?? null,
+            'address' => $validated['address'] ?? null,
+            'is_active' => $request->has('is_active') ? $request->boolean('is_active') : $vendor->is_active,
+        ];
+        if (!empty($validated['code'])) {
+            $payload['code'] = $validated['code'];
+        }
+
+        $vendor->update($payload);
+
+        FuelRequestHistory::record(null, $user->id, 'master_updated', null, $vendor->is_active ? 'active' : 'inactive', "Memperbarui data Vendor Unit ID #{$vendor->id}: {$vendor->name} ({$vendor->code}).");
+
+        return $this->respondSuccess($request, 'unit_vendors', "Data Vendor Unit {$vendor->name} berhasil diperbarui.", $vendor->fresh());
+    }
+
+    public function toggleUnitVendor(Request $request, $id)
+    {
+        return $this->toggleEntityById($request, UnitVendor::class, $id, 'unit_vendor', 'unit_vendors');
+    }
+
+    public function destroyUnitVendor(Request $request, $id)
+    {
+        $admin = $this->getActiveUser();
+        $vendor = UnitVendor::findOrFail($id);
+        $twoStepVerified = $this->verifyTwoStepDeleteConfirmation($request);
+
+        if (($vendor->vehicles()->exists() || $vendor->fuelRequests()->exists()) && !$twoStepVerified) {
+            $msg = "Data Vendor Unit {$vendor->name} terhubung dengan data Unit Kendaraan atau riwayat transaksi Fuel Request dan tidak dapat dihapus tanpa Verifikasi 2 Langkah.";
+            if ($request->expectsJson() || $request->ajax()) {
+                return response()->json(['success' => false, 'message' => $msg], 422);
+            }
+            return redirect()->route('admin.master', ['tab' => 'unit_vendors'])->with('error', $msg);
+        }
+
+        $vendorName = $vendor->name;
+        $vendor->delete();
+
+        $verifyNote = $twoStepVerified ? ' [Terverifikasi 2 Langkah]' : '';
+        FuelRequestHistory::record(null, $admin->id, 'master_deleted', 'active', 'deleted', "Menghapus data Vendor Unit ID #{$id}: {$vendorName}{$verifyNote}.");
+
+        return $this->respondSuccess($request, 'unit_vendors', "Data Vendor Unit {$vendorName} berhasil dihapus.");
+    }
+
+    protected function generateUniqueUnitVendorCode(?int $ignoreId = null): string
+    {
+        do {
+            $code = 'UVND-' . rand(100, 999);
+        } while (UnitVendor::where('code', $code)->when($ignoreId, fn($q) => $q->where('id', '!=', $ignoreId))->exists());
 
         return $code;
     }
@@ -997,7 +1128,7 @@ class AdminMasterController extends Controller
     {
         $admin = $this->getActiveUser();
         $validated = $request->validate([
-            'entity' => 'required|in:unit,employee,area,vendor,user,approver,standard,price,background',
+            'entity' => 'required|in:unit,employee,area,vendor,unit_vendor,user,approver,standard,price,background',
             'id' => 'required|integer',
             'tab' => 'nullable|string',
         ]);
@@ -1024,6 +1155,7 @@ class AdminMasterController extends Controller
             'unit' => [Vehicle::class, 'units'],
             'employee' => [Employee::class, 'employees'],
             'area' => [Area::class, 'areas'],
+            'unit_vendor' => [UnitVendor::class, 'unit_vendors'],
             'vendor' => [Vendor::class, 'vendors'],
             'user' => [User::class, 'users'],
             'approver' => [AreaApprover::class, 'approvers'],

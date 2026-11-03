@@ -18,6 +18,7 @@
         $getCount = fn($col) => method_exists($col, 'total') ? $col->total() : (is_countable($col) ? count($col) : 0);
         $tabs = [
             'units' => 'Data Unit (' . $getCount($vehicles) . ')',
+            'unit_vendors' => 'Data Vendor Unit (' . $getCount($unitVendors) . ')',
             'employees' => 'Data Employee (' . $getCount($employees) . ')',
             'areas' => 'Data Area (' . $getCount($areas) . ')',
             'vendors' => 'Data Vendor BBM (' . $getCount($vendors) . ')',
@@ -66,11 +67,14 @@
             </div>
             <div class="digi-form-grid-3" style="margin-bottom: 0; align-items: flex-end;">
                 <div class="digi-form-group">
-                    <label class="digi-form-label">Tipe Meter (KM / HM)</label>
-                    <select name="meter_type" id="unit_meter_type" class="digi-select">
-                        <option value="km">KM (Light Vehicle / Bus / Truck)</option>
-                        <option value="hm">HM (Heavy Equipment / Alat Berat)</option>
+                    <label class="digi-form-label">Vendor Unit (Penyedia Unit) <span class="digi-required">*</span></label>
+                    <select name="unit_vendor_id" id="unit_vendor_id" class="digi-select" required>
+                        <option value="">-- Pilih Vendor Unit --</option>
+                        @foreach($allUnitVendors as $uv)
+                            <option value="{{ $uv->id }}">{{ $uv->name }} ({{ $uv->code ?? 'Vendor' }})</option>
+                        @endforeach
                     </select>
+                    <input type="hidden" name="meter_type" id="unit_meter_type" value="km">
                 </div>
                 <div class="digi-form-group">
                     <label class="digi-form-label">Kapasitas Tangki (Liter)</label>
@@ -92,7 +96,7 @@
                         <th>Unit Code</th>
                         <th>Nomor Polisi</th>
                         <th>Tipe / Model Unit</th>
-                        <th>Meter</th>
+                        <th>Vendor Unit</th>
                         <th>Kapasitas Tangki</th>
                         <th>Standar Aktif</th>
                         <th>Status</th>
@@ -106,7 +110,13 @@
                             <td style="font-weight: 700; color: #0284c7;">{{ $v->unit_code }}</td>
                             <td>{{ $v->police_no }}</td>
                             <td>{{ $v->model ?? $v->unit_type }}</td>
-                            <td>{{ strtoupper($v->meter_type) }}</td>
+                            <td>
+                                @if($v->unitVendor)
+                                    <span class="digi-badge digi-badge-blue" title="{{ $v->unitVendor->name }}">{{ $v->unitVendor->name }}</span>
+                                @else
+                                    <span class="digi-badge digi-badge-gray">Internal UT</span>
+                                @endif
+                            </td>
                             <td>{{ (float)($v->tank_capacity ?? 80) }} L</td>
                             <td>
                                 @if($v->activeFuelStandard)
@@ -143,6 +153,109 @@
         </div>
 
         @include('partials.pagination_bottom', ['paginator' => $vehicles])
+    @endif
+
+    <!-- ============================================================ -->
+    <!-- TAB: UNIT VENDORS (PENYEDIA UNIT KENDARAAN)                  -->
+    <!-- ============================================================ -->
+    @if($tab === 'unit_vendors')
+        <form id="unitVendorForm" action="{{ route('admin.master.unit-vendor') }}" method="POST" class="digi-form-box">
+            @csrf
+            <input type="hidden" name="id" id="unit_vendor_id_input" value="">
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 14px;">
+                <h3 class="digi-section-title" id="unitVendorFormTitle" style="margin: 0;">Tambah Data Vendor Unit (Penyedia Unit)</h3>
+                <button type="button" id="unitVendorCancelBtn" class="btn-digi btn-digi-gray" style="display: none; padding: 5px 14px; font-size: 12px;" onclick="resetUnitVendorForm()">
+                    Batal Edit
+                </button>
+            </div>
+            <div class="digi-form-grid-3">
+                <div class="digi-form-group">
+                    <label class="digi-form-label">Kode Vendor Unit</label>
+                    <input type="text" name="code" id="uv_code" class="digi-input" placeholder="Contoh: UVND-001 (Kosongkan utk auto)">
+                </div>
+                <div class="digi-form-group">
+                    <label class="digi-form-label">Nama Vendor Unit <span class="digi-required">*</span></label>
+                    <input type="text" name="name" id="uv_name" class="digi-input" placeholder="Contoh: PT Serasi Autoraya (TRAC)" required>
+                </div>
+                <div class="digi-form-group">
+                    <label class="digi-form-label">Kontak PIC / Petugas</label>
+                    <input type="text" name="contact_person" id="uv_contact" class="digi-input" placeholder="Contoh: Bpk. Wahyu TRAC">
+                </div>
+            </div>
+            <div class="digi-form-grid-3" style="margin-bottom: 0; align-items: flex-end;">
+                <div class="digi-form-group">
+                    <label class="digi-form-label">No. Telepon / WhatsApp PIC</label>
+                    <input type="text" name="phone" id="uv_phone" class="digi-input" placeholder="0812xxxxxxx">
+                </div>
+                <div class="digi-form-group">
+                    <label class="digi-form-label">Alamat / Pool Unit</label>
+                    <input type="text" name="address" id="uv_address" class="digi-input" placeholder="Contoh: Site Satui Km 4">
+                </div>
+                <div>
+                    <button type="submit" id="unitVendorSubmitBtn" class="btn-digi btn-digi-blue">Simpan Vendor Unit</button>
+                </div>
+            </div>
+        </form>
+
+        @include('partials.pagination_top', ['paginator' => $unitVendors])
+
+        <div style="overflow-x: auto;">
+            <table class="digi-table">
+                <thead>
+                    <tr>
+                        <th style="width: 50px;">No</th>
+                        <th>Kode Vendor</th>
+                        <th>Nama Vendor Unit</th>
+                        <th>Kontak PIC</th>
+                        <th>Telepon</th>
+                        <th>Total Unit Terdaftar</th>
+                        <th>Status</th>
+                        <th>Aksi</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @forelse($unitVendors as $idx => $uv)
+                        <tr>
+                            <td>{{ $unitVendors->firstItem() ? ($unitVendors->firstItem() + $idx) : ($idx + 1) }}</td>
+                            <td style="font-weight:700; color: #0284c7;">{{ $uv->code ?? 'UVND-0' . $uv->id }}</td>
+                            <td style="font-weight:600;">{{ $uv->name }}</td>
+                            <td>{{ $uv->contact_person ?? '-' }}</td>
+                            <td>{{ $uv->phone ?? '-' }}</td>
+                            <td>
+                                <span class="digi-badge digi-badge-blue">{{ $uv->vehicles_count ?? $uv->vehicles()->count() }} Unit</span>
+                            </td>
+                            <td>
+                                <span class="digi-badge {{ $uv->is_active ? 'digi-badge-green' : 'digi-badge-red' }}">
+                                    {{ $uv->is_active ? 'Aktif' : 'Nonaktif' }}
+                                </span>
+                            </td>
+                            <td>
+                                <div style="display: flex; gap: 6px; align-items: center;">
+                                    <button type="button" class="btn-digi btn-digi-yellow" style="padding: 5px 12px; font-size: 12px;"
+                                        onclick='editUnitVendor(@json($uv))'>
+                                        Edit
+                                    </button>
+                                    <button type="button" class="btn-digi {{ $uv->is_active ? 'btn-digi-red' : 'btn-digi-green' }}" style="padding: 5px 12px; font-size: 12px;"
+                                        onclick="openToggleModal('unit_vendor', {{ $uv->id }}, 'unit_vendors', '{{ addslashes($uv->name) }}', {{ $uv->is_active ? 'true' : 'false' }})">
+                                        {{ $uv->is_active ? 'Nonaktifkan' : 'Aktifkan' }}
+                                    </button>
+                                    <button type="button" class="btn-digi btn-digi-gray" style="padding: 5px 12px; font-size: 12px; background: #fee2e2; color: #b91c1c; border: 1px solid #fecaca;"
+                                        onclick="openDeleteModal('{{ route('admin.master.unit-vendors.destroy', $uv->id) }}', 'Data Vendor Unit', '{{ addslashes(($uv->code ? $uv->code . ' - ' : '') . $uv->name) }}')">
+                                        Hapus
+                                    </button>
+                                </div>
+                            </td>
+                        </tr>
+                    @empty
+                        <tr>
+                            <td colspan="8" style="text-align: center; color: #94a3b8; padding: 24px;">Belum ada data Vendor Unit. Silakan tambahkan pada formulir di atas.</td>
+                        </tr>
+                    @endforelse
+                </tbody>
+            </table>
+        </div>
+
+        @include('partials.pagination_bottom', ['paginator' => $unitVendors])
     @endif
 
     <!-- ============================================================ -->
@@ -1182,7 +1295,12 @@ function editUnit(v) {
     document.getElementById('unit_code').value = v.unit_code || '';
     document.getElementById('unit_police_no').value = v.police_no || '';
     document.getElementById('unit_model').value = v.model || v.unit_type || '';
-    document.getElementById('unit_meter_type').value = v.meter_type || 'km';
+    if (document.getElementById('unit_vendor_id')) {
+        document.getElementById('unit_vendor_id').value = v.unit_vendor_id || '';
+    }
+    if (document.getElementById('unit_meter_type')) {
+        document.getElementById('unit_meter_type').value = v.meter_type || 'km';
+    }
     document.getElementById('unit_tank_capacity').value = v.tank_capacity || 80;
     document.getElementById('unitFormTitle').textContent = 'Edit Data Unit: ' + v.unit_code;
     document.getElementById('unitSubmitBtn').textContent = 'Perbarui Unit';
@@ -1192,9 +1310,36 @@ function editUnit(v) {
 function resetUnitForm() {
     document.getElementById('unitForm').reset();
     document.getElementById('unit_id').value = '';
+    if (document.getElementById('unit_vendor_id')) {
+        document.getElementById('unit_vendor_id').value = '';
+    }
+    if (document.getElementById('unit_meter_type')) {
+        document.getElementById('unit_meter_type').value = 'km';
+    }
     document.getElementById('unitFormTitle').textContent = 'Tambah Data Unit Kendaraan & Alat Berat';
     document.getElementById('unitSubmitBtn').textContent = 'Simpan Unit';
     document.getElementById('unitCancelBtn').style.display = 'none';
+}
+
+// 1b. Unit Vendor Form Auto-Fill & Reset
+function editUnitVendor(uv) {
+    document.getElementById('unit_vendor_id_input').value = uv.id;
+    document.getElementById('uv_code').value = uv.code || '';
+    document.getElementById('uv_name').value = uv.name || '';
+    document.getElementById('uv_contact').value = uv.contact_person || '';
+    document.getElementById('uv_phone').value = uv.phone || '';
+    document.getElementById('uv_address').value = uv.address || '';
+    document.getElementById('unitVendorFormTitle').textContent = 'Edit Vendor Unit: ' + uv.name;
+    document.getElementById('unitVendorSubmitBtn').textContent = 'Perbarui Vendor Unit';
+    document.getElementById('unitVendorCancelBtn').style.display = 'inline-flex';
+    document.getElementById('unitVendorForm').scrollIntoView({ behavior: 'smooth', block: 'center' });
+}
+function resetUnitVendorForm() {
+    document.getElementById('unitVendorForm').reset();
+    document.getElementById('unit_vendor_id_input').value = '';
+    document.getElementById('unitVendorFormTitle').textContent = 'Tambah Data Vendor Unit (Penyedia Unit)';
+    document.getElementById('unitVendorSubmitBtn').textContent = 'Simpan Vendor Unit';
+    document.getElementById('unitVendorCancelBtn').style.display = 'none';
 }
 
 // 2. Employee Form Auto-Fill & Reset

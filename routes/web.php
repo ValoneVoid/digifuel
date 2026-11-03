@@ -93,6 +93,7 @@ Route::middleware(['auth'])->group(function () {
         Route::post('/admin/master/employee', [AdminMasterController::class, 'storeEmployee'])->name('admin.master.employee');
         Route::post('/admin/master/vehicle', [AdminMasterController::class, 'storeVehicle'])->name('admin.master.vehicle');
         Route::post('/admin/master/area', [AdminMasterController::class, 'storeArea'])->name('admin.master.area');
+        Route::post('/admin/master/unit-vendor', [AdminMasterController::class, 'storeUnitVendor'])->name('admin.master.unit-vendor');
         Route::post('/admin/master/vendor', [AdminMasterController::class, 'storeVendor'])->name('admin.master.vendor');
         Route::post('/admin/master/user', [AdminMasterController::class, 'storeUser'])->name('admin.master.user');
         Route::post('/admin/master/area-approver', [AdminMasterController::class, 'storeAreaApprover'])->name('admin.master.approver');
@@ -126,11 +127,17 @@ Route::middleware(['auth'])->group(function () {
         Route::match(['patch', 'post'], '/admin/master/areas/{id}/toggle-active', [AdminMasterController::class, 'toggleArea'])->name('admin.master.areas.toggle');
         Route::delete('/admin/master/areas/{id}', [AdminMasterController::class, 'destroyArea'])->name('admin.master.areas.destroy');
 
-        // 4. Vendor ID-based CRUD Routes
+        // 4. Vendor BBM ID-based CRUD Routes
         Route::get('/admin/master/vendors/{id}/edit', [AdminMasterController::class, 'editVendor'])->name('admin.master.vendors.edit');
         Route::match(['put', 'patch', 'post'], '/admin/master/vendors/{id}', [AdminMasterController::class, 'updateVendor'])->name('admin.master.vendors.update');
         Route::match(['patch', 'post'], '/admin/master/vendors/{id}/toggle-active', [AdminMasterController::class, 'toggleVendor'])->name('admin.master.vendors.toggle');
         Route::delete('/admin/master/vendors/{id}', [AdminMasterController::class, 'destroyVendor'])->name('admin.master.vendors.destroy');
+
+        // 4b. Vendor Unit ID-based CRUD Routes
+        Route::get('/admin/master/unit-vendors/{id}/edit', [AdminMasterController::class, 'editUnitVendor'])->name('admin.master.unit-vendors.edit');
+        Route::match(['put', 'patch', 'post'], '/admin/master/unit-vendors/{id}', [AdminMasterController::class, 'updateUnitVendor'])->name('admin.master.unit-vendors.update');
+        Route::match(['patch', 'post'], '/admin/master/unit-vendors/{id}/toggle-active', [AdminMasterController::class, 'toggleUnitVendor'])->name('admin.master.unit-vendors.toggle');
+        Route::delete('/admin/master/unit-vendors/{id}', [AdminMasterController::class, 'destroyUnitVendor'])->name('admin.master.unit-vendors.destroy');
 
         // 5. User ID-based CRUD Routes
         Route::get('/admin/master/users/{id}/edit', [AdminMasterController::class, 'editUser'])->name('admin.master.users.edit');
