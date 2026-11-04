@@ -8,6 +8,8 @@ use App\Models\UserNotification;
 use App\Models\FuelRequestHistory;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Hash;
+use Illuminate\Support\Facades\RateLimiter;
+use Illuminate\Support\Str;
 
 class AuthController extends Controller
 {
@@ -31,12 +33,22 @@ class AuthController extends Controller
         ]);
 
         $loginInput = trim($request->input('login'));
+        $throttleKey = Str::transliterate(Str::lower($loginInput).'|'.$request->ip());
+
+        if (RateLimiter::tooManyAttempts($throttleKey, 5)) {
+            $seconds = RateLimiter::availableIn($throttleKey);
+            return back()
+                ->withInput($request->only('login'))
+                ->withErrors(['login' => "Terlalu banyak percobaan login yang gagal. Silakan coba lagi dalam {$seconds} detik."]);
+        }
+
         $user = User::where('username', $loginInput)
             ->orWhere('email', $loginInput)
             ->orWhere('nrp', $loginInput)
             ->first();
 
         if (!$user || !Hash::check($request->input('password'), $user->password)) {
+            RateLimiter::hit($throttleKey, 60);
             return back()
                 ->withInput($request->only('login'))
                 ->withErrors(['login' => 'Username/Email atau Password yang Anda masukkan tidak sesuai.']);
@@ -47,6 +59,8 @@ class AuthController extends Controller
                 ->withInput($request->only('login'))
                 ->withErrors(['login' => 'Akun Anda sedang dinonaktifkan oleh Administrator.']);
         }
+
+        RateLimiter::clear($throttleKey);
 
         Auth::login($user, $request->boolean('remember'));
         $request->session()->regenerate();

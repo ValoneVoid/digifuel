@@ -351,6 +351,24 @@ class DigiFuelWorkflowTest extends TestCase
         $this->assertGuest();
     }
 
+    public function test_login_rate_limiting_blocks_brute_force_attempts(): void
+    {
+        for ($i = 0; $i < 5; $i++) {
+            $this->post('/login', [
+                'login' => 'bruteforce_target',
+                'password' => 'wrong_password',
+            ])->assertSessionHasErrors('login');
+        }
+
+        // 6th attempt should be blocked by rate limiter
+        $response = $this->post('/login', [
+            'login' => 'bruteforce_target',
+            'password' => 'wrong_password',
+        ]);
+        $response->assertSessionHasErrors(['login']);
+        $this->assertTrue(str_contains(session('errors')->first('login'), 'Terlalu banyak percobaan login'));
+    }
+
     /**
      * Test: Supervisor dapat memeriksa dan mengubah total liter permintaan BBM driver
      */
