@@ -1,66 +1,226 @@
-<p align="center"><a href="https://laravel.com" target="_blank"><img src="https://raw.githubusercontent.com/laravel/art/master/logo-lockup/5%20SVG/2%20CMYK/1%20Full%20Color/laravel-logolockup-cmyk-red.svg" width="400" alt="Laravel Logo"></a></p>
+# DigiFuel — Digital Fuel Management & Evaluation System
+### PT United Tractors Tbk — Site Satui
 
-<p align="center">
-<a href="https://github.com/laravel/framework/actions"><img src="https://github.com/laravel/framework/workflows/tests/badge.svg" alt="Build Status"></a>
-<a href="https://packagist.org/packages/laravel/framework"><img src="https://img.shields.io/packagist/dt/laravel/framework" alt="Total Downloads"></a>
-<a href="https://packagist.org/packages/laravel/framework"><img src="https://img.shields.io/packagist/v/laravel/framework" alt="Latest Stable Version"></a>
-<a href="https://packagist.org/packages/laravel/framework"><img src="https://img.shields.io/packagist/l/laravel/framework" alt="License"></a>
-</p>
+[![Laravel](https://img.shields.io/badge/Laravel-11.x-FF2D20?style=for-the-badge&logo=laravel&logoColor=white)](https://laravel.com)
+[![PHP](https://img.shields.io/badge/PHP-8.2%2B-777BB4?style=for-the-badge&logo=php&logoColor=white)](https://php.net)
+[![MySQL](https://img.shields.io/badge/MySQL-8.0%2B-4479A1?style=for-the-badge&logo=mysql&logoColor=white)](https://mysql.com)
+[![Tests](https://img.shields.io/badge/Tests-59%20Passed%20(614%20Assertions)-success?style=for-the-badge&logo=checkmarx&logoColor=white)]()
+[![Security](https://img.shields.io/badge/Security-Hardened%20(OWASP%20Ready)-blue?style=for-the-badge&logo=shield&logoColor=white)]()
 
-## About Laravel
+**DigiFuel** adalah sistem informasi berbasis web terintegrasi yang dirancang khusus untuk mengelola, menyetujui, mencatat realisasi, serta mengevaluasi konsumsi Bahan Bakar Minyak (BBM) armada operasional dan unit kendaraan di lingkungan **PT United Tractors Tbk Site Satui**.
 
-Laravel is a web application framework with expressive, elegant syntax. We believe development must be an enjoyable and creative experience to be truly fulfilling. Laravel takes the pain out of development by easing common tasks used in many web projects, such as:
+Sistem ini menggantikan proses pengajuan manual berbasis kertas menjadi alur kerja digital yang transparan, akuntabel, terlindungi dari pemborosan biaya, dan dapat diakses baik melalui komputer (Desktop) maupun perangkat seluler (Smartphone / Tablet).
 
-- [Simple, fast routing engine](https://laravel.com/docs/routing).
-- [Powerful dependency injection container](https://laravel.com/docs/container).
-- Multiple back-ends for [session](https://laravel.com/docs/session) and [cache](https://laravel.com/docs/cache) storage.
-- Expressive, intuitive [database ORM](https://laravel.com/docs/eloquent).
-- Database agnostic [schema migrations](https://laravel.com/docs/migrations).
-- [Robust background job processing](https://laravel.com/docs/queues).
-- [Real-time event broadcasting](https://laravel.com/docs/broadcasting).
+---
 
-Laravel is accessible, powerful, and provides tools required for large, robust applications.
+## 🚀 Fitur Utama
 
-## Learning Laravel
+### 1. Alur Persetujuan Berjenjang (*Sequential Multi-Stage Workflow*)
+Proses pengajuan BBM berjalan secara sekuensial dan terotomatisasi:
+- **Pengajuan Baru / Draft**: Driver mengajukan permohonan BBM untuk unit kendaraan aktif. Dapat disimpan sementara sebagai *Draft* atau langsung diajukan.
+- **Stage 1 (Supervisor / SPV Approval)**: SPV berwenang memeriksa kondisi kendaraan, menyetujui, menolak, atau **menyesuaikan jumlah liter** bila diperlukan.
+- **Stage 2 (Dept Head / Manager Approval)**: Verifikasi tingkat manajerial sebelum diteruskan ke vendor BBM.
+- **Stage 3 (Vendor Approval)**: Validasi oleh perwakilan perusahaan vendor terkait kuota dan kesiapan suplai.
+- **Stage 4 (Fuel Man Realization)**: Petugas dispenser/fuel truck mencatat realisasi pengisian aktual (Liter, Jam/KM Meter, dan Waktu pengisian).
 
-Laravel has the most extensive and thorough [documentation](https://laravel.com/docs) and video tutorial library of all modern web application frameworks, making it a breeze to get started with the framework.
+### 2. Notifikasi Otomatis WhatsApp (Fonnte API)
+- Notifikasi terkirim otomatis ke nomor WhatsApp penanggung jawab hanya pada tahap yang memerlukan aksi:
+  - Notifikasi ke **SPV** saat permohonan baru diajukan Driver.
+  - Notifikasi ke **Dept Head** saat permohonan disetujui SPV.
+  - Notifikasi ke **Vendor** saat permohonan disetujui Dept Head.
+- Dilengkapi sistem *fail-safe* (timeout 5 detik) sehingga kendala jaringan WhatsApp tidak akan menghambat transaksi database sistem.
 
-You may also try the [Laravel Bootcamp](https://bootcamp.laravel.com), where you will be guided through building a modern Laravel application from scratch.
+### 3. Evaluasi Konsumsi BBM & Analisis Kerugian (*Fuel Evaluation Engine*)
+- Perhitungan rasio konsumsi bahan bakar aktual terhadap standar unit:
+  $$\text{Rasio Konsumsi} = \frac{\text{Total Jarak Tempuh (KM) / Jam Operasi (HM)}}{\text{Total Liter Aktual}}$$
+- Deteksi otomatis pemborosan BBM (*waste liters*) dan estimasi kerugian finansial (*estimated cost loss*):
+  - Kategori **Normal**: Rasio efisiensi berada di dalam ambang batas standar.
+  - Kategori **Needs Review**: Unit terindikasi boros melebihi deviasi yang diizinkan.
+- Versioning riwayat standar konsumsi per unit kendaraan dan riwayat fluktuasi harga BBM per vendor.
 
-If you don't feel like reading, [Laracasts](https://laracasts.com) can help. Laracasts contains thousands of video tutorials on a range of topics including Laravel, modern PHP, unit testing, and JavaScript. Boost your skills by digging into our comprehensive video library.
+### 4. Pelaporan Dokumen & Ekspor Multi-Sheet Excel
+- **Cetak Dokumen Resmi PDF**: Format kop surat standar PT United Tractors Tbk lengkap dengan QR/Tanda Tangan digital, watermark status, dan layout cetak A4.
+- **Ekspor Excel Multi-Sheet**: Format laporan identik dengan acuan monitoring korporat, mencakup sheet monitoring bulanan, rangkuman performa unit, dan rincian transaksi.
 
-## Laravel Sponsors
+### 5. Tampilan Responsif & Gestur Sentuh Mobile
+- Tampilan antarmuka responsif untuk smartphone dan tablet.
+- Tabel transaksi dilengkapi scroll horizontal sentuh halus (*touch-friendly smooth scrolling*) dan indikator geser (*swipe hint*) agar data operasional yang lebar tetap terbaca utuh di layar kecil.
 
-We would like to extend our thanks to the following sponsors for funding Laravel development. If you are interested in becoming a sponsor, please visit the [Laravel Partners program](https://partners.laravel.com).
+### 6. Keamanan Berlapis (*Defensive Security Hardened*)
+- **Proteksi Brute-Force**: Pembatasan percobaan login salah (maksimal 5 kali gagal per IP/akun sebelum jeda 60 detik).
+- **Role-Based Access Control (RBAC)**: Pembatasan hak akses berbasis peran menggunakan middleware khusus.
+- **Isolasi Akun Vendor**: Akun vendor hanya memiliki akses ke pengajuan dan kuota perusahaannya sendiri.
+- **HTTP Security Headers**: Header proteksi bawaan (`X-Frame-Options: SAMEORIGIN`, `X-Content-Type-Options: nosniff`, `Referrer-Policy`, dll).
+- **Validasi File Ketat**: Unggah foto profil dan tanda tangan divalidasi hingga struktur biner gambar (`getimagesize`) dan disajikan secara aman tanpa risiko *Directory Traversal*.
 
-### Premium Partners
+---
 
-- **[Vehikl](https://vehikl.com/)**
-- **[Tighten Co.](https://tighten.co)**
-- **[WebReinvent](https://webreinvent.com/)**
-- **[Kirschbaum Development Group](https://kirschbaumdevelopment.com)**
-- **[64 Robots](https://64robots.com)**
-- **[Curotec](https://www.curotec.com/services/technologies/laravel/)**
-- **[Cyber-Duck](https://cyber-duck.co.uk)**
-- **[DevSquad](https://devsquad.com/hire-laravel-developers)**
-- **[Jump24](https://jump24.co.uk)**
-- **[Redberry](https://redberry.international/laravel/)**
-- **[Active Logic](https://activelogic.com)**
-- **[byte5](https://byte5.de)**
-- **[OP.GG](https://op.gg)**
+## 👥 Matriks Hak Akses Pengguna (*User Roles*)
 
-## Contributing
+| Role | Deskripsi & Wewenang Utama | Halaman Utama |
+| :--- | :--- | :--- |
+| **Driver** | Mengajukan permohonan BBM, cek riwayat, unduh PDF pengajuan sendiri | Form Fuel, History |
+| **SPV** | Memverifikasi pengajuan Driver, mengubah liter bila perlu, approval tahap 1 | Approval Stage 1 |
+| **Dept Head** | Menyetujui permohonan yang telah disetujui SPV (approval tahap 2) | Approval Stage 2 |
+| **Vendor** | Menyetujui ketersediaan stok BBM dari sisi vendor (approval tahap 3) | Approval Stage 3 |
+| **Fuel Man** | Mencatat realisasi pengisian fisik (liter aktual, HM/KM meter, waktu) | Realisasi Pengisian |
+| **Admin** | Akses penuh: Master data (karyawan, unit, area, approver, standar, harga), background, evaluasi, audit log | Master Data, Evaluasi |
 
-Thank you for considering contributing to the Laravel framework! The contribution guide can be found in the [Laravel documentation](https://laravel.com/docs/contributions).
+---
 
-## Code of Conduct
+## 🔑 Akun Demo / Pengujian Default
 
-In order to ensure that the Laravel community is welcoming to all, please review and abide by the [Code of Conduct](https://laravel.com/docs/contributions#code-of-conduct).
+Semua akun default menggunakan password: **`password123`**
 
-## Security Vulnerabilities
+| Role | Username | Nama | No. NRP |
+| :--- | :--- | :--- | :--- |
+| **Administrator** | `admin` | Administrator UT Satui | `10001` |
+| **Driver (Pemohon 1)** | `adji` | Adji Tri Irianto | `80124024` |
+| **Driver (Pemohon 2)** | `rachmat` | Rachmat Hidayat | `80125512` |
+| **Supervisor (SPV)** | `aklis` | Aklis | `98798` |
+| **Dept Head (Manager)** | `Pdh-kusan` | Garius | `97110` |
+| **Vendor Approver** | `vendor_sudan` | CV. Sudan Mandiri | `VND-001` |
+| **Fuel Man (Vendor)** | `adya` | ADYA | `99201` |
 
-If you discover a security vulnerability within Laravel, please send an e-mail to Taylor Otwell via [taylor@laravel.com](mailto:taylor@laravel.com). All security vulnerabilities will be promptly addressed.
+*(Pengguna juga dapat login menggunakan Username, Alamat Email resmi, atau Nomor NRP).*
 
-## License
+---
 
-The Laravel framework is open-sourced software licensed under the [MIT license](https://opensource.org/licenses/MIT).
+## 💻 Kebutuhan Sistem (*Prerequisites*)
+
+- **PHP** : Versi `>= 8.2`
+- **Composer** : Versi `>= 2.x`
+- **Database** : MySQL `>= 8.0` atau MariaDB `>= 10.4`
+- **Web Server** : Apache / Nginx (atau paket Laragon / XAMPP)
+- **Ekstensi PHP Wajib** : `pdo_mysql`, `mbstring`, `openssl`, `tokenizer`, `xml`, `ctype`, `json`, `curl`, `gd`, `zip`
+
+---
+
+## 🛠️ Panduan Instalasi & Menjalankan Proyek
+
+### 1. Clone Repositori
+```bash
+git clone https://github.com/username/digifuel.git
+cd digifuel
+```
+
+### 2. Pasang Dependensi PHP
+```bash
+composer install
+```
+
+### 3. Konfigurasi Environment (`.env`)
+Salin file konfigurasi contoh:
+```bash
+cp .env.example .env
+```
+Buka file `.env` dan sesuaikan pengaturan database:
+```env
+DB_CONNECTION=mysql
+DB_HOST=127.0.0.1
+DB_PORT=3306
+DB_DATABASE=digifuel
+DB_USERNAME=root
+DB_PASSWORD=
+```
+
+Buat application key:
+```bash
+php artisan key:generate
+```
+
+### 4. Konfigurasi WhatsApp Gateway (Opsional)
+Untuk mengaktifkan notifikasi WhatsApp nyata melalui Fonnte, tambahkan token Anda pada `.env`:
+```env
+FONNTE_TOKEN=token_fonnte_anda_disini
+```
+
+### 5. Jalankan Migrasi & Seeder Database
+Jalankan migrasi dan isi database dengan data awal lengkap (karyawan, unit, approver, standar BBM, dan riwayat demo):
+```bash
+php artisan migrate:fresh --seed
+```
+
+### 6. Menjalankan Server Aplikasi
+Jalankan server pengembangan bawaan Laravel:
+```bash
+php artisan serve
+```
+Akses aplikasi melalui browser di: **`http://127.0.0.1:8000`**
+
+> **Tips Akses via Smartphone (Jaringan Wi-Fi yang Sama):**
+> Jalankan server dengan bind host IP laptop Anda:
+> ```bash
+> php artisan serve --host=0.0.0.0 --port=8000
+> ```
+> Buka browser di ponsel dengan alamat `http://<IP-LAPTOP-ANDA>:8000` (contoh: `http://10.2.75.151:8000`).
+
+---
+
+## 🧪 Pengujian Otomatis (*Automated Testing Suite*)
+
+DigiFuel dilengkapi dengan suite pengujian otomatis menyeluruh (Feature & Unit Tests) yang mencakup seluruh alur workflow, batasan hak akses, keamanan IDOR, ekspor PDF/Excel, rate limiting, dan integrasi WhatsApp:
+
+```bash
+php artisan test
+```
+
+**Hasil Pengujian:**
+```text
+Tests:    59 passed (614 assertions)
+Duration: ~15 detik
+Status:   100% Passed
+```
+
+---
+
+## 📁 Struktur Direktori Penting
+
+```text
+digifuel/
+├── app/
+│   ├── Http/
+│   │   ├── Controllers/       # Controller modul (FuelRequest, Approval, Evaluation, Master, dll)
+│   │   └── Middleware/        # RoleMiddleware & SecurityHeadersMiddleware
+│   ├── Models/                # Eloquent Models (FuelRequest, Vehicle, User, Evaluation, dll)
+│   ├── Policies/              # FuelRequestPolicy (Validasi hak akses & anti-IDOR)
+│   └── Services/              # FuelRequestService, ExcelExportService, FonnteWhatsappService
+├── bootstrap/                 # Inisialisasi framework & registrasi middleware
+├── config/                    # File konfigurasi aplikasi
+├── database/
+│   ├── migrations/            # Skema tabel database
+│   └── seeders/               # DigiFuelSeeder (Data master, approver, unit, dan riwayat)
+├── public/
+│   ├── css/digifuel.css       # Stylesheet responsif utama & tema DigiFuel
+│   ├── images/                # Logo resmi UT, ikon, dan background pertambangan
+│   └── uploads/               # Direktori publik untuk avatar & tanda tangan
+├── resources/
+│   └── views/                 # Template Blade UI (Dashboard, Approval, Fuel, Evaluasi, Master)
+├── routes/
+│   └── web.php                # Definisi rute web & proteksi hak akses
+├── storage/                   # Berkas log, sesi, dan penyimpanan privat tanda tangan
+└── tests/
+    └── Feature/               # Suite pengujian otomatis sistem
+```
+
+---
+
+## 🛡️ Catatan Keamanan Produksi (*Production Checklist*)
+
+Saat mendistribusikan aplikasi ke server produksi:
+1. Pastikan `APP_ENV=production` dan `APP_DEBUG=false` pada `.env`.
+2. Gunakan protokol aman **HTTPS** dan setel `SESSION_SECURE_COOKIE=true`.
+3. Jalankan optimasi cache Laravel:
+   ```bash
+   php artisan config:cache
+   php artisan route:cache
+   php artisan view:cache
+   ```
+4. Pastikan folder `storage/` dan `bootstrap/cache/` memiliki izin tulis (*write permission*) yang tepat untuk web server (`chmod -R 775`).
+
+---
+
+## 📄 Hak Cipta & Lisensi
+
+Dikembangkan untuk kebutuhan operasional **PT United Tractors Tbk Site Satui**.  
+Hak cipta dilindungi undang-undang. Seluruh aset grafis dan logo adalah milik PT United Tractors Tbk.
