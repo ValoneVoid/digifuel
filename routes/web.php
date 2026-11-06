@@ -14,6 +14,7 @@ use App\Http\Controllers\FuelRequestPdfController;
 // Public Authentication Routes
 Route::get('/login', [AuthController::class, 'showLogin'])->name('login');
 Route::post('/login', [AuthController::class, 'login'])->name('login.submit');
+Route::match(['get', 'post'], '/logout', [AuthController::class, 'logout'])->name('logout');
 
 // Protected Application Routes (Requires Authentication)
 Route::middleware(['auth'])->group(function () {
@@ -22,8 +23,6 @@ Route::middleware(['auth'])->group(function () {
         return redirect()->route('dashboard');
     });
     Route::post('/switch-user', [AuthController::class, 'switchUser'])->name('switch.user');
-    Route::post('/logout', [AuthController::class, 'logout'])->name('logout');
-    Route::get('/logout', [AuthController::class, 'logout']);
     Route::get('/notifications/{id}/read', [AuthController::class, 'readNotification'])->name('notifications.read');
 
     // Common Authenticated Modules (All Active Roles, Scoped by Role/Policy inside Controller)
