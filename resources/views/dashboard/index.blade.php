@@ -54,7 +54,7 @@
     @if(!$user->signature_url)
         <div class="digi-warning-banner">
             <span>⚠️</span>
-            <span>Anda belum mengunggah tanda tangan digital. Silakan buka <a href="{{ route('profile.index') }}">halaman Profil</a> agar tanda tangan otomatis tercantum pada dokumen Fuel Request.</span>
+            <span>Anda belum memiliki tanda tangan digital aktif. Sesuai kebijakan DigiFuel, tanda tangan wajib diunggah untuk dapat mengajukan dan menyetujui Fuel Request. Silakan buka <a href="{{ route('profile.index') }}">halaman Profil</a> untuk mengunggah tanda tangan Anda.</span>
         </div>
     @endif
 

@@ -50,6 +50,9 @@ class StoreFuelRequest extends FormRequest
                         $validator->errors()->add('employee_id', 'Data karyawan tidak aktif dan tidak dapat digunakan untuk pengajuan Fuel Request baru.');
                     }
                 }
+                if ($this->input('action_type') !== 'draft' && !$authUser->hasActiveSignature()) {
+                    $validator->errors()->add('signature', 'Anda wajib mengunggah tanda tangan digital di menu Profil sebelum dapat mengajukan Fuel Request.');
+                }
             }
 
             $vehicle = Vehicle::where('unit_code', $this->input('unit_code'))->first();

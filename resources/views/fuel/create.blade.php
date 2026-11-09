@@ -15,9 +15,19 @@
 
     <!-- Warning banner if no signature -->
     @if(!$user->signature_url)
-        <div class="digi-warning-banner">
-            <span>⚠️</span>
-            <span>Anda belum mengupload tanda tangan. Silakan klik <a href="{{ route('profile.index') }}">halaman Profile</a> untuk mengupload tanda tangan Anda.</span>
+        <div class="digi-warning-banner" style="background: #fffbeb; border: 1px solid #fde68a; color: #92400e; padding: 14px 18px; border-radius: 10px; margin-bottom: 20px; display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 12px;">
+            <div style="display: flex; align-items: center; gap: 12px;">
+                <span style="font-size: 24px;">⚠️</span>
+                <div>
+                    <div style="font-weight: 700; font-size: 14px;">Tanda Tangan Digital Wajib Diisi!</div>
+                    <div style="font-size: 13px; color: #78350f; margin-top: 2px;">
+                        Sesuai kebijakan sistem DigiFuel, Anda wajib memiliki tanda tangan digital aktif sebelum dapat mengirim formulir Fuel Request.
+                    </div>
+                </div>
+            </div>
+            <a href="{{ route('profile.index') }}" class="btn-digi btn-digi-yellow" style="padding: 8px 16px; font-size: 13px; font-weight: 600; text-decoration: none; white-space: nowrap;">
+                Unggah Tanda Tangan Sekarang &rarr;
+            </a>
         </div>
     @endif
 
@@ -309,12 +319,42 @@ function handleAreaChange(areaName) {
         .catch(() => {});
 }
 
+const userHasSignature = {{ $user->signature_url ? 'true' : 'false' }};
+
+function requireSignatureNotice() {
+    if (typeof Swal !== 'undefined') {
+        Swal.fire({
+            icon: 'warning',
+            title: 'Tanda Tangan Digital Wajib Diisi!',
+            html: 'Anda belum memiliki tanda tangan digital aktif di profil.<br><br>Sesuai kebijakan sistem DigiFuel, seluruh pengajuan <strong>Fuel Request</strong> mewajibkan tanda tangan pemohon. Silakan unggah tanda tangan digital Anda terlebih dahulu.',
+            confirmButtonText: 'Buka Halaman Profil',
+            showCancelButton: true,
+            cancelButtonText: 'Batal',
+            confirmButtonColor: '#f59e0b',
+            cancelButtonColor: '#64748b',
+        }).then((result) => {
+            if (result.isConfirmed) {
+                window.location.href = "{{ route('profile.index') }}";
+            }
+        });
+    } else {
+        if (confirm('Anda belum memiliki tanda tangan digital aktif. Buka halaman Profil untuk mengunggah tanda tangan sekarang?')) {
+            window.location.href = "{{ route('profile.index') }}";
+        }
+    }
+}
+
 function submitAsDraft() {
     document.getElementById('action_type').value = 'draft';
     document.getElementById('fuelRequestForm').submit();
 }
 
 function openPreviewModal() {
+    if (!userHasSignature) {
+        requireSignatureNotice();
+        return;
+    }
+
     const unitSel = document.getElementById('unit_code');
     const police = document.getElementById('police_no').value;
     const liters = document.getElementById('total_liters').value;
@@ -339,8 +379,27 @@ function closePreviewModal() {
 }
 
 function confirmSubmitForm() {
+    if (!userHasSignature) {
+        closePreviewModal();
+        requireSignatureNotice();
+        return;
+    }
     document.getElementById('action_type').value = 'submit';
     document.getElementById('fuelRequestForm').submit();
 }
+
+document.addEventListener('DOMContentLoaded', function() {
+    const form = document.getElementById('fuelRequestForm');
+    if (form) {
+        form.addEventListener('submit', function(e) {
+            const action = document.getElementById('action_type').value;
+            if (action === 'submit' && !userHasSignature) {
+                e.preventDefault();
+                requireSignatureNotice();
+                return false;
+            }
+        });
+    }
+});
 </script>
 @endsection

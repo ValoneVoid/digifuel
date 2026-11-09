@@ -57,37 +57,55 @@
         </div>
     </div>
 
+    @php
+        $currentUser = auth()->user();
+        $canApprove = false;
+        $activeStageLabel = '';
+
+        if ($currentUser && !$isRejected && $fuelRequest->current_stage !== 'completed') {
+            // Stage 1: SPV
+            if (($currentUser->isSpv() || $currentUser->isAdmin()) && $fuelRequest->status_spv === 'menunggu') {
+                $canApprove = true;
+                $activeStageLabel = 'Tahap 1: SPV';
+            }
+            // Stage 2: Dept Head / Manager (only after SPV approved!)
+            elseif (($currentUser->isManager() || $currentUser->isAdmin()) && $fuelRequest->status_spv === 'disetujui' && $fuelRequest->status_depthead !== 'disetujui') {
+                $canApprove = true;
+                $activeStageLabel = 'Tahap 2: Dept Head/Manager';
+            }
+            // Stage 3: Vendor (only after SPV & Dept Head approved!)
+            elseif (($currentUser->isVendor() || $currentUser->isFuelman() || $currentUser->isAdmin()) && $fuelRequest->status_spv === 'disetujui' && $fuelRequest->status_depthead === 'disetujui' && !$fuelRequest->isVendorApproved()) {
+                $canApprove = true;
+                $activeStageLabel = 'Tahap 3: Vendor Final Approval';
+            }
+        }
+    @endphp
+
+    <!-- Warning banner if approver / driver / fuelman has no signature -->
+    @if($currentUser && !$currentUser->hasActiveSignature() && ($canApprove || ($fuelRequest->current_stage === 'draft' && $currentUser->id === $fuelRequest->user_id) || ($vendorDone && ($currentUser->isFuelman() || $currentUser->isAdmin()))))
+        <div class="digi-warning-banner" style="background: #fffbeb; border: 1px solid #fde68a; color: #92400e; padding: 14px 18px; border-radius: 10px; margin-bottom: 20px; display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 12px;">
+            <div style="display: flex; align-items: center; gap: 12px;">
+                <span style="font-size: 24px;">⚠️</span>
+                <div>
+                    <div style="font-weight: 700; font-size: 14px;">Tanda Tangan Digital Wajib Diisi!</div>
+                    <div style="font-size: 13px; color: #78350f; margin-top: 2px;">
+                        Anda belum memiliki tanda tangan digital aktif. Sesuai kebijakan sistem DigiFuel, seluruh aksi persetujuan (Approval) dan pengajuan BBM mewajibkan tanda tangan digital yang sah.
+                    </div>
+                </div>
+            </div>
+            <a href="{{ route('profile.index') }}" class="btn-digi btn-digi-yellow" style="padding: 8px 16px; font-size: 13px; font-weight: 600; text-decoration: none; white-space: nowrap;">
+                Unggah Tanda Tangan Sekarang &rarr;
+            </a>
+        </div>
+    @endif
+
     <!-- Title and Action Buttons (Slide 9) -->
     <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 16px; flex-wrap: wrap; gap: 12px;">
         <h2 class="digi-section-title" style="margin: 0;">Isi Form Request</h2>
 
-        @php
-            $currentUser = auth()->user();
-            $canApprove = false;
-            $activeStageLabel = '';
-
-            if ($currentUser && !$isRejected && $fuelRequest->current_stage !== 'completed') {
-                // Stage 1: SPV
-                if (($currentUser->isSpv() || $currentUser->isAdmin()) && $fuelRequest->status_spv === 'menunggu') {
-                    $canApprove = true;
-                    $activeStageLabel = 'Tahap 1: SPV';
-                }
-                // Stage 2: Dept Head / Manager (only after SPV approved!)
-                elseif (($currentUser->isManager() || $currentUser->isAdmin()) && $fuelRequest->status_spv === 'disetujui' && $fuelRequest->status_depthead !== 'disetujui') {
-                    $canApprove = true;
-                    $activeStageLabel = 'Tahap 2: Dept Head/Manager';
-                }
-                // Stage 3: Vendor (only after SPV & Dept Head approved!)
-                elseif (($currentUser->isVendor() || $currentUser->isFuelman() || $currentUser->isAdmin()) && $fuelRequest->status_spv === 'disetujui' && $fuelRequest->status_depthead === 'disetujui' && !$fuelRequest->isVendorApproved()) {
-                    $canApprove = true;
-                    $activeStageLabel = 'Tahap 3: Vendor Final Approval';
-                }
-            }
-        @endphp
-
         <div style="display: flex; align-items: center; gap: 10px; flex-wrap: wrap;">
             @if($fuelRequest->current_stage === 'draft' && ($currentUser?->id === $fuelRequest->user_id || $currentUser?->isAdmin()))
-                <form action="{{ route('fuel.submit.draft', $fuelRequest->id) }}" method="POST" style="margin:0;">
+                <form action="{{ route('fuel.submit.draft', $fuelRequest->id) }}" method="POST" style="margin:0;" onsubmit="return checkSubmitDraft(event)">
                     @csrf
                     <button type="submit" class="btn-digi btn-digi-blue">Ajukan Draft Ini ke SPV</button>
                 </form>
@@ -480,7 +498,46 @@
 
 @section('scripts')
 <script>
+const userHasSignature = {{ ($currentUser && $currentUser->hasActiveSignature()) ? 'true' : 'false' }};
+
+function requireApproverSignatureNotice(actionName) {
+    const actionText = actionName || 'menyetujui pengajuan';
+    if (typeof Swal !== 'undefined') {
+        Swal.fire({
+            icon: 'warning',
+            title: 'Tanda Tangan Digital Wajib Diisi!',
+            html: `Anda belum memiliki tanda tangan digital aktif di profil.<br><br>Sesuai kebijakan sistem DigiFuel, Anda wajib mengunggah tanda tangan digital terlebih dahulu sebelum dapat <strong>${actionText}</strong>.`,
+            confirmButtonText: 'Buka Halaman Profil',
+            showCancelButton: true,
+            cancelButtonText: 'Batal',
+            confirmButtonColor: '#f59e0b',
+            cancelButtonColor: '#64748b',
+        }).then((result) => {
+            if (result.isConfirmed) {
+                window.location.href = "{{ route('profile.index') }}";
+            }
+        });
+    } else {
+        if (confirm(`Anda belum memiliki tanda tangan digital aktif. Buka halaman Profil untuk mengunggah tanda tangan sekarang?`)) {
+            window.location.href = "{{ route('profile.index') }}";
+        }
+    }
+}
+
+function checkSubmitDraft(e) {
+    if (!userHasSignature) {
+        e.preventDefault();
+        requireApproverSignatureNotice('mengajukan Fuel Request');
+        return false;
+    }
+    return true;
+}
+
 function openApproveModal() {
+    if (!userHasSignature) {
+        requireApproverSignatureNotice('menyetujui pengajuan');
+        return;
+    }
     document.getElementById('approveModal').style.display = 'flex';
 }
 function closeApproveModal() {
@@ -500,5 +557,18 @@ function closeUpdateLitersModal() {
     const modal = document.getElementById('updateLitersModal');
     if (modal) modal.style.display = 'none';
 }
+
+document.addEventListener('DOMContentLoaded', function() {
+    const realForm = document.querySelector('form[action="{{ route('approval.realization', $fuelRequest->id) }}"]');
+    if (realForm) {
+        realForm.addEventListener('submit', function(e) {
+            if (!userHasSignature) {
+                e.preventDefault();
+                requireApproverSignatureNotice('mencatat realisasi pengisian BBM');
+                return false;
+            }
+        });
+    }
+});
 </script>
 @endsection

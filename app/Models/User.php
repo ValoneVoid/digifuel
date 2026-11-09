@@ -144,4 +144,9 @@ class User extends Authenticatable
     {
         return $this->isSpv() || $this->isManager() || $this->isVendor() || $this->isFuelman() || $this->isAdmin();
     }
+
+    public function hasActiveSignature(): bool
+    {
+        return !empty($this->signature_url);
+    }
 }

@@ -203,6 +203,10 @@ class FuelRequestController extends Controller
             abort(403, 'Anda tidak memiliki akses untuk mengajukan draft ini.');
         }
 
+        if (!$user->hasActiveSignature()) {
+            return redirect()->back()->with('error', 'Gagal mengajukan Fuel Request: Anda wajib mengunggah tanda tangan digital di menu Profil terlebih dahulu.');
+        }
+
         $service->submitDraft($fuelRequest, $user);
 
         return redirect()->route('history.index')

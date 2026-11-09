@@ -94,6 +94,12 @@ class FuelRequestService
                 ]);
             }
 
+            if (!$isDraft && !$user->hasActiveSignature()) {
+                throw ValidationException::withMessages([
+                    'signature' => 'Anda wajib mengunggah tanda tangan digital di menu Profil sebelum dapat mengajukan Fuel Request.',
+                ]);
+            }
+
             // Find dedicated Vendor user for this vendor company (if any)
             $vendorUser = null;
             if ($vendor) {
@@ -206,6 +212,12 @@ class FuelRequestService
                 throw ValidationException::withMessages(['status' => 'Hanya pengajuan berstatus Draft yang dapat diajukan.']);
             }
 
+            if (!$user->hasActiveSignature()) {
+                throw ValidationException::withMessages([
+                    'signature' => 'Anda wajib mengunggah tanda tangan digital di menu Profil sebelum dapat mengajukan Fuel Request.',
+                ]);
+            }
+
             $locked->update([
                 'status_spv' => 'menunggu',
                 'overall_status' => 'menunggu',
@@ -305,6 +317,13 @@ class FuelRequestService
 
             if (in_array($locked->overall_status, ['ditolak', 'cancelled']) || in_array($locked->current_stage, ['rejected', 'cancelled', 'completed'])) {
                 return ['ok' => false, 'message' => 'Pengajuan ini sudah ditolak, dibatalkan, atau selesai dan tidak dapat disetujui kembali.'];
+            }
+
+            if (!$user->hasActiveSignature()) {
+                return [
+                    'ok' => false,
+                    'message' => 'Gagal memproses persetujuan: Anda wajib mengunggah tanda tangan digital di menu Profil terlebih dahulu.',
+                ];
             }
 
             $sig = $user->signature_url;
@@ -631,6 +650,12 @@ class FuelRequestService
             if (!$locked->isVendorApproved()) {
                 throw ValidationException::withMessages([
                     'status' => 'Pengisian BBM tidak dapat dicatat sebelum pengajuan memperoleh persetujuan Vendor.',
+                ]);
+            }
+
+            if (!$user->hasActiveSignature()) {
+                throw ValidationException::withMessages([
+                    'signature' => 'Gagal mencatat pengisian BBM: Petugas Fuel Man wajib mengunggah tanda tangan digital di menu Profil terlebih dahulu.',
                 ]);
             }
 

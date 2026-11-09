@@ -126,6 +126,10 @@ class ApprovalController extends Controller
             abort(403, 'Akses Ditolak: Anda tidak memiliki izin untuk menyetujui pengajuan ini.');
         }
 
+        if (!$user->hasActiveSignature()) {
+            return redirect()->back()->with('error', 'Gagal memproses persetujuan: Anda wajib mengunggah tanda tangan digital di menu Profil terlebih dahulu.');
+        }
+
         $adjustedLiters = null;
         if ($request->filled('total_liters') && ($user->isSpv() || $user->isAdmin()) && $fuelRequest->status_spv === 'menunggu') {
             $request->validate([
@@ -203,6 +207,10 @@ class ApprovalController extends Controller
 
         if (!$user->isFuelman() && !$user->isAdmin()) {
             return redirect()->back()->with('error', 'Hanya petugas Fuel Man atau Admin yang dapat mencatat realisasi pengisian BBM.');
+        }
+
+        if (!$user->hasActiveSignature()) {
+            return redirect()->back()->with('error', 'Gagal mencatat realisasi pengisian BBM: Petugas Fuel Man wajib mengunggah tanda tangan digital di menu Profil terlebih dahulu.');
         }
 
         $validated = $request->validate([
