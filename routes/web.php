@@ -58,6 +58,7 @@ Route::middleware(['auth'])->group(function () {
         Route::post('/fuel', [FuelRequestController::class, 'store'])->name('fuel.store');
         Route::post('/fuel/{id}/submit-draft', [FuelRequestController::class, 'submitDraft'])->name('fuel.submit.draft');
         Route::post('/fuel/{id}/cancel', [FuelRequestController::class, 'cancel'])->name('fuel.cancel');
+        Route::match(['delete', 'post'], '/fuel/{id}/destroy', [FuelRequestController::class, 'destroy'])->name('fuel.destroy');
         Route::get('/api/area-approvers', [FuelRequestController::class, 'areaApprovers'])->name('api.area.approvers');
         Route::get('/api/vehicle-lookup', [FuelRequestController::class, 'vehicleLookup'])->name('api.vehicle.lookup');
     });

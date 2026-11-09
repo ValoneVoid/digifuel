@@ -244,6 +244,49 @@ class FuelRequestController extends Controller
         return redirect()->back()->with('success', "Pengajuan {$fuelRequest->request_no} telah dibatalkan.");
     }
 
+    public function destroy(Request $request, $id, FuelRequestPolicy $policy)
+    {
+        $user = $this->getActiveUser();
+        $fuelRequest = FuelRequest::findOrFail($id);
+
+        if (!$policy->delete($user, $fuelRequest)) {
+            abort(403, 'Akses Ditolak: Anda tidak memiliki izin untuk menghapus pengajuan ini, atau pengajuan sudah memiliki transaksi pengisian fisik BBM.');
+        }
+
+        // Verifikasi 2 Langkah: Memastikan kata kunci konfirmasi "HAPUS" diketik dengan benar
+        if ($request->has('confirm_keyword') || $request->has('verification_step')) {
+            $keyword = strtoupper(trim((string) $request->input('confirm_keyword', '')));
+            if ($keyword !== 'HAPUS') {
+                return redirect()->back()->with('error', 'Verifikasi 2 Langkah gagal: Anda wajib mengetik kata kunci "HAPUS" dengan benar.');
+            }
+        }
+
+        $requestNo = $fuelRequest->request_no;
+        $driverName = $fuelRequest->driver_name;
+
+        \Illuminate\Support\Facades\DB::transaction(function () use ($fuelRequest, $user, $requestNo, $driverName) {
+            // Delete related child records explicitly
+            $fuelRequest->approvals()->delete();
+            $fuelRequest->histories()->delete();
+            \App\Models\UserNotification::where('fuel_request_id', $fuelRequest->id)->delete();
+
+            // Record audit trail of the deletion
+            FuelRequestHistory::record(
+                null,
+                $user->id,
+                'request_deleted',
+                $fuelRequest->current_stage,
+                'deleted',
+                "Pengajuan BBM {$requestNo} milik {$driverName} dihapus oleh {$user->name} ({$user->jabatan})."
+            );
+
+            $fuelRequest->delete();
+        });
+
+        return redirect()->route('history.index')
+            ->with('success', "Pengajuan BBM {$requestNo} berhasil dihapus dari sistem.");
+    }
+
     public function document($id, FuelRequestPolicy $policy)
     {
         $user = $this->getActiveUser();

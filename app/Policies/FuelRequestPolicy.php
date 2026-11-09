@@ -115,4 +115,31 @@ class FuelRequestPolicy
     {
         return ($user->isFuelman() || $user->isAdmin()) && $fuelRequest->isVendorApproved();
     }
+
+    /**
+     * Determine whether the user can delete a Fuel Request (Trial/Junk/Cancelled/Draft cleanup).
+     *
+     * Rules:
+     * 1. Cannot delete if physical fueling transaction already recorded (current_stage === 'completed' or transactions exist).
+     * 2. Administrator can delete requests that have no physical fueling transactions.
+     * 3. Driver (the requester) can delete their own request IF it is still a 'draft', 'cancelled',
+     *    or 'pending_spv' (stage 1) before SPV approval.
+     */
+    public function delete(User $user, FuelRequest $fuelRequest): bool
+    {
+        if ($fuelRequest->transactions()->exists() || $fuelRequest->current_stage === 'completed') {
+            return false;
+        }
+
+        if ($user->isAdmin()) {
+            return true;
+        }
+
+        if ($user->isDriver() && (int) $fuelRequest->user_id === (int) $user->id) {
+            return in_array($fuelRequest->current_stage, ['draft', 'cancelled'])
+                || ($fuelRequest->status_spv === 'menunggu' && in_array($fuelRequest->current_stage, ['pending_spv', 'submitted']));
+        }
+
+        return false;
+    }
 }

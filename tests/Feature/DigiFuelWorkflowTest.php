@@ -532,5 +532,90 @@ class DigiFuelWorkflowTest extends TestCase
         $this->post(route('approval.reject', $adjiRequest->id), ['note' => 'Coba tolak'])->assertStatus(403);
         $this->post(route('approval.updateLiters', $adjiRequest->id), ['total_liters' => 20])->assertStatus(403);
     }
+
+    /**
+     * Test: Aturan Penghapusan Data Pengajuan BBM Coba-coba / Salah Input
+     */
+    public function test_fuel_request_deletion_rules_for_trial_data_and_protection(): void
+    {
+        $driverAdji = User::where('username', 'adji')->firstOrFail();
+        $driverRachmat = User::where('username', 'rachmat')->firstOrFail();
+        $admin = User::where('username', 'admin')->firstOrFail();
+        $spv = User::where('username', 'aklis')->firstOrFail();
+        $vehicle = Vehicle::where('is_active', true)->firstOrFail();
+
+        // 1. Driver Adji membuat pengajuan coba-coba (pending SPV)
+        $this->actingAs($driverAdji);
+        $trialReq = FuelRequest::create([
+            'request_no' => 'FR-TEST-DELETE-001',
+            'user_id' => $driverAdji->id,
+            'driver_name' => $driverAdji->name,
+            'vehicle_id' => $vehicle->id,
+            'unit_code' => $vehicle->unit_code,
+            'police_no' => $vehicle->police_no,
+            'company' => 'PT UNITED TRACTORS TBK SITE SATUI',
+            'area' => 'SDU (Sungai Danau)',
+            'vendor_name' => 'Cv. Sudan Mandiri',
+            'total_liters' => 25.0,
+            'request_date' => now(),
+            'current_stage' => 'pending_spv',
+            'overall_status' => 'menunggu',
+            'status_spv' => 'menunggu',
+        ]);
+
+        // 2. Driver Rachmat TIDAK BISA menghapus pengajuan milik Adji (403 IDOR prevention)
+        $this->actingAs($driverRachmat);
+        $this->delete(route('fuel.destroy', $trialReq->id))->assertStatus(403);
+        $this->assertDatabaseHas('fuel_requests', ['id' => $trialReq->id]);
+
+        // 3. Verifikasi 2 Langkah: Keyword salah ditolak, keyword 'HAPUS' berhasil
+        $this->actingAs($driverAdji);
+        $this->delete(route('fuel.destroy', $trialReq->id), [
+            'verification_step' => '2',
+            'confirm_keyword' => 'SALAH',
+        ])->assertSessionHas('error');
+        $this->assertDatabaseHas('fuel_requests', ['id' => $trialReq->id]);
+
+        $delResp = $this->delete(route('fuel.destroy', $trialReq->id), [
+            'verification_step' => '2',
+            'confirm_keyword' => 'HAPUS',
+        ]);
+        $delResp->assertRedirect(route('history.index'));
+        $this->assertDatabaseMissing('fuel_requests', ['id' => $trialReq->id]);
+
+        // 4. Admin BISA menghapus pengajuan coba-coba tanpa transaksi
+        $trialReqAdmin = FuelRequest::create([
+            'request_no' => 'FR-TEST-DELETE-002',
+            'user_id' => $driverRachmat->id,
+            'driver_name' => $driverRachmat->name,
+            'vehicle_id' => $vehicle->id,
+            'unit_code' => $vehicle->unit_code,
+            'police_no' => $vehicle->police_no,
+            'company' => 'PT UNITED TRACTORS TBK SITE SATUI',
+            'area' => 'SDU (Sungai Danau)',
+            'vendor_name' => 'Cv. Sudan Mandiri',
+            'total_liters' => 50.0,
+            'request_date' => now(),
+            'current_stage' => 'pending_spv',
+            'overall_status' => 'menunggu',
+            'status_spv' => 'menunggu',
+        ]);
+
+        $this->actingAs($admin);
+        $this->delete(route('fuel.destroy', $trialReqAdmin->id))->assertRedirect(route('history.index'));
+        $this->assertDatabaseMissing('fuel_requests', ['id' => $trialReqAdmin->id]);
+
+        // 5. Pengajuan yang SUDAH memiliki transaksi pengisian fisik DILARANG DIHAPUS oleh siapapun (termasuk Admin)
+        $completedReq = FuelRequest::where('current_stage', 'completed')->first();
+        if ($completedReq) {
+            $this->actingAs($admin);
+            $this->delete(route('fuel.destroy', $completedReq->id))->assertStatus(403);
+            $this->assertDatabaseHas('fuel_requests', ['id' => $completedReq->id]);
+
+            $this->actingAs($driverAdji);
+            $this->delete(route('fuel.destroy', $completedReq->id))->assertStatus(403);
+            $this->assertDatabaseHas('fuel_requests', ['id' => $completedReq->id]);
+        }
+    }
 }
 

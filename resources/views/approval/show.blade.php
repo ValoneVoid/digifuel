@@ -153,6 +153,16 @@
                 Dokumen Fuel
             </a>
 
+            @if(app(\App\Policies\FuelRequestPolicy::class)->delete($currentUser, $fuelRequest))
+                <button type="button" class="btn-digi btn-digi-red" style="padding: 9px 16px;" onclick="confirmDeleteRequest({{ $fuelRequest->id }}, '{{ $fuelRequest->request_no }}')">
+                    <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <polyline points="3 6 5 6 21 6"></polyline>
+                        <path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path>
+                    </svg>
+                    Hapus Pengajuan
+                </button>
+            @endif
+
             @if($currentUser?->isDriver() && !$currentUser?->isAdmin())
                 <a href="{{ route('history.index') }}" class="btn-digi btn-digi-gray" style="padding: 9px 16px;">
                     &larr; Riwayat Saya
@@ -556,6 +566,89 @@ function openUpdateLitersModal() {
 function closeUpdateLitersModal() {
     const modal = document.getElementById('updateLitersModal');
     if (modal) modal.style.display = 'none';
+}
+
+function confirmDeleteRequest(id, reqNo) {
+    // VERIFIKASI LANGKAH 1 DARI 2
+    Swal.fire({
+        title: 'Verifikasi Hapus (Langkah 1 / 2)',
+        html: `
+            <div style="text-align: left; background: #fff7ed; border: 1px solid #fed7aa; padding: 12px; border-radius: 8px; margin-bottom: 12px; color: #9a3412; font-size: 13px; line-height: 1.5;">
+                <strong>⚠️ Peringatan Awal:</strong><br>
+                Anda akan menghapus pengajuan BBM <strong>${reqNo}</strong> dari sistem.
+            </div>
+            <p style="text-align: left; font-size: 13px; color: #475569; margin: 0; line-height: 1.5;">
+                Penghapusan ini ditujukan untuk membersihkan data <strong>coba-coba / salah input</strong> dan bersifat permanen. Apakah Anda yakin ingin melanjutkan ke tahap verifikasi akhir?
+            </p>
+        `,
+        icon: 'warning',
+        showCancelButton: true,
+        confirmButtonColor: '#f59e0b',
+        cancelButtonColor: '#64748b',
+        confirmButtonText: 'Lanjut ke Verifikasi Langkah 2 &rarr;',
+        cancelButtonText: 'Batal',
+        reverseButtons: true
+    }).then((step1) => {
+        if (step1.isConfirmed) {
+            // VERIFIKASI LANGKAH 2 DARI 2 (Wajib ketik HAPUS)
+            Swal.fire({
+                title: 'Verifikasi Akhir (Langkah 2 / 2)',
+                html: `
+                    <div style="text-align: left; background: #fef2f2; border: 1px solid #fecaca; padding: 12px; border-radius: 8px; margin-bottom: 14px; color: #991b1b; font-size: 13px; line-height: 1.5;">
+                        <strong>Konfirmasi Kata Kunci:</strong><br>
+                        Untuk mencegah ketidaksengajaan pada pengajuan <strong>${reqNo}</strong>, silakan ketik kata kunci <strong style="letter-spacing:1px; background:#fee2e2; padding:2px 6px; border-radius:4px;">HAPUS</strong> di bawah ini:
+                    </div>
+                `,
+                input: 'text',
+                inputPlaceholder: 'Ketik HAPUS dengan huruf kapital',
+                icon: 'error',
+                showCancelButton: true,
+                confirmButtonColor: '#ef4444',
+                cancelButtonColor: '#64748b',
+                confirmButtonText: 'Ya, Hapus Data Sekarang',
+                cancelButtonText: 'Batal',
+                reverseButtons: true,
+                inputValidator: (value) => {
+                    if (!value || value.trim().toUpperCase() !== 'HAPUS') {
+                        return 'Kata kunci belum sesuai! Ketik HAPUS dengan huruf kapital.';
+                    }
+                }
+            }).then((step2) => {
+                if (step2.isConfirmed) {
+                    const form = document.createElement('form');
+                    form.method = 'POST';
+                    form.action = `/fuel/${id}/destroy`;
+                    
+                    const csrfInput = document.createElement('input');
+                    csrfInput.type = 'hidden';
+                    csrfInput.name = '_token';
+                    csrfInput.value = '{{ csrf_token() }}';
+                    form.appendChild(csrfInput);
+
+                    const methodInput = document.createElement('input');
+                    methodInput.type = 'hidden';
+                    methodInput.name = '_method';
+                    methodInput.value = 'DELETE';
+                    form.appendChild(methodInput);
+
+                    const stepInput = document.createElement('input');
+                    stepInput.type = 'hidden';
+                    stepInput.name = 'verification_step';
+                    stepInput.value = '2';
+                    form.appendChild(stepInput);
+
+                    const keywordInput = document.createElement('input');
+                    keywordInput.type = 'hidden';
+                    keywordInput.name = 'confirm_keyword';
+                    keywordInput.value = 'HAPUS';
+                    form.appendChild(keywordInput);
+
+                    document.body.appendChild(form);
+                    form.submit();
+                }
+            });
+        }
+    });
 }
 
 document.addEventListener('DOMContentLoaded', function() {

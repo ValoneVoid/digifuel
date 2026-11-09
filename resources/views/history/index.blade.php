@@ -192,6 +192,18 @@
                                         <polyline points="12 6 12 12 14 14"></polyline>
                                     </svg>
                                 </a>
+
+                                @if(app(\App\Policies\FuelRequestPolicy::class)->delete($user, $req))
+                                    <!-- Red Trash Button for Trial / Junk Deletion -->
+                                    <button type="button" class="digi-action-btn digi-action-red" title="Hapus Pengajuan (Percobaan / Salah Input)" onclick="confirmDeleteRequest({{ $req->id }}, '{{ $req->request_no }}')">
+                                        <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                            <polyline points="3 6 5 6 21 6"></polyline>
+                                            <path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path>
+                                            <line x1="10" y1="11" x2="10" y2="17"></line>
+                                            <line x1="14" y1="11" x2="14" y2="17"></line>
+                                        </svg>
+                                    </button>
+                                @endif
                             </div>
                         </td>
                     </tr>
@@ -235,13 +247,16 @@
 </div>
 
 <!-- MODAL POPUP FOR FUEL REQUEST DOCUMENT (Slide 11) -->
-<div id="documentModal" class="digi-modal-backdrop" style="display: none;">
-    <div class="digi-modal" style="max-width: 820px; max-height: 90vh; overflow-y: auto;">
+<div id="documentModal" class="digi-modal-backdrop" style="display: none;" onclick="if(event.target === this) closeDocModal()">
+    <div class="digi-modal" style="max-width: 860px; width: 100%; max-height: calc(100vh - 48px); display: flex; flex-direction: column;">
         <div class="digi-modal-header">
-            <h3 class="digi-modal-title">Pratinjau Dokumen Fuel Request</h3>
-            <button type="button" class="digi-modal-close" onclick="closeDocModal()">&times;</button>
+            <div style="display: flex; align-items: center; gap: 8px;">
+                <span style="display: inline-flex; align-items: center; justify-content: center; width: 28px; height: 28px; background: #e0f2fe; color: #0284c7; border-radius: 6px; font-size: 14px; font-weight: 700;">📄</span>
+                <h3 class="digi-modal-title">Pratinjau Dokumen Fuel Request</h3>
+            </div>
+            <button type="button" class="digi-modal-close" onclick="closeDocModal()" title="Tutup Pratinjau">&times;</button>
         </div>
-        <div class="digi-modal-body" id="modalDocContent" style="padding: 24px; background:#f8fafc;">
+        <div class="digi-modal-body" id="modalDocContent" style="padding: 20px 24px; background: #f8fafc; overflow-y: auto; flex: 1;">
             <div style="text-align:center; padding: 30px; color:#64748b;">Memuat dokumen...</div>
         </div>
         <div class="digi-modal-footer">
@@ -272,6 +287,7 @@ function openDocModal(id) {
     const modal = document.getElementById('documentModal');
     const content = document.getElementById('modalDocContent');
     modal.style.display = 'flex';
+    document.body.style.overflow = 'hidden';
     content.innerHTML = '<div style="text-align:center; padding:30px; color:#64748b;">Memuat dokumen Fuel Request...</div>';
     
     fetch(`/fuel/${id}/document-partial`)
@@ -285,8 +301,18 @@ function openDocModal(id) {
 }
 
 function closeDocModal() {
-    document.getElementById('documentModal').style.display = 'none';
+    const modal = document.getElementById('documentModal');
+    if (modal) {
+        modal.style.display = 'none';
+    }
+    document.body.style.overflow = '';
 }
+
+document.addEventListener('keydown', function(e) {
+    if (e.key === 'Escape') {
+        closeDocModal();
+    }
+});
 
 function printDocModal() {
     const content = document.getElementById('modalDocContent').innerHTML;
@@ -301,6 +327,89 @@ function printDocModal() {
     setTimeout(() => {
         printWindow.print();
     }, 400);
+}
+
+function confirmDeleteRequest(id, reqNo) {
+    // VERIFIKASI LANGKAH 1 DARI 2
+    Swal.fire({
+        title: 'Verifikasi Hapus (Langkah 1 / 2)',
+        html: `
+            <div style="text-align: left; background: #fff7ed; border: 1px solid #fed7aa; padding: 12px; border-radius: 8px; margin-bottom: 12px; color: #9a3412; font-size: 13px; line-height: 1.5;">
+                <strong>⚠️ Peringatan Awal:</strong><br>
+                Anda akan menghapus pengajuan BBM <strong>${reqNo}</strong> dari sistem.
+            </div>
+            <p style="text-align: left; font-size: 13px; color: #475569; margin: 0; line-height: 1.5;">
+                Penghapusan ini ditujukan untuk membersihkan data <strong>coba-coba / salah input</strong> dan bersifat permanen. Apakah Anda yakin ingin melanjutkan ke tahap verifikasi akhir?
+            </p>
+        `,
+        icon: 'warning',
+        showCancelButton: true,
+        confirmButtonColor: '#f59e0b',
+        cancelButtonColor: '#64748b',
+        confirmButtonText: 'Lanjut ke Verifikasi Langkah 2 &rarr;',
+        cancelButtonText: 'Batal',
+        reverseButtons: true
+    }).then((step1) => {
+        if (step1.isConfirmed) {
+            // VERIFIKASI LANGKAH 2 DARI 2 (Wajib ketik HAPUS)
+            Swal.fire({
+                title: 'Verifikasi Akhir (Langkah 2 / 2)',
+                html: `
+                    <div style="text-align: left; background: #fef2f2; border: 1px solid #fecaca; padding: 12px; border-radius: 8px; margin-bottom: 14px; color: #991b1b; font-size: 13px; line-height: 1.5;">
+                        <strong>Konfirmasi Kata Kunci:</strong><br>
+                        Untuk mencegah ketidaksengajaan pada pengajuan <strong>${reqNo}</strong>, silakan ketik kata kunci <strong style="letter-spacing:1px; background:#fee2e2; padding:2px 6px; border-radius:4px;">HAPUS</strong> di bawah ini:
+                    </div>
+                `,
+                input: 'text',
+                inputPlaceholder: 'Ketik HAPUS dengan huruf kapital',
+                icon: 'error',
+                showCancelButton: true,
+                confirmButtonColor: '#ef4444',
+                cancelButtonColor: '#64748b',
+                confirmButtonText: 'Ya, Hapus Data Sekarang',
+                cancelButtonText: 'Batal',
+                reverseButtons: true,
+                inputValidator: (value) => {
+                    if (!value || value.trim().toUpperCase() !== 'HAPUS') {
+                        return 'Kata kunci belum sesuai! Ketik HAPUS dengan huruf kapital.';
+                    }
+                }
+            }).then((step2) => {
+                if (step2.isConfirmed) {
+                    const form = document.createElement('form');
+                    form.method = 'POST';
+                    form.action = `/fuel/${id}/destroy`;
+                    
+                    const csrfInput = document.createElement('input');
+                    csrfInput.type = 'hidden';
+                    csrfInput.name = '_token';
+                    csrfInput.value = '{{ csrf_token() }}';
+                    form.appendChild(csrfInput);
+
+                    const methodInput = document.createElement('input');
+                    methodInput.type = 'hidden';
+                    methodInput.name = '_method';
+                    methodInput.value = 'DELETE';
+                    form.appendChild(methodInput);
+
+                    const stepInput = document.createElement('input');
+                    stepInput.type = 'hidden';
+                    stepInput.name = 'verification_step';
+                    stepInput.value = '2';
+                    form.appendChild(stepInput);
+
+                    const keywordInput = document.createElement('input');
+                    keywordInput.type = 'hidden';
+                    keywordInput.name = 'confirm_keyword';
+                    keywordInput.value = 'HAPUS';
+                    form.appendChild(keywordInput);
+
+                    document.body.appendChild(form);
+                    form.submit();
+                }
+            });
+        }
+    });
 }
 </script>
 @endsection
