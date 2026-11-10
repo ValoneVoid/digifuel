@@ -805,7 +805,148 @@ class MasterDataCrudTest extends TestCase
         $pageResp = $this->actingAs($this->admin)
             ->get(route('admin.master', ['tab' => 'units']));
         $pageResp->assertStatus(200)
-            ->assertSee('Vendor Unit (Penyedia Unit)')
+            ->assertSee('Vendor Unit (Rental / Internal)')
             ->assertSee('PT Rental Perkasa Mandiri Tbk');
+    }
+
+    /**
+     * Skenario 16: Registrasi Unit Kendaraan langsung mengkonfigurasi Standar Konsumsi BBM (1 Langkah)
+     */
+    public function test_admin_can_create_and_update_vehicle_with_fuel_standard_in_one_step(): void
+    {
+        $uv = UnitVendor::firstOrFail();
+        $area = Area::firstOrFail();
+
+        // 1. Create Unit with standard_consumption in the same form
+        $createResp = $this->actingAs($this->admin)
+            ->post(route('admin.master.vehicle'), [
+                'unit_code' => 'LV-STREAMLINE-01',
+                'police_no' => 'DA 7788 UT',
+                'model' => 'Toyota Hilux Single Cabin',
+                'unit_vendor_id' => $uv->id,
+                'default_area_id' => $area->id,
+                'tank_capacity' => 85,
+                'standard_consumption' => 8.5,
+            ]);
+
+        $createResp->assertRedirect(route('admin.master', ['tab' => 'units']));
+
+        $veh = Vehicle::where('unit_code', 'LV-STREAMLINE-01')->firstOrFail();
+        $this->assertEquals(85, (float) $veh->tank_capacity);
+        $this->assertEquals($area->id, $veh->default_area_id);
+        $this->assertNotNull($veh->activeFuelStandard);
+        $this->assertEquals(8.5, (float) $veh->activeFuelStandard->standard_value);
+
+        // 2. Update Unit with revised standard_consumption
+        $updateResp = $this->actingAs($this->admin)
+            ->put(route('admin.master.units.update', $veh->id), [
+                'unit_code' => 'LV-STREAMLINE-01',
+                'police_no' => 'DA 7788 UT',
+                'model' => 'Toyota Hilux Single Cabin Updated',
+                'unit_vendor_id' => $uv->id,
+                'default_area_id' => $area->id,
+                'tank_capacity' => 90,
+                'standard_consumption' => 9.2,
+            ]);
+
+        $updateResp->assertRedirect(route('admin.master', ['tab' => 'units']));
+
+        $veh->refresh();
+        $this->assertEquals(90, (float) $veh->tank_capacity);
+        $this->assertEquals(9.2, (float) $veh->activeFuelStandard->standard_value);
+    }
+
+    /**
+     * Skenario 17: Registrasi Vendor BBM langsung mengkonfigurasi Harga Solar per Liter (1 Langkah)
+     */
+    public function test_admin_can_create_and_update_vendor_with_fuel_price_in_one_step(): void
+    {
+        // 1. Create Vendor with price_per_liter
+        $createResp = $this->actingAs($this->admin)
+            ->post(route('admin.master.vendor'), [
+                'name' => 'PT Solar Energi Prima',
+                'contact_person' => 'Bpk. Ridwan Solar',
+                'phone' => '081344556677',
+                'fuel_type' => 'Solar Industri B35',
+                'price_per_liter' => 28500,
+            ]);
+
+        $createResp->assertRedirect(route('admin.master', ['tab' => 'vendors']));
+
+        $ven = Vendor::where('name', 'PT Solar Energi Prima')->firstOrFail();
+        $this->assertNotNull($ven->activeFuelPrice);
+        $this->assertEquals(28500, (float) $ven->activeFuelPrice->price_per_liter);
+
+        // 2. Update Vendor with updated price
+        $updateResp = $this->actingAs($this->admin)
+            ->put(route('admin.master.vendors.update', $ven->id), [
+                'name' => 'PT Solar Energi Prima Tbk',
+                'contact_person' => 'Bpk. Ridwan Solar',
+                'phone' => '081344556677',
+                'fuel_type' => 'Solar Industri B35',
+                'price_per_liter' => 29000,
+            ]);
+
+        $updateResp->assertRedirect(route('admin.master', ['tab' => 'vendors']));
+
+        $ven->refresh();
+        $this->assertEquals('PT Solar Energi Prima Tbk', $ven->name);
+        $this->assertEquals(29000, (float) $ven->activeFuelPrice->price_per_liter);
+    }
+
+    /**
+     * Skenario 18: Registrasi Pengguna sekaligus auto-sync Employee dan Penugasan Area (1 Langkah)
+     */
+    public function test_admin_can_create_user_with_employee_and_area_assignment_in_one_step(): void
+    {
+        $areas = Area::take(2)->get();
+        $this->assertCount(2, $areas);
+
+        $createResp = $this->actingAs($this->admin)
+            ->post(route('admin.master.user'), [
+                'name' => 'Doni SPV Satui',
+                'username' => 'donispv',
+                'email' => 'donispv@example.com',
+                'phone' => '081234567899',
+                'role' => 'spv',
+                'jabatan' => 'Supervisor Mining',
+                'nrp' => '80129999',
+                'department' => 'Operation',
+                'company' => 'PT UNITED TRACTORS Tbk - SITE SATUI',
+                'assigned_area_ids' => $areas->pluck('id')->toArray(),
+            ]);
+
+        $createResp->assertRedirect(route('admin.master', ['tab' => 'users']));
+
+        $user = User::where('username', 'donispv')->firstOrFail();
+
+        // Verifikasi Employee otomatis dibuat via NRP
+        $employee = Employee::where('nrp', '80129999')->firstOrFail();
+        $this->assertEquals('Doni SPV Satui', $employee->name);
+        $this->assertEquals($employee->id, $user->employee_id);
+
+        // Verifikasi Area Approvers otomatis terbuat untuk 2 area yang dipilih
+        $assignedAreaIds = AreaApprover::where('user_id', $user->id)->pluck('area_id')->toArray();
+        $this->assertCount(2, $assignedAreaIds);
+        $this->assertEquals($areas->pluck('id')->sort()->values()->toArray(), collect($assignedAreaIds)->sort()->values()->toArray());
+
+        // Update penugasan area (misal dikurangi menjadi hanya 1 area)
+        $updateResp = $this->actingAs($this->admin)
+            ->put(route('admin.master.users.update', $user->id), [
+                'name' => 'Doni SPV Satui Updated',
+                'username' => 'donispv',
+                'email' => 'donispv@example.com',
+                'phone' => '081234567899',
+                'role' => 'spv',
+                'jabatan' => 'Senior Supervisor Mining',
+                'nrp' => '80129999',
+                'assigned_area_ids' => [$areas->first()->id],
+            ]);
+
+        $updateResp->assertRedirect(route('admin.master', ['tab' => 'users']));
+
+        $remainingAreaIds = AreaApprover::where('user_id', $user->id)->pluck('area_id')->toArray();
+        $this->assertCount(1, $remainingAreaIds);
+        $this->assertEquals([$areas->first()->id], $remainingAreaIds);
     }
 }

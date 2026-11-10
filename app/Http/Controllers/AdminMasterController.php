@@ -72,7 +72,7 @@ class AdminMasterController extends Controller
     public function index(Request $request)
     {
         $user = $this->getActiveUser();
-        $tab = $request->get('tab', 'units');
+        $tab = $request->get('tab', 'areas');
         $perPage = max(5, min(100, (int) $request->input('per_page', 10)));
 
         $allVehicles = Vehicle::where('is_active', true)->orderBy('unit_code')->get();
@@ -86,8 +86,8 @@ class AdminMasterController extends Controller
         $vehicles = Vehicle::with(['defaultArea', 'activeFuelStandard', 'unitVendor'])->orderBy('unit_code')->paginate($perPage)->withQueryString();
         $areas = Area::orderBy('name')->paginate($perPage)->withQueryString();
         $unitVendors = UnitVendor::withCount('vehicles')->orderBy('name')->paginate($perPage)->withQueryString();
-        $vendors = Vendor::orderBy('name')->paginate($perPage)->withQueryString();
-        $users = User::with(['employee', 'vendor'])->orderBy('name')->paginate($perPage)->withQueryString();
+        $vendors = Vendor::with('activeFuelPrice')->orderBy('name')->paginate($perPage)->withQueryString();
+        $users = User::with(['employee', 'vendor', 'areaApprovers.area'])->orderBy('name')->paginate($perPage)->withQueryString();
         $areaApprovers = AreaApprover::with(['area', 'user'])->orderBy('area_id')->paginate($perPage)->withQueryString();
         $fuelStandards = FuelStandard::with('vehicle')->orderBy('vehicle_id')->orderBy('effective_start', 'desc')->paginate($perPage)->withQueryString();
         $fuelPrices = FuelPrice::with('vendor')->orderBy('effective_start', 'desc')->paginate($perPage)->withQueryString();
@@ -268,6 +268,7 @@ class AdminMasterController extends Controller
             'meter_type' => ['nullable', 'in:km,hm'],
             'tank_capacity' => ['nullable', 'numeric', 'min:1'],
             'default_area_id' => ['nullable', 'exists:areas,id'],
+            'standard_consumption' => ['nullable', 'numeric', 'min:0.01'],
             'is_active' => ['nullable', 'boolean'],
         ]);
 
@@ -282,6 +283,19 @@ class AdminMasterController extends Controller
             'default_area_id' => $validated['default_area_id'] ?? null,
             'is_active' => $request->has('is_active') ? $request->boolean('is_active') : true,
         ]);
+
+        // Auto-create active Fuel Standard if provided
+        if ($request->filled('standard_consumption')) {
+            FuelStandard::create([
+                'vehicle_id' => $veh->id,
+                'standard_type' => 'km_per_liter',
+                'standard_value' => (float)$request->input('standard_consumption'),
+                'tolerance_percentage' => 5.0,
+                'effective_start' => now()->toDateString(),
+                'is_active' => true,
+                'notes' => 'Standar awal saat registrasi Unit Kendaraan',
+            ]);
+        }
 
         FuelRequestHistory::record(null, $user->id, 'master_updated', null, 'active', "Menambahkan data Unit: {$veh->unit_code} ({$veh->police_no}).");
 
@@ -302,6 +316,7 @@ class AdminMasterController extends Controller
             'meter_type' => ['nullable', 'in:km,hm'],
             'tank_capacity' => ['nullable', 'numeric', 'min:1'],
             'default_area_id' => ['nullable', 'exists:areas,id'],
+            'standard_consumption' => ['nullable', 'numeric', 'min:0.01'],
             'is_active' => ['nullable', 'boolean'],
         ]);
 
@@ -318,6 +333,26 @@ class AdminMasterController extends Controller
         ];
 
         $veh->update($payload);
+
+        // Auto-sync active Fuel Standard if provided
+        if ($request->has('standard_consumption') && $request->input('standard_consumption') !== null && $request->input('standard_consumption') !== '') {
+            $newStdVal = (float)$request->input('standard_consumption');
+            $activeStd = $veh->activeFuelStandard;
+            if (!$activeStd || (float)$activeStd->standard_value !== $newStdVal) {
+                if ($activeStd) {
+                    $activeStd->update(['is_active' => false, 'effective_end' => now()->toDateString()]);
+                }
+                FuelStandard::create([
+                    'vehicle_id' => $veh->id,
+                    'standard_type' => 'km_per_liter',
+                    'standard_value' => $newStdVal,
+                    'tolerance_percentage' => 5.0,
+                    'effective_start' => now()->toDateString(),
+                    'is_active' => true,
+                    'notes' => 'Diperbarui bersama formulir Unit Kendaraan',
+                ]);
+            }
+        }
 
         FuelRequestHistory::record(null, $user->id, 'master_updated', null, $veh->is_active ? 'active' : 'inactive', "Memperbarui data Unit ID #{$veh->id}: {$veh->unit_code} ({$veh->police_no}).");
 
@@ -467,7 +502,7 @@ class AdminMasterController extends Controller
 
     public function editVendor($id)
     {
-        $vendor = Vendor::findOrFail($id);
+        $vendor = Vendor::with('activeFuelPrice')->findOrFail($id);
 
         return response()->json([
             'success' => true,
@@ -488,6 +523,8 @@ class AdminMasterController extends Controller
             'name' => ['required', 'string', 'max:150', Rule::unique('vendors', 'name')],
             'contact_person' => ['nullable', 'string', 'max:100'],
             'phone' => ['nullable', 'string', 'max:40'],
+            'price_per_liter' => ['nullable', 'numeric', 'min:1'],
+            'fuel_type' => ['nullable', 'string', 'max:80'],
             'is_active' => ['nullable', 'boolean'],
         ]);
 
@@ -502,6 +539,18 @@ class AdminMasterController extends Controller
             'phone' => $validated['phone'] ?? null,
             'is_active' => $request->has('is_active') ? $request->boolean('is_active') : true,
         ]);
+
+        // Auto-create active Fuel Price if provided
+        if ($request->filled('price_per_liter')) {
+            FuelPrice::create([
+                'vendor_id' => $vendor->id,
+                'fuel_type' => $request->input('fuel_type') ?: 'Solar Industri B35',
+                'price_per_liter' => (float)$request->input('price_per_liter'),
+                'effective_start' => now()->toDateString(),
+                'is_active' => true,
+                'notes' => 'Harga awal saat registrasi Vendor BBM',
+            ]);
+        }
 
         FuelRequestHistory::record(null, $user->id, 'master_updated', null, 'active', "Menambahkan data Vendor: {$vendor->name} ({$vendor->code}).");
 
@@ -518,6 +567,8 @@ class AdminMasterController extends Controller
             'name' => ['required', 'string', 'max:150', Rule::unique('vendors', 'name')->ignore($vendor->id)],
             'contact_person' => ['nullable', 'string', 'max:100'],
             'phone' => ['nullable', 'string', 'max:40'],
+            'price_per_liter' => ['nullable', 'numeric', 'min:1'],
+            'fuel_type' => ['nullable', 'string', 'max:80'],
             'is_active' => ['nullable', 'boolean'],
         ]);
 
@@ -532,6 +583,25 @@ class AdminMasterController extends Controller
             'phone' => array_key_exists('phone', $validated) ? $validated['phone'] : $vendor->phone,
             'is_active' => $request->has('is_active') ? $request->boolean('is_active') : $vendor->is_active,
         ]);
+
+        // Auto-sync active Fuel Price if provided
+        if ($request->has('price_per_liter') && $request->input('price_per_liter') !== null && $request->input('price_per_liter') !== '') {
+            $newPrice = (float)$request->input('price_per_liter');
+            $activePrice = $vendor->activeFuelPrice;
+            if (!$activePrice || (float)$activePrice->price_per_liter !== $newPrice) {
+                if ($activePrice) {
+                    $activePrice->update(['is_active' => false, 'effective_end' => now()->toDateString()]);
+                }
+                FuelPrice::create([
+                    'vendor_id' => $vendor->id,
+                    'fuel_type' => $request->input('fuel_type') ?: ($activePrice?->fuel_type ?? 'Solar Industri B35'),
+                    'price_per_liter' => $newPrice,
+                    'effective_start' => now()->toDateString(),
+                    'is_active' => true,
+                    'notes' => 'Diperbarui bersama formulir Vendor BBM',
+                ]);
+            }
+        }
 
         FuelRequestHistory::record(null, $user->id, 'master_updated', null, $vendor->is_active ? 'active' : 'inactive', "Memperbarui data Vendor ID #{$vendor->id}: {$vendor->name} ({$vendor->code}).");
 
@@ -703,7 +773,7 @@ class AdminMasterController extends Controller
 
     public function editUser($id)
     {
-        $targetUser = User::with(['employee', 'vendor', 'roles'])->findOrFail($id);
+        $targetUser = User::with(['employee', 'vendor', 'roles', 'areaApprovers'])->findOrFail($id);
 
         return response()->json([
             'success' => true,
@@ -737,6 +807,10 @@ class AdminMasterController extends Controller
             'vendor_id' => ['nullable', 'exists:vendors,id'],
             'password' => ['nullable', 'string', 'min:6'],
             'is_active' => ['nullable', 'boolean'],
+            'department' => ['nullable', 'string', 'max:100'],
+            'company' => ['nullable', 'string', 'max:150'],
+            'assigned_area_ids' => ['nullable', 'array'],
+            'assigned_area_ids.*' => ['nullable', 'exists:areas,id'],
         ], [
             'phone.regex' => 'Nomor HP / WhatsApp harus diawali dengan 08 dan terdiri dari 10-14 digit angka (contoh: 081234567890).',
         ]);
@@ -757,10 +831,11 @@ class AdminMasterController extends Controller
 
         $targetUser = User::create($payload);
         $this->syncUserRolePivot($targetUser, $validated['role']);
+        $this->syncUserEmployeeAndAreaAssignments($targetUser, $request);
 
         FuelRequestHistory::record(null, $admin->id, 'master_updated', null, 'active', "Menambahkan akun pengguna: {$targetUser->username} (Role: {$targetUser->role}).");
 
-        return $this->respondSuccess($request, 'users', "Akun pengguna {$targetUser->name} berhasil disimpan.", $targetUser);
+        return $this->respondSuccess($request, 'users', "Akun pengguna {$targetUser->name} berhasil disimpan.", $targetUser->fresh(['roles', 'employee', 'vendor', 'areaApprovers']));
     }
 
     public function updateUser(Request $request, $id)
@@ -786,6 +861,10 @@ class AdminMasterController extends Controller
             'vendor_id' => ['nullable', 'exists:vendors,id'],
             'password' => ['nullable', 'string', 'min:6'],
             'is_active' => ['nullable', 'boolean'],
+            'department' => ['nullable', 'string', 'max:100'],
+            'company' => ['nullable', 'string', 'max:150'],
+            'assigned_area_ids' => ['nullable', 'array'],
+            'assigned_area_ids.*' => ['nullable', 'exists:areas,id'],
         ], [
             'phone.regex' => 'Nomor HP / WhatsApp harus diawali dengan 08 dan terdiri dari 10-14 digit angka (contoh: 081234567890).',
         ]);
@@ -810,10 +889,68 @@ class AdminMasterController extends Controller
 
         $targetUser->update($payload);
         $this->syncUserRolePivot($targetUser, $validated['role']);
+        $this->syncUserEmployeeAndAreaAssignments($targetUser, $request);
 
         FuelRequestHistory::record(null, $admin->id, 'master_updated', null, $targetUser->is_active ? 'active' : 'inactive', "Memperbarui akun pengguna ID #{$targetUser->id}: {$targetUser->username} (Role: {$targetUser->role}).");
 
-        return $this->respondSuccess($request, 'users', "Akun pengguna {$targetUser->name} berhasil diperbarui.", $targetUser->fresh(['roles', 'employee', 'vendor']));
+        return $this->respondSuccess($request, 'users', "Akun pengguna {$targetUser->name} berhasil diperbarui.", $targetUser->fresh(['roles', 'employee', 'vendor', 'areaApprovers']));
+    }
+
+    /**
+     * Auto-sync Employee profile and Area Approver assignments directly from User Form
+     */
+    protected function syncUserEmployeeAndAreaAssignments(User $targetUser, Request $request): void
+    {
+        // 1. Auto-sync Employee if NRP is present
+        if (!empty($targetUser->nrp)) {
+            $emp = Employee::firstOrNew(['nrp' => $targetUser->nrp]);
+            $emp->name = $targetUser->name;
+            $emp->position = $targetUser->jabatan ?: ucfirst($targetUser->role);
+            $emp->department = $request->input('department', $emp->department ?? 'Operation');
+            $emp->company = $request->input('company', $emp->company ?? 'PT UNITED TRACTORS Tbk - SITE SATUI');
+            $emp->source = $emp->source ?? 'local';
+            $emp->is_active = $targetUser->is_active;
+            $emp->save();
+
+            if ($targetUser->employee_id !== $emp->id) {
+                $targetUser->update(['employee_id' => $emp->id]);
+            }
+        }
+
+        // 2. Auto-sync Area Approver assignments if assigned_area_ids is provided
+        if ($request->has('assigned_area_ids')) {
+            $assignedAreaIds = array_filter(array_map('intval', (array) $request->input('assigned_area_ids', [])));
+            $roleType = match ($targetUser->role) {
+                'spv' => 'spv',
+                'depthead' => 'manager',
+                'vendor' => 'vendor',
+                'fuelman' => 'fuelman',
+                default => null,
+            };
+
+            if ($roleType) {
+                $currentApprovers = AreaApprover::where('user_id', $targetUser->id)->get();
+                foreach ($currentApprovers as $aa) {
+                    if (!in_array((int)$aa->area_id, $assignedAreaIds, true)) {
+                        $aa->delete();
+                    }
+                }
+
+                foreach ($assignedAreaIds as $areaId) {
+                    AreaApprover::updateOrCreate(
+                        [
+                            'area_id' => $areaId,
+                            'user_id' => $targetUser->id,
+                        ],
+                        [
+                            'role_type' => $roleType,
+                            'is_active' => true,
+                            'start_date' => now()->toDateString(),
+                        ]
+                    );
+                }
+            }
+        }
     }
 
     public function toggleUser(Request $request, $id)

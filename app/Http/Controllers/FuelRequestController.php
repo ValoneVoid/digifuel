@@ -32,7 +32,7 @@ class FuelRequestController extends Controller
         $user = $this->getActiveUser();
 
         // Only active units can be used for new Fuel Requests
-        $vehicles = Vehicle::where('is_active', true)->orderBy('unit_code')->get();
+        $vehicles = Vehicle::with('defaultArea')->where('is_active', true)->orderBy('unit_code')->get();
         $areas = Area::where('is_active', true)->orderBy('name')->get();
         $vendors = Vendor::where('is_active', true)->orderBy('name')->get();
 

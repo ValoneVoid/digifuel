@@ -89,6 +89,7 @@
                                 data-police="{{ $veh->police_no }}"
                                 data-type="{{ $veh->model ?? $veh->unit_type }}"
                                 data-meter="{{ strtoupper($veh->meter_type ?? 'km') }}"
+                                data-default-area="{{ $veh->defaultArea?->name ?? '' }}"
                                 {{ old('unit_code') === $veh->unit_code ? 'selected' : '' }}>
                                 {{ $veh->unit_code }} ({{ $veh->model ?? $veh->unit_type }})
                             </option>
@@ -248,6 +249,20 @@ function handleUnitChange(select) {
         policeInput.value = selectedOption.dataset.police;
     } else {
         policeInput.value = '';
+    }
+
+    // Auto-select Default Area if assigned to the Unit
+    if (selectedOption && selectedOption.dataset.defaultArea) {
+        const areaSelect = document.getElementById('area_select');
+        if (areaSelect) {
+            for (let i = 0; i < areaSelect.options.length; i++) {
+                if (areaSelect.options[i].value === selectedOption.dataset.defaultArea) {
+                    areaSelect.selectedIndex = i;
+                    handleAreaChange(selectedOption.dataset.defaultArea);
+                    break;
+                }
+            }
+        }
     }
 }
 

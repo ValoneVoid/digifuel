@@ -13,30 +13,42 @@
         </div>
     </div>
 
-    <!-- Navigation Tabs -->
+    <!-- Navigation Tabs Sesuai Alur Kebutuhan Operasional -->
     @php
         $getCount = fn($col) => method_exists($col, 'total') ? $col->total() : (is_countable($col) ? count($col) : 0);
-        $tabs = [
-            'units' => 'Data Unit (' . $getCount($vehicles) . ')',
-            'unit_vendors' => 'Data Vendor Unit (' . $getCount($unitVendors) . ')',
-            'employees' => 'Data Employee (' . $getCount($employees) . ')',
-            'areas' => 'Data Area (' . $getCount($areas) . ')',
-            'vendors' => 'Data Vendor BBM (' . $getCount($vendors) . ')',
-            'approvers' => 'Approver Area (' . $getCount($areaApprovers) . ')',
-            'standards' => 'Standar BBM (' . $getCount($fuelStandards) . ')',
-            'prices' => 'Harga BBM (' . $getCount($fuelPrices) . ')',
-            'users' => 'User & Role (' . $getCount($users) . ')',
+        $primaryTabs = [
+            'areas' => '1. Wilayah & Area (' . $getCount($areas) . ')',
+            'vendors' => '2. Penyedia BBM & Harga (' . $getCount($vendors) . ')',
+            'unit_vendors' => '3. Vendor Rental Unit (' . $getCount($unitVendors) . ')',
+            'units' => '4. Unit Kendaraan & Standar (' . $getCount($vehicles) . ')',
+            'users' => '5. Pengguna, Karyawan & Penugasan (' . $getCount($users) . ')',
             'backgrounds' => 'Background Sistem (' . $getCount($backgrounds ?? collect()) . ')',
             'audit' => 'Audit Trail (' . $getCount($auditLogs) . ')',
         ];
+
+        $isLegacyTab = in_array($tab, ['employees', 'approvers', 'standards', 'prices'], true);
     @endphp
-    <div class="digi-tabs-nav">
-        @foreach($tabs as $key => $label)
+    <div class="digi-tabs-nav" style="display: flex; flex-wrap: wrap; gap: 8px;">
+        @foreach($primaryTabs as $key => $label)
             <a href="{{ route('admin.master', array_merge(request()->query(), ['tab' => $key, 'page' => 1])) }}" class="btn-digi {{ $tab === $key ? 'btn-digi-blue' : 'btn-digi-gray' }}" style="padding: 7px 14px; font-size: 12.5px;">
                 {{ $label }}
             </a>
         @endforeach
     </div>
+
+    @if($isLegacyTab)
+        <div style="background: #f1f5f9; border: 1px solid #cbd5e1; border-radius: 8px; padding: 10px 14px; margin-top: 10px; display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 8px;">
+            <div style="font-size: 13px; color: #334155;">
+                ℹ️ Anda sedang membuka tab detail lanjutan: <strong>{{ strtoupper($tab) }}</strong>. Kini konfigurasi data ini juga dapat dikelola langsung pada alur utama (Langkah 1 - 5) di atas.
+            </div>
+            <div style="display: flex; gap: 6px; flex-wrap: wrap;">
+                <a href="{{ route('admin.master', ['tab' => 'employees']) }}" class="btn-digi {{ $tab === 'employees' ? 'btn-digi-blue' : 'btn-digi-gray' }}" style="font-size: 11.5px; padding: 4px 10px;">Detail Karyawan</a>
+                <a href="{{ route('admin.master', ['tab' => 'standards']) }}" class="btn-digi {{ $tab === 'standards' ? 'btn-digi-blue' : 'btn-digi-gray' }}" style="font-size: 11.5px; padding: 4px 10px;">Detail Standar BBM</a>
+                <a href="{{ route('admin.master', ['tab' => 'prices']) }}" class="btn-digi {{ $tab === 'prices' ? 'btn-digi-blue' : 'btn-digi-gray' }}" style="font-size: 11.5px; padding: 4px 10px;">Detail Riwayat Harga</a>
+                <a href="{{ route('admin.master', ['tab' => 'approvers']) }}" class="btn-digi {{ $tab === 'approvers' ? 'btn-digi-blue' : 'btn-digi-gray' }}" style="font-size: 11.5px; padding: 4px 10px;">Detail Matriks Approver</a>
+            </div>
+        </div>
+    @endif
 
     <div class="digi-mobile-swipe-hint">
         <span>👉 Geser tab & tabel ke samping untuk melihat seluruh data</span>
@@ -50,7 +62,12 @@
             @csrf
             <input type="hidden" name="id" id="unit_id" value="">
             <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 14px;">
-                <h3 class="digi-section-title" id="unitFormTitle" style="margin: 0;">Tambah Data Unit Kendaraan & Alat Berat</h3>
+                <div>
+                    <h3 class="digi-section-title" id="unitFormTitle" style="margin: 0;">Langkah 4: Tambah Data Unit Kendaraan & Standar Konsumsi BBM</h3>
+                    <p style="font-size: 12.5px; color: #64748b; margin: 3px 0 0 0;">
+                        Daftarkan unit operasional, vendor rental, area default, kapasitas tangki, serta target rasio konsumsi BBM (KM/L) sekaligus.
+                    </p>
+                </div>
                 <button type="button" id="unitCancelBtn" class="btn-digi btn-digi-gray" style="display: none; padding: 5px 14px; font-size: 12px;" onclick="resetUnitForm()">
                     Batal Edit
                 </button>
@@ -69,9 +86,9 @@
                     <input type="text" name="model" id="unit_model" class="digi-input" placeholder="Contoh: B/U FMC JB HDX TRITON" required>
                 </div>
             </div>
-            <div class="digi-form-grid-3" style="margin-bottom: 0; align-items: flex-end;">
+            <div class="digi-form-grid-4" style="display: grid; grid-template-columns: 1.2fr 1.2fr 1fr 1fr; gap: 12px; margin-bottom: 0; align-items: flex-end;">
                 <div class="digi-form-group">
-                    <label class="digi-form-label">Vendor Unit (Penyedia Unit) <span class="digi-required">*</span></label>
+                    <label class="digi-form-label">Vendor Unit (Rental / Internal) <span class="digi-required">*</span></label>
                     <select name="unit_vendor_id" id="unit_vendor_id" class="digi-select" required>
                         <option value="">-- Pilih Vendor Unit --</option>
                         @foreach($allUnitVendors as $uv)
@@ -81,12 +98,25 @@
                     <input type="hidden" name="meter_type" id="unit_meter_type" value="km">
                 </div>
                 <div class="digi-form-group">
-                    <label class="digi-form-label">Kapasitas Tangki (Liter)</label>
+                    <label class="digi-form-label">Area Operasional Default</label>
+                    <select name="default_area_id" id="unit_default_area_id" class="digi-select">
+                        <option value="">-- Pilih Area Default --</option>
+                        @foreach($allAreas as $a)
+                            <option value="{{ $a->id }}">{{ $a->name }}</option>
+                        @endforeach
+                    </select>
+                </div>
+                <div class="digi-form-group">
+                    <label class="digi-form-label">Kapasitas Tangki (L)</label>
                     <input type="number" name="tank_capacity" id="unit_tank_capacity" class="digi-input" value="80">
                 </div>
-                <div>
-                    <button type="submit" id="unitSubmitBtn" class="btn-digi btn-digi-blue">Simpan Unit</button>
+                <div class="digi-form-group">
+                    <label class="digi-form-label">Standar Rasio (KM/L)</label>
+                    <input type="number" step="0.01" min="0.01" name="standard_consumption" id="unit_standard_consumption" class="digi-input" placeholder="Misal: 8.0">
                 </div>
+            </div>
+            <div style="display: flex; justify-content: flex-end; margin-top: 14px;">
+                <button type="submit" id="unitSubmitBtn" class="btn-digi btn-digi-blue">Simpan Data Unit</button>
             </div>
         </form>
 
@@ -101,8 +131,9 @@
                         <th>Nomor Polisi</th>
                         <th>Tipe / Model Unit</th>
                         <th>Vendor Unit</th>
+                        <th>Area Default</th>
                         <th>Kapasitas Tangki</th>
-                        <th>Standar Aktif</th>
+                        <th>Standar BBM</th>
                         <th>Status</th>
                         <th>Aksi</th>
                     </tr>
@@ -121,12 +152,19 @@
                                     <span class="digi-badge digi-badge-gray">Internal UT</span>
                                 @endif
                             </td>
+                            <td>
+                                @if($v->defaultArea)
+                                    <span class="digi-badge digi-badge-green">{{ $v->defaultArea->name }}</span>
+                                @else
+                                    <span style="color: #94a3b8; font-size: 12px;">-</span>
+                                @endif
+                            </td>
                             <td>{{ (float)($v->tank_capacity ?? 80) }} L</td>
                             <td>
                                 @if($v->activeFuelStandard)
-                                    <strong>{{ (float)$v->activeFuelStandard->standard_value }}</strong> Km/L
+                                    <span class="digi-badge digi-badge-blue" style="font-weight: 700;">{{ (float)$v->activeFuelStandard->standard_value }} KM/L</span>
                                 @else
-                                    -
+                                    <span style="color: #94a3b8; font-size: 12px;">Belum diatur</span>
                                 @endif
                             </td>
                             <td>
@@ -452,12 +490,17 @@
             @csrf
             <input type="hidden" name="id" id="vendor_id" value="">
             <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 14px;">
-                <h3 class="digi-section-title" id="vendorFormTitle" style="margin: 0;">Tambah Perusahaan Vendor BBM</h3>
+                <div>
+                    <h3 class="digi-section-title" id="vendorFormTitle" style="margin: 0;">Langkah 2: Tambah Perusahaan Vendor BBM & Harga Solar</h3>
+                    <p style="font-size: 12.5px; color: #64748b; margin: 3px 0 0 0;">
+                        Kelola data penyedia BBM (solar industri) serta penetapan harga per liter aktif langsung dalam satu formulir terpadu.
+                    </p>
+                </div>
                 <button type="button" id="vendorCancelBtn" class="btn-digi btn-digi-gray" style="display: none; padding: 5px 14px; font-size: 12px;" onclick="resetVendorForm()">
                     Batal Edit
                 </button>
             </div>
-            <div class="digi-form-grid-3" style="margin-bottom: 0; align-items: flex-end;">
+            <div class="digi-form-grid-3">
                 <div class="digi-form-group">
                     <label class="digi-form-label">Kode & Nama Vendor BBM <span class="digi-required">*</span></label>
                     <div style="display: flex; gap: 6px;">
@@ -468,13 +511,20 @@
                 <div class="digi-form-group">
                     <label class="digi-form-label">Kontak Petugas & No. Telepon</label>
                     <div style="display:flex; gap:6px;">
-                        <input type="text" name="contact_person" id="vendor_contact" class="digi-input" placeholder="Nama Kontak">
+                        <input type="text" name="contact_person" id="vendor_contact" class="digi-input" placeholder="Nama PIC">
                         <input type="text" name="phone" id="vendor_phone" class="digi-input" placeholder="0812xxxx">
                     </div>
                 </div>
-                <div>
-                    <button type="submit" id="vendorSubmitBtn" class="btn-digi btn-digi-blue">Simpan Vendor BBM</button>
+                <div class="digi-form-group">
+                    <label class="digi-form-label">Jenis BBM & Harga Aktif (Rp/Liter)</label>
+                    <div style="display:flex; gap:6px;">
+                        <input type="text" name="fuel_type" id="vendor_fuel_type" class="digi-input" value="Solar Industri B35" style="width: 140px;">
+                        <input type="number" step="1" min="1" name="price_per_liter" id="vendor_price_per_liter" class="digi-input" placeholder="Rp/Liter (misal 27000)">
+                    </div>
                 </div>
+            </div>
+            <div style="display: flex; justify-content: flex-end; margin-top: 14px;">
+                <button type="submit" id="vendorSubmitBtn" class="btn-digi btn-digi-blue">Simpan Vendor BBM & Harga</button>
             </div>
         </form>
 
@@ -489,6 +539,7 @@
                         <th>Nama Vendor BBM</th>
                         <th>Kontak Petugas</th>
                         <th>Telepon</th>
+                        <th>Harga Solar Aktif</th>
                         <th>Status</th>
                         <th>Aksi</th>
                     </tr>
@@ -501,6 +552,15 @@
                             <td style="font-weight:600;">{{ $ven->name }}</td>
                             <td>{{ $ven->contact_person ?? 'Petugas Operasional' }}</td>
                             <td>{{ $ven->phone ?? '-' }}</td>
+                            <td>
+                                @if($ven->activeFuelPrice)
+                                    <span class="digi-badge digi-badge-blue" style="font-weight: 700;">
+                                        Rp {{ number_format($ven->activeFuelPrice->price_per_liter, 0, ',', '.') }} / L
+                                    </span>
+                                @else
+                                    <span style="color: #94a3b8; font-size: 12px;">Belum diatur</span>
+                                @endif
+                            </td>
                             <td>
                                 <span class="digi-badge {{ $ven->is_active ? 'digi-badge-green' : 'digi-badge-red' }}">
                                     {{ $ven->is_active ? 'Aktif' : 'Nonaktif' }}
@@ -895,17 +955,27 @@
             @csrf
             <input type="hidden" name="id" id="usr_id" value="">
             <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 14px;">
-                <h3 class="digi-section-title" id="usrFormTitle" style="margin: 0;">Tambah / Kelola Akun Pengguna & Role</h3>
+                <div>
+                    <h3 class="digi-section-title" id="usrFormTitle" style="margin: 0;">Langkah 5: Tambah / Kelola Akun Pengguna, Karyawan & Penugasan Area</h3>
+                    <p style="font-size: 12.5px; color: #64748b; margin: 3px 0 0 0;">
+                        1 formulir terpadu: mendaftarkan akun login, sinkronisasi otomatis data Karyawan (Employee) via NRP, serta penugasan wilayah kerja approver.
+                    </p>
+                </div>
                 <button type="button" id="usrCancelBtn" class="btn-digi btn-digi-gray" style="display: none; padding: 5px 14px; font-size: 12px;" onclick="resetUserForm()">
                     Batal Edit
                 </button>
             </div>
+
+            <div style="background: #f0fdf4; border: 1px solid #bbf7d0; border-radius: 8px; padding: 10px 14px; margin-bottom: 14px; font-size: 12.5px; color: #166534;">
+                💡 <strong>Integrasi 1 Langkah:</strong> Mengisi kolom NRP akan otomatis menyinkronkan data Employee / Karyawan (DIGISIM Ready). Untuk SPV, Dept Head, Vendor BBM, & Fuel Man, centang pilihan area operasional di bawah agar langsung terdaftar pada formulir pengajuan Driver.
+            </div>
+
             <div class="digi-form-grid-3">
                 <div class="digi-form-group">
                     <label class="digi-form-label">Nama Lengkap & NRP <span class="digi-required">*</span></label>
                     <div style="display:flex; gap:6px;">
-                        <input type="text" name="name" id="usr_name" class="digi-input" placeholder="Nama" required>
-                        <input type="text" name="nrp" id="usr_nrp" class="digi-input" placeholder="NRP" style="width:110px;">
+                        <input type="text" name="name" id="usr_name" class="digi-input" placeholder="Nama Lengkap" required>
+                        <input type="text" name="nrp" id="usr_nrp" class="digi-input" placeholder="NRP" style="width:115px;">
                     </div>
                 </div>
                 <div class="digi-form-group">
@@ -924,9 +994,9 @@
                 <div class="digi-form-group">
                     <label class="digi-form-label">Role & Jabatan <span class="digi-required">*</span></label>
                     <div style="display:flex; gap:6px;">
-                        <select name="role" id="usr_role" class="digi-select" required>
+                        <select name="role" id="usr_role" class="digi-select" required onchange="onUserRoleChange(this)">
                             <option value="driver">Employee / Driver</option>
-                            <option value="spv">SPV / Dept Head</option>
+                            <option value="spv">SPV / Supervisor</option>
                             <option value="depthead">Dept Head / Manager</option>
                             <option value="vendor">Vendor BBM</option>
                             <option value="fuelman">Fuel Man</option>
@@ -949,6 +1019,25 @@
                     <input type="password" name="password" id="usr_password" class="digi-input" placeholder="Kosongkan jika tidak diubah">
                 </div>
             </div>
+
+            <!-- Penugasan Area Operasional Terpadu -->
+            <div id="usr_area_assignment_box" style="margin-top: 14px; background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 8px; padding: 12px 16px;">
+                <label class="digi-form-label" style="margin-bottom: 4px; font-weight: 700; color: #1e293b;">
+                    Penugasan Wilayah Kerja / Area Operasional:
+                </label>
+                <div style="font-size: 12px; color: #64748b; margin-bottom: 8px;">
+                    Centang seluruh area yang menjadi wilayah penugasan atau wewenang approver ini. Pilihan di formulir Fuel Request Driver akan otomatis menampilkan approver ini pada area yang dipilih.
+                </div>
+                <div style="display: flex; gap: 10px; flex-wrap: wrap;">
+                    @foreach($allAreas as $a)
+                        <label style="display: inline-flex; align-items: center; gap: 6px; font-size: 12.5px; background: #fff; border: 1px solid #cbd5e1; padding: 6px 12px; border-radius: 6px; cursor: pointer;">
+                            <input type="checkbox" name="assigned_area_ids[]" value="{{ $a->id }}" class="usr-area-cb" id="usr_area_{{ $a->id }}">
+                            <span style="font-weight: 600; color: #334155;">{{ $a->name }}</span>
+                        </label>
+                    @endforeach
+                </div>
+            </div>
+
             <div style="display: flex; justify-content: flex-end; margin-top: 14px;">
                 <button type="submit" id="usrSubmitBtn" class="btn-digi btn-digi-blue">Simpan Akun Pengguna</button>
             </div>
@@ -968,6 +1057,7 @@
                         <th>Role Sistem</th>
                         <th>Jabatan</th>
                         <th>Vendor BBM Terkait</th>
+                        <th>Penugasan Area</th>
                         <th>Status</th>
                         <th>Aksi</th>
                     </tr>
@@ -989,6 +1079,13 @@
                             <td><span class="digi-badge digi-badge-blue">{{ strtoupper($u->role) }}</span></td>
                             <td>{{ $u->jabatan }}</td>
                             <td>{{ $u->vendor?->name ?? 'Internal UT' }}</td>
+                            <td>
+                                @forelse($u->areaApprovers as $aa)
+                                    <span class="digi-badge digi-badge-green" style="font-size: 11px; margin-bottom: 2px;">{{ $aa->area?->name ?? 'Area #' . $aa->area_id }}</span>
+                                @empty
+                                    <span style="color: #94a3b8; font-size: 12px;">-</span>
+                                @endforelse
+                            </td>
                             <td>
                                 <span class="digi-badge {{ $u->is_active ? 'digi-badge-green' : 'digi-badge-red' }}">
                                     {{ $u->is_active ? 'Aktif' : 'Nonaktif' }}
@@ -1300,10 +1397,16 @@ function editUnit(v) {
     if (document.getElementById('unit_vendor_id')) {
         document.getElementById('unit_vendor_id').value = v.unit_vendor_id || '';
     }
+    if (document.getElementById('unit_default_area_id')) {
+        document.getElementById('unit_default_area_id').value = v.default_area_id || '';
+    }
     if (document.getElementById('unit_meter_type')) {
         document.getElementById('unit_meter_type').value = v.meter_type || 'km';
     }
     document.getElementById('unit_tank_capacity').value = v.tank_capacity || 80;
+    if (document.getElementById('unit_standard_consumption')) {
+        document.getElementById('unit_standard_consumption').value = v.active_fuel_standard ? parseFloat(v.active_fuel_standard.standard_value) : '';
+    }
     document.getElementById('unitFormTitle').textContent = 'Edit Data Unit: ' + v.unit_code;
     document.getElementById('unitSubmitBtn').textContent = 'Perbarui Unit';
     document.getElementById('unitCancelBtn').style.display = 'inline-flex';
@@ -1315,11 +1418,17 @@ function resetUnitForm() {
     if (document.getElementById('unit_vendor_id')) {
         document.getElementById('unit_vendor_id').value = '';
     }
+    if (document.getElementById('unit_default_area_id')) {
+        document.getElementById('unit_default_area_id').value = '';
+    }
+    if (document.getElementById('unit_standard_consumption')) {
+        document.getElementById('unit_standard_consumption').value = '';
+    }
     if (document.getElementById('unit_meter_type')) {
         document.getElementById('unit_meter_type').value = 'km';
     }
-    document.getElementById('unitFormTitle').textContent = 'Tambah Data Unit Kendaraan & Alat Berat';
-    document.getElementById('unitSubmitBtn').textContent = 'Simpan Unit';
+    document.getElementById('unitFormTitle').textContent = 'Langkah 4: Tambah Data Unit Kendaraan & Standar Konsumsi BBM';
+    document.getElementById('unitSubmitBtn').textContent = 'Simpan Data Unit';
     document.getElementById('unitCancelBtn').style.display = 'none';
 }
 
@@ -1391,16 +1500,28 @@ function editVendor(ven) {
     document.getElementById('vendor_name').value = ven.name || '';
     document.getElementById('vendor_contact').value = ven.contact_person || '';
     document.getElementById('vendor_phone').value = ven.phone || '';
+    if (document.getElementById('vendor_fuel_type')) {
+        document.getElementById('vendor_fuel_type').value = (ven.active_fuel_price ? ven.active_fuel_price.fuel_type : 'Solar Industri B35');
+    }
+    if (document.getElementById('vendor_price_per_liter')) {
+        document.getElementById('vendor_price_per_liter').value = (ven.active_fuel_price ? parseFloat(ven.active_fuel_price.price_per_liter) : '');
+    }
     document.getElementById('vendorFormTitle').textContent = 'Edit Perusahaan Vendor: ' + ven.name;
-    document.getElementById('vendorSubmitBtn').textContent = 'Perbarui Vendor';
+    document.getElementById('vendorSubmitBtn').textContent = 'Perbarui Vendor BBM & Harga';
     document.getElementById('vendorCancelBtn').style.display = 'inline-flex';
     document.getElementById('vendorForm').scrollIntoView({ behavior: 'smooth', block: 'center' });
 }
 function resetVendorForm() {
     document.getElementById('vendorForm').reset();
     document.getElementById('vendor_id').value = '';
-    document.getElementById('vendorFormTitle').textContent = 'Tambah Perusahaan Vendor BBM';
-    document.getElementById('vendorSubmitBtn').textContent = 'Simpan Vendor';
+    if (document.getElementById('vendor_price_per_liter')) {
+        document.getElementById('vendor_price_per_liter').value = '';
+    }
+    if (document.getElementById('vendor_fuel_type')) {
+        document.getElementById('vendor_fuel_type').value = 'Solar Industri B35';
+    }
+    document.getElementById('vendorFormTitle').textContent = 'Langkah 2: Tambah Perusahaan Vendor BBM & Harga Solar';
+    document.getElementById('vendorSubmitBtn').textContent = 'Simpan Vendor BBM & Harga';
     document.getElementById('vendorCancelBtn').style.display = 'none';
 }
 
@@ -1518,6 +1639,15 @@ function resetPriceForm() {
     document.getElementById('priceCancelBtn').style.display = 'none';
 }
 
+function onUserRoleChange(selectElem) {
+    if (!selectElem) return;
+    const role = selectElem.value;
+    const venSelect = document.getElementById('usr_vendor_id');
+    if (venSelect && venSelect.parentElement) {
+        venSelect.parentElement.style.opacity = (role === 'vendor') ? '1' : '0.7';
+    }
+}
+
 // 8. User Form Auto-Fill & Reset
 function editUser(u) {
     document.getElementById('usr_id').value = u.id;
@@ -1530,6 +1660,19 @@ function editUser(u) {
     document.getElementById('usr_jabatan').value = u.jabatan || '';
     document.getElementById('usr_vendor_id').value = u.vendor_id || '';
     document.getElementById('usr_password').value = '';
+
+    // Reset all area checkboxes
+    document.querySelectorAll('.usr-area-cb').forEach(cb => cb.checked = false);
+
+    // Auto-check assigned areas
+    if (u.area_approvers && Array.isArray(u.area_approvers)) {
+        u.area_approvers.forEach(aa => {
+            const cb = document.getElementById('usr_area_' + aa.area_id);
+            if (cb) cb.checked = true;
+        });
+    }
+
+    onUserRoleChange(document.getElementById('usr_role'));
     document.getElementById('usrFormTitle').textContent = 'Edit Akun Pengguna: ' + u.name;
     document.getElementById('usrSubmitBtn').textContent = 'Perbarui Akun Pengguna';
     document.getElementById('usrCancelBtn').style.display = 'inline-flex';
@@ -1539,7 +1682,9 @@ function resetUserForm() {
     document.getElementById('userForm').reset();
     document.getElementById('usr_id').value = '';
     document.getElementById('usr_phone').value = '';
-    document.getElementById('usrFormTitle').textContent = 'Tambah / Kelola Akun Pengguna & Role';
+    document.querySelectorAll('.usr-area-cb').forEach(cb => cb.checked = false);
+    onUserRoleChange(document.getElementById('usr_role'));
+    document.getElementById('usrFormTitle').textContent = 'Langkah 5: Tambah / Kelola Akun Pengguna, Karyawan & Penugasan Area';
     document.getElementById('usrSubmitBtn').textContent = 'Simpan Akun Pengguna';
     document.getElementById('usrCancelBtn').style.display = 'none';
 }
