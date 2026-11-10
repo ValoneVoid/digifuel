@@ -936,9 +936,9 @@
                 </div>
                 <div class="digi-form-group">
                     <label class="digi-form-label">Jenis BBM & Harga Aktif (Rp/Liter)</label>
-                    <div style="display:flex; gap:6px;">
-                        <input type="text" name="fuel_type" id="vendor_fuel_type" class="digi-input" value="Solar Industri B35" style="width: 140px;">
-                        <input type="number" step="1" min="1" name="price_per_liter" id="vendor_price_per_liter" class="digi-input" placeholder="Rp/Liter (misal 27000)">
+                    <div style="display:flex; gap:8px;">
+                        <input type="text" name="fuel_type" id="vendor_fuel_type" class="digi-input" value="Solar Industri B35" style="flex: 1.6; min-width: 160px;" placeholder="Jenis BBM (Solar Industri B35)">
+                        <input type="number" step="1" min="1" name="price_per_liter" id="vendor_price_per_liter" class="digi-input" style="flex: 1; min-width: 110px;" placeholder="Rp/Liter (27000)">
                     </div>
                 </div>
             </div>
@@ -1346,9 +1346,9 @@
                 </div>
                 <div class="digi-form-group">
                     <label class="digi-form-label">Jenis BBM & Harga per Liter (IDR) <span class="digi-required">*</span></label>
-                    <div style="display:flex; gap:6px;">
-                        <input type="text" name="fuel_type" id="price_fuel_type" class="digi-input" value="Solar Industri B35" required>
-                        <input type="number" step="1" name="price_per_liter" id="price_per_liter" class="digi-input" value="27000" required>
+                    <div style="display:flex; gap:8px;">
+                        <input type="text" name="fuel_type" id="price_fuel_type" class="digi-input" value="Solar Industri B35" style="flex: 1.6; min-width: 160px;" placeholder="Jenis BBM" required>
+                        <input type="number" step="1" name="price_per_liter" id="price_per_liter" class="digi-input" value="27000" style="flex: 1; min-width: 110px;" placeholder="Rp/Liter" required>
                     </div>
                 </div>
                 <div class="digi-form-group">
