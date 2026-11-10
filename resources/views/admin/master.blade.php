@@ -2183,7 +2183,33 @@
     <!-- TAB 9: AUDIT TRAIL                                           -->
     <!-- ============================================================ -->
     @if($tab === 'audit')
-        <h3 class="digi-section-title">Log Aktivitas & Audit Trail Sistem</h3>
+        <div style="display: flex; justify-content: space-between; align-items: flex-start; flex-wrap: wrap; gap: 12px; margin-bottom: 14px;">
+            <div>
+                <h3 class="digi-section-title" style="margin: 0 0 4px 0;">Log Aktivitas & Audit Trail Sistem</h3>
+                <p style="font-size: 12.5px; color: #64748b; margin: 0;">
+                    Riwayat kronologis seluruh aksi, approval pengajuan, dan perubahan master data. Tersimpan permanen demi akuntabilitas audit.
+                </p>
+            </div>
+            <div style="display: flex; align-items: center; gap: 8px; flex-wrap: wrap;">
+                <a href="{{ route('admin.master.audit.export') }}" class="btn-digi btn-digi-green" style="padding: 6px 14px; font-size: 12px; text-decoration: none; display: inline-flex; align-items: center; gap: 6px;" title="Unduh seluruh catatan audit trail ke format Excel (.xlsx)">
+                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.3" stroke-linecap="round" stroke-linejoin="round">
+                        <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path>
+                        <polyline points="7 10 12 15 17 10"></polyline>
+                        <line x1="12" y1="15" x2="12" y2="3"></line>
+                    </svg>
+                    <span>Ekspor Arsip Excel</span>
+                </a>
+                <button type="button" class="btn-digi btn-digi-gray" onclick="openAuditPurgeModal()" style="padding: 6px 14px; font-size: 12px; display: inline-flex; align-items: center; gap: 6px;" title="Kelola kebijakan retensi dan bersihkan log lama">
+                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.3" stroke-linecap="round" stroke-linejoin="round">
+                        <polyline points="3 6 5 6 21 6"></polyline>
+                        <path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path>
+                        <line x1="10" y1="11" x2="10" y2="17"></line>
+                        <line x1="14" y1="11" x2="14" y2="17"></line>
+                    </svg>
+                    <span>Kelola Retensi Log</span>
+                </button>
+            </div>
+        </div>
 
         <div class="digi-table-filter-bar">
             <input type="text" class="digi-table-search-input" placeholder="Cari log aktivitas, pengguna, aksi, nomor pengajuan, status..." onkeyup="filterMasterTable(this)">
@@ -2334,6 +2360,54 @@
         </form>
     </div>
 </div>
+
+<!-- MODAL KELOLA RETENSI & BERSIHKAN LOG AUDIT LAMA -->
+<div id="purgeAuditModal" class="digi-modal-backdrop" style="display: none;">
+    <div class="digi-modal" style="max-width: 520px;">
+        <div class="digi-modal-header" style="background: #f8fafc; border-bottom: 1px solid #e2e8f0;">
+            <div style="display: flex; align-items: center; gap: 8px;">
+                <span class="digi-badge digi-badge-blue" style="font-size: 11px; padding: 2px 8px;">RETENSI DATA</span>
+                <h3 class="digi-modal-title" style="color: #0f172a; margin: 0;">Kelola Retensi & Pembersihan Log</h3>
+            </div>
+            <button type="button" class="digi-modal-close" onclick="closeAuditPurgeModal()">&times;</button>
+        </div>
+        <form action="{{ route('admin.master.audit.purge') }}" method="POST" style="margin: 0;">
+            @csrf
+            <div class="digi-modal-body" style="padding: 18px 20px;">
+                <div style="background: #e0f2fe; border: 1px solid #bae6fd; border-radius: 8px; padding: 12px; margin-bottom: 16px; font-size: 12.5px; color: #0369a1; line-height: 1.5;">
+                    <strong>Saran Keamanan:</strong> Sebelum membersihkan log lama, pastikan Anda telah mengunduh cadangan riwayat melalui tombol <strong>"Ekspor Arsip Excel"</strong> agar rekam jejak historis tetap terdokumentasi.
+                </div>
+
+                <div class="digi-form-group" style="margin-bottom: 16px;">
+                    <label class="digi-form-label" style="font-weight: 700; color: #1e293b; margin-bottom: 6px;">Pilih Batas Usia Retensi Log yang Dihapus:</label>
+                    <select name="retention_days" id="purge_retention_days" class="digi-select" required style="width: 100%;">
+                        <option value="180" selected>Hapus log yang lebih lama dari 6 Bulan (> 180 hari) — [Direkomendasikan]</option>
+                        <option value="365">Hapus log yang lebih lama dari 1 Tahun (> 365 hari)</option>
+                        <option value="90">Hapus log yang lebih lama dari 3 Bulan (> 90 hari)</option>
+                    </select>
+                    <small style="font-size: 11.5px; color: #64748b; margin-top: 4px; display: block;">Log yang berada di bawah usia batas ini akan tetap aman tersimpan di sistem.</small>
+                </div>
+
+                <div class="digi-form-group" style="margin-bottom: 6px;">
+                    <label class="digi-form-label" style="font-weight: 700; color: #991b1b; margin-bottom: 6px;">
+                        Verifikasi Keamanan: Ketik kata <span style="background: #fee2e2; padding: 1px 6px; border-radius: 4px; color: #b91c1c; font-family: monospace;">BERSIHKAN</span> untuk konfirmasi
+                    </label>
+                    <input type="text" name="confirm_keyword" id="purge_confirm_keyword" class="digi-input" placeholder="Ketik BERSIHKAN di sini" required autocomplete="off" oninput="checkPurgeKeyword(this)">
+                </div>
+            </div>
+            <div class="digi-modal-footer" style="background: #f8fafc; border-top: 1px solid #e2e8f0;">
+                <button type="button" class="btn-digi btn-digi-gray" onclick="closeAuditPurgeModal()">Batal</button>
+                <button type="submit" id="purgeSubmitBtn" class="btn-digi btn-digi-red" disabled style="opacity: 0.5; cursor: not-allowed;">
+                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.3" stroke-linecap="round" stroke-linejoin="round" style="display:inline-block; vertical-align:-2px; margin-right:4px;">
+                        <polyline points="3 6 5 6 21 6"></polyline>
+                        <path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path>
+                    </svg>
+                    Bersihkan Log Terpilih
+                </button>
+            </div>
+        </form>
+    </div>
+</div>
 @endsection
 
 @section('scripts')
@@ -2395,6 +2469,40 @@ document.addEventListener('keydown', function(e) {
         closeMasterBurgerMenu();
     }
 });
+
+// Audit Trail Retention & Purge Modal Handlers
+function openAuditPurgeModal() {
+    const modal = document.getElementById('purgeAuditModal');
+    if (modal) {
+        modal.style.display = 'flex';
+        const input = document.getElementById('purge_confirm_keyword');
+        if (input) {
+            input.value = '';
+            checkPurgeKeyword(input);
+            setTimeout(() => input.focus(), 100);
+        }
+    }
+}
+
+function closeAuditPurgeModal() {
+    const modal = document.getElementById('purgeAuditModal');
+    if (modal) modal.style.display = 'none';
+}
+
+function checkPurgeKeyword(input) {
+    const btn = document.getElementById('purgeSubmitBtn');
+    if (!btn || !input) return;
+    const val = (input.value || '').trim().toUpperCase();
+    if (val === 'BERSIHKAN') {
+        btn.disabled = false;
+        btn.style.opacity = '1';
+        btn.style.cursor = 'pointer';
+    } else {
+        btn.disabled = true;
+        btn.style.opacity = '0.5';
+        btn.style.cursor = 'not-allowed';
+    }
+}
 
 // Horizontal scroll function for Master Tabs navigation
 function scrollMasterTabs(offset) {

@@ -154,5 +154,9 @@ Route::middleware(['auth'])->group(function () {
         // 7. Fuel Standard & Fuel Price Delete Routes
         Route::delete('/admin/master/fuel-standards/{id}', [AdminMasterController::class, 'destroyFuelStandard'])->name('admin.master.standards.destroy');
         Route::delete('/admin/master/fuel-prices/{id}', [AdminMasterController::class, 'destroyFuelPrice'])->name('admin.master.prices.destroy');
+
+        // 8. Audit Trail Export & Retention Purge Routes
+        Route::get('/admin/master/audit/export', [AdminMasterController::class, 'exportAudit'])->name('admin.master.audit.export');
+        Route::post('/admin/master/audit/purge', [AdminMasterController::class, 'purgeAudit'])->name('admin.master.audit.purge');
     });
 });

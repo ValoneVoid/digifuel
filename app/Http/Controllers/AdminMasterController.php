@@ -18,6 +18,8 @@ use App\Models\FuelPrice;
 use App\Models\FuelRequest;
 use App\Models\SystemBackground;
 use App\Models\FuelRequestHistory;
+use App\Services\ExcelExportService;
+use Carbon\Carbon;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Schema;
@@ -1502,5 +1504,96 @@ class AdminMasterController extends Controller
         FuelRequestHistory::record(null, $admin->id, 'master_deleted', 'active', 'deleted', "Menghapus Harga BBM ID #{$id}: {$label}{$verifyNote}.");
 
         return $this->respondSuccess($request, 'prices', "Data Harga BBM {$label} berhasil dihapus.");
+    }
+
+    /**
+     * Export audit trail logs to an Excel (.xlsx) file as offline backup/archive.
+     */
+    public function exportAudit(Request $request, ExcelExportService $excelService)
+    {
+        $this->getActiveUser();
+
+        $query = FuelRequestHistory::with(['user', 'fuelRequest'])->orderBy('created_at', 'desc');
+
+        if ($request->filled('start_date')) {
+            $query->where('created_at', '>=', Carbon::parse($request->input('start_date'))->startOfDay());
+        }
+        if ($request->filled('end_date')) {
+            $query->where('created_at', '<=', Carbon::parse($request->input('end_date'))->endOfDay());
+        }
+
+        $logs = $query->get();
+
+        $headers = [
+            'No',
+            'Waktu Log (WITA/WIB)',
+            'Pengguna / Operator',
+            'Aksi Sistem',
+            'No. Pengajuan BBM',
+            'Status Awal',
+            'Status Akhir',
+            'Catatan Detail Aktivitas'
+        ];
+
+        $rows = [];
+        foreach ($logs as $idx => $log) {
+            $rows[] = [
+                $idx + 1,
+                $log->created_at?->format('d/m/Y H:i:s') ?? '-',
+                $log->user?->name ?? 'Sistem',
+                strtoupper((string) $log->action),
+                $log->fuelRequest?->request_no ?? '-',
+                $log->from_status ?? '-',
+                $log->to_status ?? '-',
+                (string) ($log->note ?? '-')
+            ];
+        }
+
+        $filename = 'Arsip_Audit_Trail_DigiFuel_' . now()->format('Ymd_His') . '.xlsx';
+        return $excelService->downloadXlsx($filename, $headers, $rows, 'Arsip Audit Trail');
+    }
+
+    /**
+     * Purge audit trail logs older than the specified retention threshold.
+     */
+    public function purgeAudit(Request $request)
+    {
+        $admin = $this->getActiveUser();
+
+        $request->validate([
+            'retention_days' => 'required|integer|min:30',
+            'confirm_keyword' => 'required|string',
+        ]);
+
+        $keyword = strtoupper(trim((string) $request->input('confirm_keyword', '')));
+        if ($keyword !== 'BERSIHKAN') {
+            return redirect()->route('admin.master', ['tab' => 'audit'])
+                ->with('error', 'Verifikasi Keamanan Gagal: Anda wajib mengetik kata kunci "BERSIHKAN" dengan benar.');
+        }
+
+        $days = (int) $request->input('retention_days');
+        $cutoffDate = Carbon::now()->subDays($days);
+
+        $count = FuelRequestHistory::where('created_at', '<', $cutoffDate)->count();
+
+        if ($count === 0) {
+            return redirect()->route('admin.master', ['tab' => 'audit'])
+                ->with('info', "Tidak ada log audit yang lebih lama dari {$days} hari (sebelum {$cutoffDate->format('d/m/Y H:i')}). Tidak ada data yang dihapus.");
+        }
+
+        $deleted = FuelRequestHistory::where('created_at', '<', $cutoffDate)->delete();
+
+        // Rekam aksi pembersihan ke dalam audit trail baru sebagai akuntabilitas
+        FuelRequestHistory::record(
+            null,
+            $admin->id,
+            'audit_purged',
+            null,
+            'purged',
+            "Pembersihan retensi audit manual oleh {$admin->name}: {$deleted} log sebelum {$cutoffDate->format('d/m/Y H:i')} (> {$days} hari) berhasil dibersihkan."
+        );
+
+        return redirect()->route('admin.master', ['tab' => 'audit'])
+            ->with('success', "Berhasil membersihkan {$deleted} log audit yang berusia lebih dari {$days} hari (sebelum {$cutoffDate->format('d/m/Y')}). Riwayat pembersihan telah dicatat.");
     }
 }
