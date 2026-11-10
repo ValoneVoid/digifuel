@@ -315,7 +315,179 @@
                 });
             });
         });
+
+        // Initialize Universal Table Sorter & Column Filter on all .digi-table
+        initDigiTableSorters();
     });
+
+    // =========================================================================
+    // UNIVERSAL DIGIFUEL TABLE COLUMN SORTER & QUICK FILTER (A-Z / 1-9)
+    // =========================================================================
+    function parseDigiSortVal(raw) {
+        if (!raw) return { type: 'empty', val: '' };
+        raw = raw.trim();
+
+        // 1. Currency e.g. "Rp 27.000", "Rp 100.000 / L", "Rp 28.500"
+        if (/^Rp\s*/i.test(raw)) {
+            const clean = raw.replace(/^Rp\s*/i, '').replace(/\/.*$/, '').replace(/\./g, '').replace(/,/g, '.').trim();
+            const num = parseFloat(clean);
+            if (!isNaN(num)) return { type: 'num', val: num };
+        }
+
+        // 2. Numeric with unit (e.g. "10.00 KM/L", "±10%", "80 L", "5 unit")
+        const numWithUnit = raw.match(/^[±\+]?\s*([0-9]+(?:[.,][0-9]+)?)\s*(?:km\/l|jam\/l|l\/jam|%|l|liter|unit|data)?$/i);
+        if (numWithUnit) {
+            const stdNum = parseFloat(numWithUnit[1].replace(',', '.'));
+            if (!isNaN(stdNum)) return { type: 'num', val: stdNum };
+        }
+
+        // 3. Indonesian standard thousand separators (e.g. 1.500 or 25.000,5)
+        if (/^-?\d{1,3}(\.\d{3})+(,\d+)?$/.test(raw)) {
+            const stdNum = parseFloat(raw.replace(/\./g, '').replace(',', '.'));
+            if (!isNaN(stdNum)) return { type: 'num', val: stdNum };
+        }
+
+        // 4. Plain integer or decimal
+        const plainNum = parseFloat(raw);
+        if (!isNaN(plainNum) && String(plainNum) === raw) {
+            return { type: 'num', val: plainNum };
+        }
+
+        // 5. Date detection (DD/MM/YYYY or YYYY-MM-DD)
+        const dmy = raw.match(/^(\d{1,2})[\/\-](\d{1,2})[\/\-](\d{4})$/);
+        if (dmy) {
+            const ts = new Date(`${dmy[3]}-${dmy[2].padStart(2, '0')}-${dmy[1].padStart(2, '0')}`).getTime();
+            if (!isNaN(ts)) return { type: 'date', val: ts };
+        }
+        const ymd = raw.match(/^(\d{4})[\/\-](\d{1,2})[\/\-](\d{1,2})$/);
+        if (ymd) {
+            const ts = new Date(`${ymd[1]}-${ymd[2].padStart(2, '0')}-${ymd[3].padStart(2, '0')}`).getTime();
+            if (!isNaN(ts)) return { type: 'date', val: ts };
+        }
+
+        // 6. Alphanumeric text
+        return { type: 'str', val: raw.toLowerCase() };
+    }
+
+    function initDigiTableSorters() {
+        document.querySelectorAll('.digi-table').forEach(function(table) {
+            const tbody = table.querySelector('tbody');
+            if (!tbody) return;
+
+            const thead = table.querySelector('thead');
+            if (!thead) return;
+
+            const ths = Array.from(thead.querySelectorAll('tr:first-child th'));
+            if (ths.length === 0) return;
+
+            const originalRows = Array.from(tbody.querySelectorAll('tr')).filter(tr => !tr.querySelector('td[colspan]'));
+            let currentSortedCol = -1;
+            let currentSortedDir = 'none';
+
+            ths.forEach(function(th, colIdx) {
+                const rawTitle = (th.textContent || '').trim();
+                const lowerTitle = rawTitle.toLowerCase();
+                if (lowerTitle === 'aksi' || lowerTitle === 'action' || th.classList.contains('no-sort')) {
+                    return;
+                }
+
+                const cleanTitle = rawTitle.replace(/[↕▲▼]/g, '').trim() || `Kolom ${colIdx + 1}`;
+                th.classList.add('digi-sortable-th');
+                th.setAttribute('title', `Klik untuk mengurutkan ${cleanTitle} (A-Z / 1-9)`);
+
+                if (!th.querySelector('.digi-sort-icon-box')) {
+                    const iconBox = document.createElement('span');
+                    iconBox.className = 'digi-sort-icon-box';
+                    iconBox.innerHTML = `<svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" class="digi-sort-svg-neutral"><path d="m7 15 5 5 5-5"/><path d="m7 9 5-5 5 5"/></svg>`;
+                    th.appendChild(iconBox);
+                }
+
+                th.addEventListener('click', function() {
+                    // 3-way toggle: default -> asc (A-Z / 1-9) -> desc (Z-A / 9-1) -> reset
+                    if (currentSortedCol !== colIdx) {
+                        applySort(colIdx, 'asc');
+                    } else if (currentSortedDir === 'asc') {
+                        applySort(colIdx, 'desc');
+                    } else {
+                        resetSort();
+                    }
+                });
+            });
+
+            function applySort(colIdx, direction) {
+                const rows = Array.from(tbody.querySelectorAll('tr')).filter(tr => !tr.querySelector('td[colspan]'));
+                if (rows.length === 0) return;
+
+                currentSortedCol = colIdx;
+                currentSortedDir = direction;
+
+                rows.sort(function(a, b) {
+                    const cellA = a.children[colIdx] ? a.children[colIdx].textContent : '';
+                    const cellB = b.children[colIdx] ? b.children[colIdx].textContent : '';
+
+                    const valA = parseDigiSortVal(cellA);
+                    const valB = parseDigiSortVal(cellB);
+
+                    let cmp = 0;
+                    if (valA.type === 'num' && valB.type === 'num') {
+                        cmp = valA.val - valB.val;
+                    } else if (valA.type === 'date' && valB.type === 'date') {
+                        cmp = valA.val - valB.val;
+                    } else {
+                        cmp = String(valA.val).localeCompare(String(valB.val), undefined, { numeric: true, sensitivity: 'base' });
+                    }
+
+                    return direction === 'asc' ? cmp : -cmp;
+                });
+
+                rows.forEach(function(row, idx) {
+                    tbody.appendChild(row);
+                    const firstTd = row.children[0];
+                    if (firstTd && !isNaN(parseInt(firstTd.textContent.trim())) && !firstTd.querySelector('input, select, button')) {
+                        firstTd.textContent = idx + 1;
+                    }
+                });
+
+                ths.forEach(function(th, idx) {
+                    const iconBox = th.querySelector('.digi-sort-icon-box');
+                    if (!iconBox) return;
+
+                    if (idx === colIdx) {
+                        th.classList.add('is-sorted');
+                        if (direction === 'asc') {
+                            iconBox.innerHTML = `<svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="#0284c7" stroke-width="3" stroke-linecap="round" stroke-linejoin="round" style="vertical-align: middle;"><polyline points="18 15 12 9 6 15"></polyline></svg><span class="digi-sort-tag">A-Z</span>`;
+                        } else {
+                            iconBox.innerHTML = `<svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="#0284c7" stroke-width="3" stroke-linecap="round" stroke-linejoin="round" style="vertical-align: middle;"><polyline points="6 9 12 15 18 9"></polyline></svg><span class="digi-sort-tag">Z-A</span>`;
+                        }
+                    } else {
+                        th.classList.remove('is-sorted');
+                        iconBox.innerHTML = `<svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" class="digi-sort-svg-neutral"><path d="m7 15 5 5 5-5"/><path d="m7 9 5-5 5 5"/></svg>`;
+                    }
+                });
+            }
+
+            function resetSort() {
+                originalRows.forEach(function(row, idx) {
+                    tbody.appendChild(row);
+                    const firstTd = row.children[0];
+                    if (firstTd && !isNaN(parseInt(firstTd.textContent.trim())) && !firstTd.querySelector('input, select, button')) {
+                        firstTd.textContent = idx + 1;
+                    }
+                });
+
+                currentSortedCol = -1;
+                currentSortedDir = 'none';
+
+                ths.forEach(function(th) {
+                    th.classList.remove('is-sorted');
+                    const iconBox = th.querySelector('.digi-sort-icon-box');
+                    if (iconBox) {
+                        iconBox.innerHTML = `<svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" class="digi-sort-svg-neutral"><path d="m7 15 5 5 5-5"/><path d="m7 9 5-5 5 5"/></svg>`;
+                    }
+                });
+            }
+        });
+    }
     </script>
     @yield('scripts')
 </body>

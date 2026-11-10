@@ -1936,8 +1936,24 @@ function updateMasterTabsArrows() {
 function filterMasterTable(input) {
     if (!input) return;
     const filter = (input.value || '').toLowerCase().trim();
-    const container = input.closest('.digi-card') || document;
-    const table = container.querySelector('.digi-table tbody');
+    let container = input.closest('.digi-table-filter-bar');
+    let table = null;
+    if (container) {
+        let el = container.nextElementSibling;
+        while (el) {
+            table = el.querySelector ? el.querySelector('.digi-table tbody') : null;
+            if (table) break;
+            if (el.classList && el.classList.contains('digi-table')) {
+                table = el.querySelector('tbody') || el;
+                break;
+            }
+            el = el.nextElementSibling;
+        }
+    }
+    if (!table) {
+        const root = input.closest('.digi-card') || document;
+        table = root.querySelector('.digi-table tbody');
+    }
     if (!table) return;
     const rows = table.querySelectorAll('tr');
     rows.forEach(row => {

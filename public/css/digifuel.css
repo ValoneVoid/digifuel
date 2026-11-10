@@ -1683,3 +1683,51 @@ div[style*="overflow-x: auto"]::-webkit-scrollbar-thumb:hover {
     gap: 14px !important;
   }
 }
+
+/* ==========================================================================
+   TABLE COLUMN HEADER SORTING (A-Z / 1-9)
+   ========================================================================== */
+.digi-table th.digi-sortable-th {
+  cursor: pointer !important;
+  user-select: none;
+  transition: background-color 0.15s ease, color 0.15s ease;
+  position: relative;
+}
+.digi-table th.digi-sortable-th:hover {
+  background-color: #f1f5f9 !important;
+  color: #0284c7 !important;
+}
+.digi-table th.digi-sortable-th:hover .digi-sort-svg-neutral {
+  opacity: 0.8 !important;
+  stroke: #0284c7 !important;
+}
+.digi-table th.digi-sortable-th.is-sorted {
+  background-color: #f0f9ff !important;
+  color: #0369a1 !important;
+  font-weight: 700 !important;
+  border-bottom: 2px solid #0284c7 !important;
+}
+.digi-sort-icon-box {
+  display: inline-flex;
+  align-items: center;
+  gap: 3px;
+  vertical-align: middle;
+  margin-left: 5px;
+}
+.digi-sort-svg-neutral {
+  opacity: 0.35;
+  vertical-align: middle;
+  transition: opacity 0.15s ease, stroke 0.15s ease;
+}
+.digi-sort-tag {
+  display: inline-block;
+  font-size: 9px;
+  font-weight: 800;
+  line-height: 1;
+  padding: 2px 4px;
+  border-radius: 4px;
+  background: #0284c7;
+  color: #ffffff;
+  letter-spacing: 0.3px;
+  vertical-align: middle;
+}
