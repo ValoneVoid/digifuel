@@ -115,14 +115,20 @@
     <main class="digi-main-container">
         @if(session('success'))
             <div class="digi-alert digi-alert-success">
-                <span>✓ {{ session('success') }}</span>
+                <span style="display:inline-flex; align-items:center; gap:6px;">
+                    <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"></polyline></svg>
+                    {{ session('success') }}
+                </span>
                 <button type="button" onclick="this.parentElement.remove()" style="background:none; border:none; cursor:pointer; font-size:16px;">&times;</button>
             </div>
         @endif
 
         @if(session('error'))
             <div class="digi-alert digi-alert-error">
-                <span>✕ {{ session('error') }}</span>
+                <span style="display:inline-flex; align-items:center; gap:6px;">
+                    <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg>
+                    {{ session('error') }}
+                </span>
                 <button type="button" onclick="this.parentElement.remove()" style="background:none; border:none; cursor:pointer; font-size:16px;">&times;</button>
             </div>
         @endif
@@ -130,7 +136,10 @@
         @if($errors->any())
             <div class="digi-alert digi-alert-error" style="flex-direction: column; align-items: flex-start; gap: 4px;">
                 <div style="display:flex; width:100%; justify-content:space-between; align-items:center;">
-                    <strong>✕ Periksa kembali data input Anda:</strong>
+                    <strong style="display:inline-flex; align-items:center; gap:6px;">
+                        <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg>
+                        Periksa kembali data input Anda:
+                    </strong>
                     <button type="button" onclick="this.parentElement.parentElement.remove()" style="background:none; border:none; cursor:pointer; font-size:16px;">&times;</button>
                 </div>
                 <ul style="margin: 4px 0 0 18px; padding: 0; font-size: 13px;">

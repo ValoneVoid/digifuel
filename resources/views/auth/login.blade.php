@@ -24,14 +24,16 @@
         </div>
 
         @if(session('success'))
-            <div class="digi-alert digi-alert-success" style="font-size: 13px; padding: 10px 14px;">
-                <span>✓ {{ session('success') }}</span>
+            <div class="digi-alert digi-alert-success" style="font-size: 13px; padding: 10px 14px; display:flex; align-items:center; gap:8px;">
+                <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"></polyline></svg>
+                <span>{{ session('success') }}</span>
             </div>
         @endif
 
         @if($errors->any())
-            <div class="digi-alert digi-alert-error" style="font-size: 13px; padding: 10px 14px;">
-                <span>✕ {{ $errors->first() }}</span>
+            <div class="digi-alert digi-alert-error" style="font-size: 13px; padding: 10px 14px; display:flex; align-items:center; gap:8px;">
+                <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg>
+                <span>{{ $errors->first() }}</span>
             </div>
         @endif
 

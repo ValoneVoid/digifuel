@@ -370,8 +370,8 @@
             'unit_vendors' => ['step' => '3', 'name' => 'Perusahaan Rental Unit', 'count' => $getCount($unitVendors)],
             'units' => ['step' => '4', 'name' => 'Unit Kendaraan & Standar', 'count' => $getCount($vehicles)],
             'users' => ['step' => '5', 'name' => 'Pengguna, Karyawan & Penugasan', 'count' => $getCount($users)],
-            'backgrounds' => ['step' => '🖼️', 'name' => 'Background Sistem', 'count' => $getCount($backgrounds ?? collect())],
-            'audit' => ['step' => '📋', 'name' => 'Audit Trail', 'count' => $getCount($auditLogs)],
+            'backgrounds' => ['step' => '6', 'name' => 'Background Sistem', 'count' => $getCount($backgrounds ?? collect())],
+            'audit' => ['step' => '7', 'name' => 'Audit Trail', 'count' => $getCount($auditLogs)],
         ];
 
         $isLegacyTab = in_array($tab, ['employees', 'approvers', 'standards', 'prices'], true);
@@ -412,7 +412,7 @@
     @endif
 
     <div class="digi-mobile-swipe-hint">
-        <span>👉 Geser tab & tabel ke samping untuk melihat seluruh data</span>
+        <span><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="display:inline-block; vertical-align:middle; margin-right:4px;"><line x1="5" y1="12" x2="19" y2="12"></line><polyline points="12 5 19 12 12 19"></polyline></svg>Geser tab & tabel ke samping untuk melihat seluruh data</span>
     </div>
 
     <!-- ============================================================ -->
@@ -425,13 +425,13 @@
             <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 14px; flex-wrap: wrap; gap: 8px;">
                 <div style="display: flex; align-items: center; flex-wrap: wrap; gap: 6px;">
                     <h3 class="digi-section-title" id="unitFormTitle" style="margin: 0;">Langkah 4: Tambah Data Unit Kendaraan & Standar Konsumsi BBM</h3>
-                    <span class="digi-edit-pill-badge" id="unitEditBadge">✏️ Mode Edit Aktif</span>
+                    <span class="digi-edit-pill-badge" id="unitEditBadge"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" style="display:inline-block; vertical-align:middle; margin-right:4px;"><path d="M12 20h9"/><path d="M16.5 3.5a2.121 2.121 0 0 1 3 3L7 19l-4 1 1-4L16.5 3.5z"/></svg>Mode Edit Aktif</span>
                     <p style="font-size: 12.5px; color: #64748b; margin: 3px 0 0 0; width: 100%;">
                         Daftarkan unit operasional, vendor rental, area default, kapasitas tangki, serta target rasio konsumsi BBM (KM/L) sekaligus.
                     </p>
                 </div>
                 <button type="button" id="unitCancelBtn" class="btn-digi btn-digi-gray" style="display: none; padding: 5px 14px; font-size: 12px;" onclick="resetUnitForm()">
-                    ✕ Batal Edit
+                    <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" style="display:inline-block; vertical-align:middle; margin-right:3px;"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg>Batal Edit
                 </button>
             </div>
             <div class="digi-form-grid-3">
@@ -453,7 +453,7 @@
                     <label class="digi-form-label" style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 4px;">
                         <span>Perusahaan Rental Unit <span class="digi-required">*</span></span>
                         <a href="{{ route('admin.master', ['tab' => 'unit_vendors']) }}" class="digi-quick-link" title="Buka master Perusahaan Rental Unit">
-                            🏢 Kelola Rental Unit ↗
+                            <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="display:inline-block; vertical-align:-1px; margin-right:4px;"><rect x="4" y="2" width="16" height="20" rx="2" ry="2"></rect><line x1="9" y1="22" x2="9" y2="22.01"></line><line x1="15" y1="22" x2="15" y2="22.01"></line><line x1="9" y1="6" x2="9" y2="6.01"></line><line x1="15" y1="6" x2="15" y2="6.01"></line><line x1="9" y1="10" x2="9" y2="10.01"></line><line x1="15" y1="10" x2="15" y2="10.01"></line><line x1="9" y1="14" x2="9" y2="14.01"></line><line x1="15" y1="14" x2="15" y2="14.01"></line><line x1="9" y1="18" x2="9" y2="18.01"></line><line x1="15" y1="18" x2="15" y2="18.01"></line></svg>Kelola Rental Unit &rarr;
                         </a>
                     </label>
                     <select name="unit_vendor_id" id="unit_vendor_id" class="digi-select" required>
@@ -468,7 +468,7 @@
                     <label class="digi-form-label" style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 4px;">
                         <span>Area Default</span>
                         <a href="{{ route('admin.master', ['tab' => 'areas']) }}" class="digi-quick-link" title="Buka master Area Operasional">
-                            📍 Kelola Area ↗
+                            <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="display:inline-block; vertical-align:-1px; margin-right:4px;"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"></path><circle cx="12" cy="10" r="3"></circle></svg>Kelola Area &rarr;
                         </a>
                     </label>
                     <select name="default_area_id" id="unit_default_area_id" class="digi-select">
@@ -493,7 +493,7 @@
         </form>
 
         <div class="digi-table-filter-bar">
-            <input type="text" class="digi-table-search-input" placeholder="🔍 Cari kode unit, nomor polisi, model, rental, area..." onkeyup="filterMasterTable(this)">
+            <input type="text" class="digi-table-search-input" placeholder="Cari kode unit, nomor polisi, model, rental, area..." onkeyup="filterMasterTable(this)">
             <div style="font-size: 12.5px; color: #64748b;">
                 Total: <strong>{{ method_exists($vehicles, 'total') ? $vehicles->total() : count($vehicles) }} unit</strong>
             </div>
@@ -588,17 +588,17 @@
             <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 14px; flex-wrap: wrap; gap: 8px;">
                 <div style="display: flex; align-items: center; flex-wrap: wrap; gap: 6px;">
                     <h3 class="digi-section-title" id="unitVendorFormTitle" style="margin: 0;">Langkah 3: Tambah Data Perusahaan Rental Unit (Penyedia Unit)</h3>
-                    <span class="digi-edit-pill-badge" id="unitVendorEditBadge">✏️ Mode Edit Aktif</span>
+                    <span class="digi-edit-pill-badge" id="unitVendorEditBadge"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" style="display:inline-block; vertical-align:middle; margin-right:4px;"><path d="M12 20h9"/><path d="M16.5 3.5a2.121 2.121 0 0 1 3 3L7 19l-4 1 1-4L16.5 3.5z"/></svg>Mode Edit Aktif</span>
                     <p style="font-size: 12.5px; color: #64748b; margin: 3px 0 0 0; width: 100%;">
                         Daftarkan rekanan perusahaan penyedia unit sewa / rental kendaraan operasional.
                     </p>
                 </div>
                 <div style="display: flex; gap: 6px; align-items: center;">
                     <a href="{{ route('admin.master', ['tab' => 'units']) }}" class="digi-quick-link" title="Buka master Unit Kendaraan">
-                        🚗 Kelola Unit Terdaftar ↗
+                        <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="display:inline-block; vertical-align:-1px; margin-right:4px;"><rect x="1" y="3" width="15" height="13"></rect><polygon points="16 8 20 8 23 11 23 16 16 16 16 8"></polygon><circle cx="5.5" cy="18.5" r="2.5"></circle><circle cx="18.5" cy="18.5" r="2.5"></circle></svg>Kelola Unit Terdaftar &rarr;
                     </a>
                     <button type="button" id="unitVendorCancelBtn" class="btn-digi btn-digi-gray" style="display: none; padding: 5px 14px; font-size: 12px;" onclick="resetUnitVendorForm()">
-                        ✕ Batal Edit
+                        <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" style="display:inline-block; vertical-align:middle; margin-right:3px;"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg>Batal Edit
                     </button>
                 </div>
             </div>
@@ -632,7 +632,7 @@
         </form>
 
         <div class="digi-table-filter-bar">
-            <input type="text" class="digi-table-search-input" placeholder="🔍 Cari kode perusahaan, nama rental, PIC, telepon..." onkeyup="filterMasterTable(this)">
+            <input type="text" class="digi-table-search-input" placeholder="Cari kode perusahaan, nama rental, PIC, telepon..." onkeyup="filterMasterTable(this)">
             <div style="font-size: 12.5px; color: #64748b;">
                 Total: <strong>{{ method_exists($unitVendors, 'total') ? $unitVendors->total() : count($unitVendors) }} perusahaan</strong>
             </div>
@@ -711,14 +711,14 @@
             <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 14px; flex-wrap: wrap; gap: 8px;">
                 <div style="display: flex; align-items: center; flex-wrap: wrap; gap: 6px;">
                     <h3 class="digi-section-title" id="empFormTitle" style="margin: 0;">Tambah Data Employee (Lokal & Integrasi DIGISIM)</h3>
-                    <span class="digi-edit-pill-badge" id="empEditBadge">✏️ Mode Edit Aktif</span>
+                    <span class="digi-edit-pill-badge" id="empEditBadge"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" style="display:inline-block; vertical-align:middle; margin-right:4px;"><path d="M12 20h9"/><path d="M16.5 3.5a2.121 2.121 0 0 1 3 3L7 19l-4 1 1-4L16.5 3.5z"/></svg>Mode Edit Aktif</span>
                 </div>
                 <div style="display: flex; gap: 6px; align-items: center;">
                     <a href="{{ route('admin.master', ['tab' => 'users']) }}" class="digi-quick-link" title="Buka master Akun Pengguna">
-                        👤 Kelola Akun Pengguna ↗
+                        <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="display:inline-block; vertical-align:-1px; margin-right:4px;"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path><circle cx="12" cy="7" r="4"></circle></svg>Kelola Akun Pengguna &rarr;
                     </a>
                     <button type="button" id="empCancelBtn" class="btn-digi btn-digi-gray" style="display: none; padding: 5px 14px; font-size: 12px;" onclick="resetEmployeeForm()">
-                        ✕ Batal Edit
+                        <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" style="display:inline-block; vertical-align:middle; margin-right:3px;"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg>Batal Edit
                     </button>
                 </div>
             </div>
@@ -758,7 +758,7 @@
         </form>
 
         <div class="digi-table-filter-bar">
-            <input type="text" class="digi-table-search-input" placeholder="🔍 Cari NRP, nama employee, jabatan, perusahaan..." onkeyup="filterMasterTable(this)">
+            <input type="text" class="digi-table-search-input" placeholder="Cari NRP, nama employee, jabatan, perusahaan..." onkeyup="filterMasterTable(this)">
             <div style="font-size: 12.5px; color: #64748b;">
                 Total: <strong>{{ method_exists($employees, 'total') ? $employees->total() : count($employees) }} employee</strong>
             </div>
@@ -833,14 +833,14 @@
             <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 14px; flex-wrap: wrap; gap: 8px;">
                 <div style="display: flex; align-items: center; flex-wrap: wrap; gap: 6px;">
                     <h3 class="digi-section-title" id="areaFormTitle" style="margin: 0;">Langkah 1: Tambah Area Operasional</h3>
-                    <span class="digi-edit-pill-badge" id="areaEditBadge">✏️ Mode Edit Aktif</span>
+                    <span class="digi-edit-pill-badge" id="areaEditBadge"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" style="display:inline-block; vertical-align:middle; margin-right:4px;"><path d="M12 20h9"/><path d="M16.5 3.5a2.121 2.121 0 0 1 3 3L7 19l-4 1 1-4L16.5 3.5z"/></svg>Mode Edit Aktif</span>
                 </div>
                 <div style="display: flex; gap: 6px; align-items: center;">
                     <a href="{{ route('admin.master', ['tab' => 'users']) }}" class="digi-quick-link" title="Buka master Pengguna & Penugasan Area">
-                        👥 Penugasan Approver ↗
+                        <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="display:inline-block; vertical-align:-1px; margin-right:4px;"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"></path><circle cx="9" cy="7" r="4"></circle><path d="M23 21v-2a4 4 0 0 0-3-3.87"></path><path d="M16 3.13a4 4 0 0 1 0 7.75"></path></svg>Penugasan Approver &rarr;
                     </a>
                     <button type="button" id="areaCancelBtn" class="btn-digi btn-digi-gray" style="display: none; padding: 5px 14px; font-size: 12px;" onclick="resetAreaForm()">
-                        ✕ Batal Edit
+                        <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" style="display:inline-block; vertical-align:middle; margin-right:3px;"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg>Batal Edit
                     </button>
                 </div>
             </div>
@@ -860,7 +860,7 @@
         </form>
 
         <div class="digi-table-filter-bar">
-            <input type="text" class="digi-table-search-input" placeholder="🔍 Cari kode area, nama area operasional..." onkeyup="filterMasterTable(this)">
+            <input type="text" class="digi-table-search-input" placeholder="Cari kode area, nama area operasional..." onkeyup="filterMasterTable(this)">
             <div style="font-size: 12.5px; color: #64748b;">
                 Total: <strong>{{ method_exists($areas, 'total') ? $areas->total() : count($areas) }} area</strong>
             </div>
@@ -927,20 +927,20 @@
             <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 14px; flex-wrap: wrap; gap: 8px;">
                 <div style="display: flex; align-items: center; flex-wrap: wrap; gap: 6px;">
                     <h3 class="digi-section-title" id="vendorFormTitle" style="margin: 0;">Langkah 2: Tambah Data Perusahaan & Harga Solar</h3>
-                    <span class="digi-edit-pill-badge" id="vendorEditBadge">✏️ Mode Edit Aktif</span>
+                    <span class="digi-edit-pill-badge" id="vendorEditBadge"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" style="display:inline-block; vertical-align:middle; margin-right:4px;"><path d="M12 20h9"/><path d="M16.5 3.5a2.121 2.121 0 0 1 3 3L7 19l-4 1 1-4L16.5 3.5z"/></svg>Mode Edit Aktif</span>
                     <p style="font-size: 12.5px; color: #64748b; margin: 3px 0 0 0; width: 100%;">
                         Kelola data perusahaan penyedia solar industri serta penetapan harga per liter aktif langsung dalam satu formulir terpadu.
                     </p>
                 </div>
                 <div style="display: flex; gap: 6px; align-items: center; flex-wrap: wrap;">
                     <a href="{{ route('admin.master', ['tab' => 'prices']) }}" class="digi-quick-link" title="Buka detail riwayat perubahan harga BBM">
-                        💰 Riwayat Harga ↗
+                        <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="display:inline-block; vertical-align:-1px; margin-right:4px;"><line x1="12" y1="1" x2="12" y2="23"></line><path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"></path></svg>Riwayat Harga &rarr;
                     </a>
                     <a href="{{ route('admin.master', ['tab' => 'users']) }}" class="digi-quick-link" title="Buka akun login untuk vendor BBM">
-                        👤 Akun Vendor ↗
+                        <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="display:inline-block; vertical-align:-1px; margin-right:4px;"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path><circle cx="12" cy="7" r="4"></circle></svg>Akun Vendor &rarr;
                     </a>
                     <button type="button" id="vendorCancelBtn" class="btn-digi btn-digi-gray" style="display: none; padding: 5px 14px; font-size: 12px;" onclick="resetVendorForm()">
-                        ✕ Batal Edit
+                        <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" style="display:inline-block; vertical-align:middle; margin-right:3px;"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg>Batal Edit
                     </button>
                 </div>
             </div>
@@ -973,7 +973,7 @@
         </form>
 
         <div class="digi-table-filter-bar">
-            <input type="text" class="digi-table-search-input" placeholder="🔍 Cari kode perusahaan, nama vendor bbm, PIC, telepon..." onkeyup="filterMasterTable(this)">
+            <input type="text" class="digi-table-search-input" placeholder="Cari kode perusahaan, nama vendor bbm, PIC, telepon..." onkeyup="filterMasterTable(this)">
             <div style="font-size: 12.5px; color: #64748b;">
                 Total: <strong>{{ method_exists($vendors, 'total') ? $vendors->total() : count($vendors) }} perusahaan</strong>
             </div>
@@ -1054,10 +1054,10 @@
             <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 14px; flex-wrap: wrap; gap: 8px;">
                 <div style="display: flex; align-items: center; flex-wrap: wrap; gap: 6px;">
                     <h3 class="digi-section-title" id="aaFormTitle" style="margin: 0;">Penugasan Approver & Petugas Berdasarkan Area</h3>
-                    <span class="digi-edit-pill-badge" id="aaEditBadge">✏️ Mode Edit Aktif</span>
+                    <span class="digi-edit-pill-badge" id="aaEditBadge"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" style="display:inline-block; vertical-align:middle; margin-right:4px;"><path d="M12 20h9"/><path d="M16.5 3.5a2.121 2.121 0 0 1 3 3L7 19l-4 1 1-4L16.5 3.5z"/></svg>Mode Edit Aktif</span>
                 </div>
                 <button type="button" id="aaCancelBtn" class="btn-digi btn-digi-gray" style="display: none; padding: 5px 14px; font-size: 12px;" onclick="resetApproverForm()">
-                    ✕ Batal Edit
+                    <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" style="display:inline-block; vertical-align:middle; margin-right:3px;"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg>Batal Edit
                 </button>
             </div>
             <div class="digi-form-grid-3" style="margin-bottom: 0; align-items: flex-end;">
@@ -1065,7 +1065,7 @@
                     <label class="digi-form-label" style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 4px;">
                         <span>Area Operasional <span class="digi-required">*</span></span>
                         <a href="{{ route('admin.master', ['tab' => 'areas']) }}" class="digi-quick-link" title="Buka master Area Operasional">
-                            📍 Kelola Area ↗
+                            <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="display:inline-block; vertical-align:-1px; margin-right:4px;"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"></path><circle cx="12" cy="10" r="3"></circle></svg>Kelola Area &rarr;
                         </a>
                     </label>
                     <select name="area_id" id="aa_area_id" class="digi-select" required>
@@ -1078,7 +1078,7 @@
                     <label class="digi-form-label" style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 4px;">
                         <span>Pengguna & Peran <span class="digi-required">*</span></span>
                         <a href="{{ route('admin.master', ['tab' => 'users']) }}" class="digi-quick-link" title="Buka master Akun Pengguna">
-                            👤 Kelola Pengguna ↗
+                            <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="display:inline-block; vertical-align:-1px; margin-right:4px;"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path><circle cx="12" cy="7" r="4"></circle></svg>Kelola Pengguna &rarr;
                         </a>
                     </label>
                     <div style="display:flex; gap:6px;">
@@ -1102,7 +1102,7 @@
         </form>
 
         <div class="digi-table-filter-bar">
-            <input type="text" class="digi-table-search-input" placeholder="🔍 Cari area operasional, nama approver, tanggung jawab..." onkeyup="filterMasterTable(this)">
+            <input type="text" class="digi-table-search-input" placeholder="Cari area operasional, nama approver, tanggung jawab..." onkeyup="filterMasterTable(this)">
             <div style="font-size: 12.5px; color: #64748b;">
                 Total: <strong>{{ method_exists($areaApprovers, 'total') ? $areaApprovers->total() : count($areaApprovers) }} penugasan</strong>
             </div>
@@ -1194,13 +1194,13 @@
             <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 14px; flex-wrap: wrap; gap: 8px;">
                 <div style="display: flex; align-items: center; flex-wrap: wrap; gap: 6px;">
                     <h3 class="digi-section-title" id="stdFormTitle" style="margin: 0;">Pengaturan Standar Konsumsi BBM Unit</h3>
-                    <span class="digi-edit-pill-badge" id="stdEditBadge">✏️ Mode Edit Aktif</span>
+                    <span class="digi-edit-pill-badge" id="stdEditBadge"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" style="display:inline-block; vertical-align:middle; margin-right:4px;"><path d="M12 20h9"/><path d="M16.5 3.5a2.121 2.121 0 0 1 3 3L7 19l-4 1 1-4L16.5 3.5z"/></svg>Mode Edit Aktif</span>
                     <p style="font-size: 12.5px; color: #64748b; margin: 3px 0 0 0; width: 100%;">
                         Pilih unit, masukkan nilai standar konsumsi, dan tentukan tanggal mulai berlaku.
                     </p>
                 </div>
                 <button type="button" id="stdCancelBtn" class="btn-digi btn-digi-gray" style="display: none; padding: 5px 14px; font-size: 12px;" onclick="resetStandardForm()">
-                    ✕ Batal Edit
+                    <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" style="display:inline-block; vertical-align:middle; margin-right:3px;"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg>Batal Edit
                 </button>
             </div>
 
@@ -1210,7 +1210,7 @@
                     <label class="digi-form-label" style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 4px;">
                         <span>Pilih Unit Kendaraan <span class="digi-required">*</span></span>
                         <a href="{{ route('admin.master', ['tab' => 'units']) }}" class="digi-quick-link" title="Buka master Unit Kendaraan">
-                            🚗 Kelola Unit Kendaraan ↗
+                            <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="display:inline-block; vertical-align:-1px; margin-right:4px;"><rect x="1" y="3" width="15" height="13"></rect><polygon points="16 8 20 8 23 11 23 16 16 16 16 8"></polygon><circle cx="5.5" cy="18.5" r="2.5"></circle><circle cx="18.5" cy="18.5" r="2.5"></circle></svg>Kelola Unit Kendaraan &rarr;
                         </a>
                     </label>
                     <select name="vehicle_id" id="std_vehicle_id" class="digi-select" onchange="onVehicleSelectChange(this)" required>
@@ -1269,7 +1269,7 @@
         </form>
 
         <div class="digi-table-filter-bar">
-            <input type="text" class="digi-table-search-input" placeholder="🔍 Cari unit code, jenis unit, standar..." onkeyup="filterMasterTable(this)">
+            <input type="text" class="digi-table-search-input" placeholder="Cari unit code, jenis unit, standar..." onkeyup="filterMasterTable(this)">
             <div style="font-size: 12.5px; color: #64748b;">
                 Total: <strong>{{ method_exists($fuelStandards, 'total') ? $fuelStandards->total() : count($fuelStandards) }} standar</strong>
             </div>
@@ -1348,10 +1348,10 @@
             <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 14px; flex-wrap: wrap; gap: 8px;">
                 <div style="display: flex; align-items: center; flex-wrap: wrap; gap: 6px;">
                     <h3 class="digi-section-title" id="priceFormTitle" style="margin: 0;">Tambah Riwayat Harga BBM per Liter</h3>
-                    <span class="digi-edit-pill-badge" id="priceEditBadge">✏️ Mode Edit Aktif</span>
+                    <span class="digi-edit-pill-badge" id="priceEditBadge"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" style="display:inline-block; vertical-align:middle; margin-right:4px;"><path d="M12 20h9"/><path d="M16.5 3.5a2.121 2.121 0 0 1 3 3L7 19l-4 1 1-4L16.5 3.5z"/></svg>Mode Edit Aktif</span>
                 </div>
                 <button type="button" id="priceCancelBtn" class="btn-digi btn-digi-gray" style="display: none; padding: 5px 14px; font-size: 12px;" onclick="resetPriceForm()">
-                    ✕ Batal Edit
+                    <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" style="display:inline-block; vertical-align:middle; margin-right:3px;"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg>Batal Edit
                 </button>
             </div>
             <div class="digi-responsive-grid-4" style="margin-bottom: 0; align-items: flex-end;">
@@ -1359,7 +1359,7 @@
                     <label class="digi-form-label" style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 4px;">
                         <span>Vendor BBM <span class="digi-required">*</span></span>
                         <a href="{{ route('admin.master', ['tab' => 'vendors']) }}" class="digi-quick-link" title="Buka master Perusahaan BBM">
-                            ⛽ Kelola Perusahaan BBM ↗
+                            <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="display:inline-block; vertical-align:-1px; margin-right:4px;"><rect x="3" y="2" width="12" height="20" rx="2"></rect><line x1="3" y1="10" x2="15" y2="10"></line><path d="M15 7h2a2 2 0 0 1 2 2v6a2 2 0 0 0 2 2v0a2 2 0 0 0 2-2V9.83a2 2 0 0 0-.59-1.42L20.5 6.5"></path></svg>Kelola Perusahaan BBM &rarr;
                         </a>
                     </label>
                     <select name="vendor_id" id="price_vendor_id" class="digi-select" required>
@@ -1387,7 +1387,7 @@
         </form>
 
         <div class="digi-table-filter-bar">
-            <input type="text" class="digi-table-search-input" placeholder="🔍 Cari vendor BBM, jenis BBM, harga..." onkeyup="filterMasterTable(this)">
+            <input type="text" class="digi-table-search-input" placeholder="Cari vendor BBM, jenis BBM, harga..." onkeyup="filterMasterTable(this)">
             <div style="font-size: 12.5px; color: #64748b;">
                 Total: <strong>{{ method_exists($fuelPrices, 'total') ? $fuelPrices->total() : count($fuelPrices) }} riwayat harga</strong>
             </div>
@@ -1464,18 +1464,18 @@
             <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 14px; flex-wrap: wrap; gap: 8px;">
                 <div style="display: flex; align-items: center; flex-wrap: wrap; gap: 6px;">
                     <h3 class="digi-section-title" id="usrFormTitle" style="margin: 0;">Langkah 5: Tambah / Kelola Akun Pengguna, Karyawan & Penugasan Area</h3>
-                    <span class="digi-edit-pill-badge" id="usrEditBadge">✏️ Mode Edit Aktif</span>
+                    <span class="digi-edit-pill-badge" id="usrEditBadge"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" style="display:inline-block; vertical-align:middle; margin-right:4px;"><path d="M12 20h9"/><path d="M16.5 3.5a2.121 2.121 0 0 1 3 3L7 19l-4 1 1-4L16.5 3.5z"/></svg>Mode Edit Aktif</span>
                     <p style="font-size: 12.5px; color: #64748b; margin: 3px 0 0 0; width: 100%;">
                         1 formulir terpadu: mendaftarkan akun login, sinkronisasi otomatis data Karyawan (Employee) via NRP, serta penugasan wilayah kerja approver.
                     </p>
                 </div>
                 <button type="button" id="usrCancelBtn" class="btn-digi btn-digi-gray" style="display: none; padding: 5px 14px; font-size: 12px;" onclick="resetUserForm()">
-                    ✕ Batal Edit
+                    <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" style="display:inline-block; vertical-align:middle; margin-right:3px;"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg>Batal Edit
                 </button>
             </div>
 
             <div style="background: #f0fdf4; border: 1px solid #bbf7d0; border-radius: 8px; padding: 10px 14px; margin-bottom: 14px; font-size: 12.5px; color: #166534;">
-                💡 <strong>Integrasi 1 Langkah:</strong> Mengisi kolom NRP akan otomatis menyinkronkan data Employee / Karyawan (DIGISIM Ready). Untuk SPV, Dept Head, Vendor BBM, & Fuel Man, centang pilihan area operasional di bawah agar langsung terdaftar pada formulir pengajuan Driver.
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="display:inline-block; vertical-align:-2px; margin-right:4px;"><line x1="9" y1="18" x2="15" y2="18"></line><line x1="10" y1="22" x2="14" y2="22"></line><path d="M15.09 14c.18-.98.65-1.74 1.41-2.5A4.65 4.65 0 0 0 18 8 6 6 0 0 0 6 8c0 1 .23 2.23 1.5 3.5A4.61 4.61 0 0 1 8.91 14"></path></svg><strong>Integrasi 1 Langkah:</strong> Mengisi kolom NRP akan otomatis menyinkronkan data Employee / Karyawan (DIGISIM Ready). Untuk SPV, Dept Head, Vendor BBM, & Fuel Man, centang pilihan area operasional di bawah agar langsung terdaftar pada formulir pengajuan Driver.
             </div>
 
             <div class="digi-form-grid-3">
@@ -1517,7 +1517,7 @@
                     <label class="digi-form-label" style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 4px;">
                         <span>Perusahaan Terkait (Khusus Vendor BBM)</span>
                         <a href="{{ route('admin.master', ['tab' => 'vendors']) }}" class="digi-quick-link" title="Buka master Perusahaan BBM">
-                            ⛽ Kelola Perusahaan BBM ↗
+                            <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="display:inline-block; vertical-align:-1px; margin-right:4px;"><rect x="3" y="2" width="12" height="20" rx="2"></rect><line x1="3" y1="10" x2="15" y2="10"></line><path d="M15 7h2a2 2 0 0 1 2 2v6a2 2 0 0 0 2 2v0a2 2 0 0 0 2-2V9.83a2 2 0 0 0-.59-1.42L20.5 6.5"></path></svg>Kelola Perusahaan BBM &rarr;
                         </a>
                     </label>
                     <select name="vendor_id" id="usr_vendor_id" class="digi-select">
@@ -1540,7 +1540,7 @@
                         Penugasan Wilayah Kerja / Area Operasional:
                     </label>
                     <a href="{{ route('admin.master', ['tab' => 'areas']) }}" class="digi-quick-link" title="Buka master Area Operasional">
-                        📍 Kelola Area ↗
+                        <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="display:inline-block; vertical-align:-1px; margin-right:4px;"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"></path><circle cx="12" cy="10" r="3"></circle></svg>Kelola Area &rarr;
                     </a>
                 </div>
                 <div style="font-size: 12px; color: #64748b; margin-bottom: 8px;">
@@ -1562,7 +1562,7 @@
         </form>
 
         <div class="digi-table-filter-bar">
-            <input type="text" class="digi-table-search-input" placeholder="🔍 Cari pengguna, username, whatsapp, NRP, role, area..." onkeyup="filterMasterTable(this)">
+            <input type="text" class="digi-table-search-input" placeholder="Cari pengguna, username, whatsapp, NRP, role, area..." onkeyup="filterMasterTable(this)">
             <div style="font-size: 12.5px; color: #64748b;">
                 Total: <strong>{{ method_exists($users, 'total') ? $users->total() : count($users) }} pengguna</strong>
             </div>
@@ -1655,10 +1655,10 @@
             <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 14px; flex-wrap: wrap; gap: 8px;">
                 <div style="display: flex; align-items: center; flex-wrap: wrap; gap: 6px;">
                     <h3 class="digi-section-title" id="bgFormTitle" style="margin: 0;">Upload / Kelola Gambar Background Sistem Sesuai Ketentuan UT</h3>
-                    <span class="digi-edit-pill-badge" id="bgEditBadge">✏️ Mode Edit Aktif</span>
+                    <span class="digi-edit-pill-badge" id="bgEditBadge"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" style="display:inline-block; vertical-align:middle; margin-right:4px;"><path d="M12 20h9"/><path d="M16.5 3.5a2.121 2.121 0 0 1 3 3L7 19l-4 1 1-4L16.5 3.5z"/></svg>Mode Edit Aktif</span>
                 </div>
                 <button type="button" id="bgCancelBtn" class="btn-digi btn-digi-gray" style="display: none; padding: 5px 14px; font-size: 12px;" onclick="resetBgForm()">
-                    ✕ Batal Edit
+                    <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" style="display:inline-block; vertical-align:middle; margin-right:3px;"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg>Batal Edit
                 </button>
             </div>
             <div style="background: #f0f9ff; border: 1px solid #bae6fd; border-radius: 8px; padding: 10px 14px; margin-bottom: 16px; font-size: 12.5px; color: #0369a1;">
@@ -1690,7 +1690,7 @@
         </form>
 
         <div class="digi-table-filter-bar">
-            <input type="text" class="digi-table-search-input" placeholder="🔍 Cari judul background, ketentuan, pengunggah..." onkeyup="filterMasterTable(this)">
+            <input type="text" class="digi-table-search-input" placeholder="Cari judul background, ketentuan, pengunggah..." onkeyup="filterMasterTable(this)">
             <div style="font-size: 12.5px; color: #64748b;">
                 Total: <strong>{{ method_exists($backgrounds, 'total') ? $backgrounds->total() : count($backgrounds) }} background</strong>
             </div>
@@ -1779,7 +1779,7 @@
         <h3 class="digi-section-title">Log Aktivitas & Audit Trail Sistem</h3>
 
         <div class="digi-table-filter-bar">
-            <input type="text" class="digi-table-search-input" placeholder="🔍 Cari log aktivitas, pengguna, aksi, nomor pengajuan, status..." onkeyup="filterMasterTable(this)">
+            <input type="text" class="digi-table-search-input" placeholder="Cari log aktivitas, pengguna, aksi, nomor pengajuan, status..." onkeyup="filterMasterTable(this)">
             <div style="font-size: 12.5px; color: #64748b;">
                 Total: <strong>{{ method_exists($auditLogs, 'total') ? $auditLogs->total() : count($auditLogs) }} log tercatat</strong>
             </div>

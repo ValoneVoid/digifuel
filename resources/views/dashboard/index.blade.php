@@ -54,7 +54,7 @@
     @if(!$user->signature_url)
         <div class="digi-signature-alert">
             <div class="digi-signature-alert-content">
-                <div class="digi-signature-alert-icon">✍️</div>
+                <div class="digi-signature-alert-icon"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M12 20h9"/><path d="M16.5 3.5a2.121 2.121 0 0 1 3 3L7 19l-4 1 1-4L16.5 3.5z"/></svg></div>
                 <div>
                     <div class="digi-signature-alert-title">
                         <span>Tanda Tangan Digital Wajib Diisi!</span>
@@ -237,7 +237,7 @@
             </div>
 
             <div class="digi-mobile-swipe-hint">
-                <span>👉 Geser tabel ke samping untuk melihat detail BBM & aksi</span>
+                <span><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="display:inline-block; vertical-align:middle; margin-right:4px;"><line x1="5" y1="12" x2="19" y2="12"></line><polyline points="12 5 19 12 12 19"></polyline></svg>Geser tabel ke samping untuk melihat detail BBM & aksi</span>
             </div>
 
             <div class="digi-table-responsive" style="overflow-x: auto; border: 1px solid #e2e8f0; border-radius: 12px;">

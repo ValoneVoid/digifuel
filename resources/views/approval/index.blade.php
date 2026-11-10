@@ -69,7 +69,7 @@
 
     <!-- Table -->
     <div class="digi-mobile-swipe-hint">
-        <span>👉 Geser tabel ke samping untuk melihat detail status & aksi approval</span>
+        <span><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="display:inline-block; vertical-align:middle; margin-right:4px;"><line x1="5" y1="12" x2="19" y2="12"></line><polyline points="12 5 19 12 12 19"></polyline></svg>Geser tabel ke samping untuk melihat detail status & aksi approval</span>
     </div>
 
     <div class="digi-table-responsive" style="overflow-x: auto; border: 1px solid #e2e8f0; border-radius: 12px;">

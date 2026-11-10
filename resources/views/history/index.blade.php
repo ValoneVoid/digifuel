@@ -85,7 +85,7 @@
 
     <!-- Table -->
     <div class="digi-mobile-swipe-hint">
-        <span>👉 Geser tabel ke samping untuk melihat seluruh riwayat & status</span>
+        <span><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="display:inline-block; vertical-align:middle; margin-right:4px;"><line x1="5" y1="12" x2="19" y2="12"></line><polyline points="12 5 19 12 12 19"></polyline></svg>Geser tabel ke samping untuk melihat seluruh riwayat & status</span>
     </div>
 
     <div class="digi-table-responsive" style="overflow-x: auto; border: 1px solid #e2e8f0; border-radius: 12px;">
@@ -251,7 +251,7 @@
     <div class="digi-modal" style="max-width: 860px; width: 100%; max-height: calc(100vh - 48px); display: flex; flex-direction: column;">
         <div class="digi-modal-header">
             <div style="display: flex; align-items: center; gap: 8px;">
-                <span style="display: inline-flex; align-items: center; justify-content: center; width: 28px; height: 28px; background: #e0f2fe; color: #0284c7; border-radius: 6px; font-size: 14px; font-weight: 700;">📄</span>
+                <span style="display: inline-flex; align-items: center; justify-content: center; width: 28px; height: 28px; background: #e0f2fe; color: #0284c7; border-radius: 6px; font-size: 14px; font-weight: 700;"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="display:inline-block; vertical-align:middle;"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path><polyline points="14 2 14 8 20 8"></polyline><line x1="16" y1="13" x2="8" y2="13"></line><line x1="16" y1="17" x2="8" y2="17"></line><polyline points="10 9 9 9 8 9"></polyline></svg></span>
                 <h3 class="digi-modal-title">Pratinjau Dokumen Fuel Request</h3>
             </div>
             <button type="button" class="digi-modal-close" onclick="closeDocModal()" title="Tutup Pratinjau">&times;</button>
@@ -335,7 +335,7 @@ function confirmDeleteRequest(id, reqNo) {
         title: 'Verifikasi Hapus (Langkah 1 / 2)',
         html: `
             <div style="text-align: left; background: #fff7ed; border: 1px solid #fed7aa; padding: 12px; border-radius: 8px; margin-bottom: 12px; color: #9a3412; font-size: 13px; line-height: 1.5;">
-                <strong>⚠️ Peringatan Awal:</strong><br>
+                <strong><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="display:inline-block; vertical-align:-2px; margin-right:4px;"><path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"></path><line x1="12" y1="9" x2="12" y2="13"></line><line x1="12" y1="17" x2="12.01" y2="17"></line></svg>Peringatan Awal:</strong><br>
                 Anda akan menghapus pengajuan BBM <strong>${reqNo}</strong> dari sistem.
             </div>
             <p style="text-align: left; font-size: 13px; color: #475569; margin: 0; line-height: 1.5;">

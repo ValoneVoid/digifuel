@@ -85,7 +85,7 @@
     @if($currentUser && !$currentUser->hasActiveSignature() && ($canApprove || ($fuelRequest->current_stage === 'draft' && $currentUser->id === $fuelRequest->user_id) || ($vendorDone && ($currentUser->isFuelman() || $currentUser->isAdmin()))))
         <div class="digi-signature-alert">
             <div class="digi-signature-alert-content">
-                <div class="digi-signature-alert-icon">✍️</div>
+                <div class="digi-signature-alert-icon"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M12 20h9"/><path d="M16.5 3.5a2.121 2.121 0 0 1 3 3L7 19l-4 1 1-4L16.5 3.5z"/></svg></div>
                 <div>
                     <div class="digi-signature-alert-title">
                         <span>Tanda Tangan Digital Wajib Diisi!</span>
@@ -217,7 +217,7 @@
                     </label>
                     @if($fuelRequest->status_spv === 'menunggu' && ($currentUser?->isSpv() || $currentUser?->isAdmin()))
                         <button type="button" onclick="openUpdateLitersModal()" class="btn-digi btn-digi-yellow" style="padding: 2px 10px; font-size: 11.5px; height: auto;">
-                            ✎ Ubah Liter
+                            <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" style="display:inline-block; vertical-align:middle; margin-right:4px;"><path d="M12 20h9"/><path d="M16.5 3.5a2.121 2.121 0 0 1 3 3L7 19l-4 1 1-4L16.5 3.5z"/></svg>Ubah Liter
                         </button>
                     @endif
                 </div>
@@ -315,7 +315,7 @@
         <div class="digi-form-box" style="border-color: #22c55e; background: #f0fdf4;">
             <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 14px; flex-wrap: wrap; gap: 8px;">
                 <h3 class="digi-section-title" style="color: #15803d; margin: 0;">
-                    ⛽ Pencatatan Realisasi Pengisian BBM (Fuel Man)
+                    <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="display:inline-block; vertical-align:-1px; margin-right:4px;"><rect x="3" y="2" width="12" height="20" rx="2"></rect><line x1="3" y1="10" x2="15" y2="10"></line><path d="M15 7h2a2 2 0 0 1 2 2v6a2 2 0 0 0 2 2v0a2 2 0 0 0 2-2V9.83a2 2 0 0 0-.59-1.42L20.5 6.5"></path></svg>Pencatatan Realisasi Pengisian BBM (Fuel Man)
                 </h3>
                 <span class="digi-badge digi-badge-green">
                     {{ $fuelRequest->transactions->count() > 0 ? 'Realisasi Tercatat' : 'Approved - Ready for Fueling' }}
@@ -577,7 +577,7 @@ function confirmDeleteRequest(id, reqNo) {
         title: 'Verifikasi Hapus (Langkah 1 / 2)',
         html: `
             <div style="text-align: left; background: #fff7ed; border: 1px solid #fed7aa; padding: 12px; border-radius: 8px; margin-bottom: 12px; color: #9a3412; font-size: 13px; line-height: 1.5;">
-                <strong>⚠️ Peringatan Awal:</strong><br>
+                <strong><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="display:inline-block; vertical-align:-2px; margin-right:4px;"><path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"></path><line x1="12" y1="9" x2="12" y2="13"></line><line x1="12" y1="17" x2="12.01" y2="17"></line></svg>Peringatan Awal:</strong><br>
                 Anda akan menghapus pengajuan BBM <strong>${reqNo}</strong> dari sistem.
             </div>
             <p style="text-align: left; font-size: 13px; color: #475569; margin: 0; line-height: 1.5;">
