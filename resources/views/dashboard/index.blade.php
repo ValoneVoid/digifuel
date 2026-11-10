@@ -52,9 +52,22 @@
 
     <!-- Peringatan Tanda Tangan jika belum diunggah -->
     @if(!$user->signature_url)
-        <div class="digi-warning-banner">
-            <span>⚠️</span>
-            <span>Anda belum memiliki tanda tangan digital aktif. Sesuai kebijakan DigiFuel, tanda tangan wajib diunggah untuk dapat mengajukan dan menyetujui Fuel Request. Silakan buka <a href="{{ route('profile.index') }}">halaman Profil</a> untuk mengunggah tanda tangan Anda.</span>
+        <div class="digi-signature-alert">
+            <div class="digi-signature-alert-content">
+                <div class="digi-signature-alert-icon">✍️</div>
+                <div>
+                    <div class="digi-signature-alert-title">
+                        <span>Tanda Tangan Digital Wajib Diisi!</span>
+                        <span class="digi-signature-alert-badge">Wajib</span>
+                    </div>
+                    <div class="digi-signature-alert-text">
+                        Anda belum memiliki tanda tangan digital aktif. Sesuai kebijakan sistem DigiFuel, seluruh pengajuan dan persetujuan Fuel Request mewajibkan tanda tangan digital yang sah.
+                    </div>
+                </div>
+            </div>
+            <a href="{{ route('profile.index') }}" class="digi-signature-alert-btn">
+                Unggah Tanda Tangan Sekarang &rarr;
+            </a>
         </div>
     @endif
 

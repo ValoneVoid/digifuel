@@ -15,17 +15,20 @@
 
     <!-- Warning banner if no signature -->
     @if(!$user->signature_url)
-        <div class="digi-warning-banner" style="background: #fffbeb; border: 1px solid #fde68a; color: #92400e; padding: 14px 18px; border-radius: 10px; margin-bottom: 20px; display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 12px;">
-            <div style="display: flex; align-items: center; gap: 12px;">
-                <span style="font-size: 24px;">⚠️</span>
+        <div class="digi-signature-alert">
+            <div class="digi-signature-alert-content">
+                <div class="digi-signature-alert-icon">✍️</div>
                 <div>
-                    <div style="font-weight: 700; font-size: 14px;">Tanda Tangan Digital Wajib Diisi!</div>
-                    <div style="font-size: 13px; color: #78350f; margin-top: 2px;">
+                    <div class="digi-signature-alert-title">
+                        <span>Tanda Tangan Digital Wajib Diisi!</span>
+                        <span class="digi-signature-alert-badge">Wajib</span>
+                    </div>
+                    <div class="digi-signature-alert-text">
                         Sesuai kebijakan sistem DigiFuel, Anda wajib memiliki tanda tangan digital aktif sebelum dapat mengirim formulir Fuel Request.
                     </div>
                 </div>
             </div>
-            <a href="{{ route('profile.index') }}" class="btn-digi btn-digi-yellow" style="padding: 8px 16px; font-size: 13px; font-weight: 600; text-decoration: none; white-space: nowrap;">
+            <a href="{{ route('profile.index') }}" class="digi-signature-alert-btn">
                 Unggah Tanda Tangan Sekarang &rarr;
             </a>
         </div>
@@ -345,7 +348,7 @@ function requireSignatureNotice() {
             confirmButtonText: 'Buka Halaman Profil',
             showCancelButton: true,
             cancelButtonText: 'Batal',
-            confirmButtonColor: '#f59e0b',
+            confirmButtonColor: '#dc2626',
             cancelButtonColor: '#64748b',
         }).then((result) => {
             if (result.isConfirmed) {

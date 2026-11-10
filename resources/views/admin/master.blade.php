@@ -3,6 +3,354 @@
 @section('title', 'Manajemen Master Data & Audit Trail')
 
 @section('content')
+<style>
+    /* ========================================================================= */
+    /* MASTER DATA MODERN UI & MOBILE RESPONSIVE ENHANCEMENTS                  */
+    /* ========================================================================= */
+
+    /* 1. Contextual Quick-Links */
+    .digi-quick-link {
+        display: inline-flex;
+        align-items: center;
+        gap: 4px;
+        font-size: 11.5px;
+        font-weight: 600;
+        color: #0284c7;
+        background: #e0f2fe;
+        border: 1px solid #bae6fd;
+        padding: 2px 9px;
+        border-radius: 9999px;
+        text-decoration: none;
+        transition: all 0.15s ease;
+        white-space: nowrap;
+    }
+    .digi-quick-link:hover {
+        background: #0284c7;
+        color: #ffffff;
+        border-color: #0284c7;
+        transform: translateY(-1px);
+        box-shadow: 0 2px 6px rgba(2, 132, 199, 0.25);
+    }
+
+    /* 2. Modern Segmented Stepper Navigation with Left-Right Scroll & Visible Scrollbar */
+    .digi-master-tabs-nav-wrapper {
+        position: relative;
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        margin-bottom: 14px;
+        width: 100%;
+    }
+    .digi-tabs-scroll-btn {
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        width: 32px;
+        height: 32px;
+        border-radius: 50%;
+        background: #ffffff;
+        border: 1px solid #cbd5e1;
+        color: #334155;
+        font-size: 18px;
+        font-weight: 700;
+        line-height: 1;
+        cursor: pointer;
+        transition: all 0.15s ease;
+        box-shadow: 0 1px 3px rgba(0, 0, 0, 0.08);
+        flex-shrink: 0;
+        user-select: none;
+        margin-bottom: 6px;
+    }
+    .digi-tabs-scroll-btn:hover:not(:disabled) {
+        background: #f1f5f9;
+        border-color: #0284c7;
+        color: #0284c7;
+        transform: scale(1.06);
+    }
+    .digi-tabs-scroll-btn:disabled {
+        opacity: 0.3;
+        cursor: not-allowed;
+    }
+    .digi-master-tabs-scroll {
+        flex: 1;
+        min-width: 0;
+        display: flex;
+        gap: 8px;
+        overflow-x: auto;
+        -webkit-overflow-scrolling: touch;
+        padding-bottom: 8px;
+        scroll-behavior: smooth;
+        scrollbar-width: thin;
+        scrollbar-color: #94a3b8 #f1f5f9;
+    }
+    .digi-master-tabs-scroll::-webkit-scrollbar {
+        height: 7px;
+        display: block;
+    }
+    .digi-master-tabs-scroll::-webkit-scrollbar-track {
+        background: #f1f5f9;
+        border-radius: 9999px;
+    }
+    .digi-master-tabs-scroll::-webkit-scrollbar-thumb {
+        background: #94a3b8;
+        border-radius: 9999px;
+        border: 1.5px solid #f1f5f9;
+    }
+    .digi-master-tabs-scroll::-webkit-scrollbar-thumb:hover {
+        background: #0284c7;
+    }
+
+    /* Table Horizontal Scrollbar Styling */
+    .digi-table-responsive {
+        overflow-x: auto;
+        border: 1px solid #e2e8f0;
+        border-radius: 12px;
+        scrollbar-width: thin;
+        scrollbar-color: #94a3b8 #f1f5f9;
+        -webkit-overflow-scrolling: touch;
+    }
+    .digi-table-responsive::-webkit-scrollbar {
+        height: 8px;
+        display: block;
+    }
+    .digi-table-responsive::-webkit-scrollbar-track {
+        background: #f1f5f9;
+        border-radius: 6px;
+    }
+    .digi-table-responsive::-webkit-scrollbar-thumb {
+        background: #cbd5e1;
+        border-radius: 6px;
+        border: 2px solid #f1f5f9;
+    }
+    .digi-table-responsive::-webkit-scrollbar-thumb:hover {
+        background: #94a3b8;
+    }
+    .digi-tab-pill {
+        display: inline-flex;
+        align-items: center;
+        gap: 8px;
+        padding: 8px 16px;
+        border-radius: 9999px;
+        font-size: 13px;
+        font-weight: 600;
+        text-decoration: none;
+        white-space: nowrap;
+        border: 1px solid #cbd5e1;
+        background: #ffffff;
+        color: #475569;
+        transition: all 0.2s ease;
+        box-shadow: 0 1px 3px rgba(0, 0, 0, 0.04);
+        flex-shrink: 0;
+    }
+    .digi-tab-pill:hover {
+        background: #f8fafc;
+        color: #0f172a;
+        border-color: #94a3b8;
+    }
+    .digi-tab-pill.is-active {
+        background: linear-gradient(135deg, #0284c7 0%, #0369a1 100%);
+        color: #ffffff;
+        border-color: #0284c7;
+        box-shadow: 0 4px 12px rgba(2, 132, 199, 0.3);
+    }
+    .digi-tab-pill .tab-step-num {
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        width: 22px;
+        height: 22px;
+        border-radius: 50%;
+        font-size: 11px;
+        font-weight: 700;
+        background: #f1f5f9;
+        color: #334155;
+    }
+    .digi-tab-pill.is-active .tab-step-num {
+        background: rgba(255, 255, 255, 0.25);
+        color: #ffffff;
+    }
+    .digi-tab-pill .tab-badge-count {
+        font-size: 11.5px;
+        font-weight: 600;
+        opacity: 0.85;
+    }
+
+    /* 3. Form Visual States (Create Mode vs Edit Mode) */
+    .digi-form-box {
+        transition: all 0.25s ease;
+        border: 1px solid #e2e8f0;
+        border-radius: 12px;
+        padding: 20px;
+        background: #ffffff;
+        margin-bottom: 24px;
+    }
+    .digi-form-box.is-editing {
+        border-color: #f59e0b !important;
+        background: #fffbeb !important;
+        box-shadow: 0 0 0 3px rgba(245, 158, 11, 0.15), 0 8px 24px rgba(245, 158, 11, 0.08) !important;
+    }
+    .digi-edit-pill-badge {
+        display: none;
+        align-items: center;
+        gap: 5px;
+        font-size: 11.5px;
+        font-weight: 700;
+        color: #b45309;
+        background: #fef3c7;
+        border: 1px solid #fde68a;
+        padding: 3px 10px;
+        border-radius: 9999px;
+        margin-left: 8px;
+    }
+    .digi-form-box.is-editing .digi-edit-pill-badge {
+        display: inline-flex;
+    }
+
+    /* 4. Responsive Grid Classes */
+    .digi-responsive-grid-4 {
+        display: grid;
+        grid-template-columns: 1.2fr 1.2fr 1fr 1fr;
+        gap: 14px;
+        align-items: flex-end;
+    }
+    .digi-responsive-grid-3 {
+        display: grid;
+        grid-template-columns: repeat(3, 1fr);
+        gap: 14px;
+        align-items: flex-end;
+    }
+    @media (max-width: 900px) {
+        .digi-responsive-grid-4,
+        .digi-responsive-grid-3,
+        .digi-form-grid-3,
+        .digi-form-grid-4 {
+            grid-template-columns: 1fr !important;
+            gap: 12px !important;
+        }
+        .digi-form-box {
+            padding: 14px;
+        }
+        .digi-input, .digi-select {
+            min-height: 42px !important;
+            font-size: 14px !important;
+        }
+    }
+
+    /* 5. Table Instant Client-Side Search Bar */
+    .digi-table-filter-bar {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        flex-wrap: wrap;
+        gap: 10px;
+        margin-bottom: 12px;
+    }
+    .digi-table-search-input {
+        min-width: 260px;
+        max-width: 380px;
+        padding: 8px 12px 8px 34px;
+        font-size: 13px;
+        border: 1px solid #cbd5e1;
+        border-radius: 8px;
+        background: #ffffff url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='16' height='16' fill='%2394a3b8' viewBox='0 0 16 16'%3E%3Cpath d='M11.742 10.344a6.5 6.5 0 1 0-1.397 1.398h-.001c.03.04.062.078.098.115l3.85 3.85a1 1 0 0 0 1.415-1.414l-3.85-3.85a1.007 1.007 0 0 0-.115-.1zM12 6.5a5.5 5.5 0 1 1-11 0 5.5 5.5 0 0 1 11 0z'/%3E%3C/svg%3E") no-repeat 10px center;
+        color: #1e293b;
+        outline: none;
+        transition: all 0.2s ease;
+    }
+    .digi-table-search-input:focus {
+        border-color: #0284c7;
+        box-shadow: 0 0 0 3px rgba(2, 132, 199, 0.15);
+    }
+    @media (max-width: 640px) {
+        .digi-table-search-input {
+            width: 100% !important;
+            max-width: 100% !important;
+        }
+    }
+
+    /* 6. Soft Pastel Status Badges with Glowing Dot */
+    .digi-status-dot-pill {
+        display: inline-flex;
+        align-items: center;
+        gap: 6px;
+        padding: 4px 10px;
+        border-radius: 9999px;
+        font-size: 11.5px;
+        font-weight: 700;
+        letter-spacing: 0.2px;
+        white-space: nowrap;
+    }
+    .digi-status-dot-pill.is-active {
+        background: #dcfce7;
+        color: #15803d;
+        border: 1px solid #bbf7d0;
+    }
+    .digi-status-dot-pill.is-inactive {
+        background: #fee2e2;
+        color: #b91c1c;
+        border: 1px solid #fecaca;
+    }
+    .digi-status-dot-pill .dot {
+        width: 7px;
+        height: 7px;
+        border-radius: 50%;
+    }
+    .digi-status-dot-pill.is-active .dot {
+        background: #22c55e;
+        box-shadow: 0 0 6px #22c55e;
+    }
+    .digi-status-dot-pill.is-inactive .dot {
+        background: #ef4444;
+    }
+
+    /* 7. Action Button Group */
+    .digi-action-group {
+        display: inline-flex;
+        align-items: center;
+        gap: 4px;
+        flex-wrap: nowrap;
+    }
+    .btn-action-pill {
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        gap: 4px;
+        padding: 5px 11px;
+        font-size: 12px;
+        font-weight: 600;
+        border-radius: 6px;
+        border: 1px solid transparent;
+        cursor: pointer;
+        transition: all 0.15s ease;
+        white-space: nowrap;
+        text-decoration: none;
+    }
+    .btn-action-pill:active {
+        transform: scale(0.97);
+    }
+
+    /* 8. Thumbnail Background */
+    .digi-bg-thumb {
+        width: 125px;
+        height: 68px;
+        object-fit: cover;
+        border-radius: 8px;
+        border: 2px solid #cbd5e1;
+        display: block;
+    }
+    .digi-bg-thumb.is-active {
+        border-color: #22c55e;
+    }
+
+    /* 9. Smooth Hover on Table Rows */
+    .digi-table tbody tr {
+        transition: background-color 0.15s ease;
+    }
+    .digi-table tbody tr:hover {
+        background-color: #f8fafc;
+    }
+</style>
+
 <div class="digi-card">
     <div class="digi-table-top" style="margin-bottom: 18px;">
         <div>
@@ -13,27 +361,40 @@
         </div>
     </div>
 
-    <!-- Navigation Tabs Sesuai Alur Kebutuhan Operasional -->
+    <!-- Navigation Tabs Sesuai Alur Kebutuhan Operasional (Desktop & Mobile Swipeable) -->
     @php
         $getCount = fn($col) => method_exists($col, 'total') ? $col->total() : (is_countable($col) ? count($col) : 0);
         $primaryTabs = [
-            'areas' => '1. Wilayah & Area (' . $getCount($areas) . ')',
-            'vendors' => '2. Perusahaan BBM & Harga (' . $getCount($vendors) . ')',
-            'unit_vendors' => '3. Perusahaan Rental Unit (' . $getCount($unitVendors) . ')',
-            'units' => '4. Unit Kendaraan & Standar (' . $getCount($vehicles) . ')',
-            'users' => '5. Pengguna, Karyawan & Penugasan (' . $getCount($users) . ')',
-            'backgrounds' => 'Background Sistem (' . $getCount($backgrounds ?? collect()) . ')',
-            'audit' => 'Audit Trail (' . $getCount($auditLogs) . ')',
+            'areas' => ['step' => '1', 'name' => 'Wilayah & Area', 'count' => $getCount($areas)],
+            'vendors' => ['step' => '2', 'name' => 'Perusahaan BBM & Harga', 'count' => $getCount($vendors)],
+            'unit_vendors' => ['step' => '3', 'name' => 'Perusahaan Rental Unit', 'count' => $getCount($unitVendors)],
+            'units' => ['step' => '4', 'name' => 'Unit Kendaraan & Standar', 'count' => $getCount($vehicles)],
+            'users' => ['step' => '5', 'name' => 'Pengguna, Karyawan & Penugasan', 'count' => $getCount($users)],
+            'backgrounds' => ['step' => '🖼️', 'name' => 'Background Sistem', 'count' => $getCount($backgrounds ?? collect())],
+            'audit' => ['step' => '📋', 'name' => 'Audit Trail', 'count' => $getCount($auditLogs)],
         ];
 
         $isLegacyTab = in_array($tab, ['employees', 'approvers', 'standards', 'prices'], true);
     @endphp
-    <div class="digi-tabs-nav" style="display: flex; flex-wrap: wrap; gap: 8px;">
-        @foreach($primaryTabs as $key => $label)
-            <a href="{{ route('admin.master', array_merge(request()->query(), ['tab' => $key, 'page' => 1])) }}" class="btn-digi {{ $tab === $key ? 'btn-digi-blue' : 'btn-digi-gray' }}" style="padding: 7px 14px; font-size: 12.5px;">
-                {{ $label }}
-            </a>
-        @endforeach
+
+    <div class="digi-master-tabs-nav-wrapper">
+        <button type="button" class="digi-tabs-scroll-btn btn-left" id="masterTabsScrollLeft" onclick="scrollMasterTabs(-240)" title="Geser tab ke kiri" aria-label="Geser tab ke kiri">
+            ‹
+        </button>
+        <div class="digi-master-tabs-scroll" id="masterTabsScroll">
+            @foreach($primaryTabs as $key => $tabInfo)
+                <a href="{{ route('admin.master', array_merge(request()->query(), ['tab' => $key, 'page' => 1])) }}"
+                   class="digi-tab-pill {{ $tab === $key ? 'is-active' : '' }}"
+                   title="Langkah {{ $tabInfo['step'] }}: {{ $tabInfo['name'] }}">
+                    <span class="tab-step-num">{{ $tabInfo['step'] }}</span>
+                    <span>{{ $tabInfo['name'] }}</span>
+                    <span class="tab-badge-count">({{ $tabInfo['count'] }})</span>
+                </a>
+            @endforeach
+        </div>
+        <button type="button" class="digi-tabs-scroll-btn btn-right" id="masterTabsScrollRight" onclick="scrollMasterTabs(240)" title="Geser tab ke kanan" aria-label="Geser tab ke kanan">
+            ›
+        </button>
     </div>
 
     @if($isLegacyTab)
@@ -61,15 +422,16 @@
         <form id="unitForm" action="{{ route('admin.master.vehicle') }}" method="POST" class="digi-form-box">
             @csrf
             <input type="hidden" name="id" id="unit_id" value="">
-            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 14px;">
-                <div>
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 14px; flex-wrap: wrap; gap: 8px;">
+                <div style="display: flex; align-items: center; flex-wrap: wrap; gap: 6px;">
                     <h3 class="digi-section-title" id="unitFormTitle" style="margin: 0;">Langkah 4: Tambah Data Unit Kendaraan & Standar Konsumsi BBM</h3>
-                    <p style="font-size: 12.5px; color: #64748b; margin: 3px 0 0 0;">
+                    <span class="digi-edit-pill-badge" id="unitEditBadge">✏️ Mode Edit Aktif</span>
+                    <p style="font-size: 12.5px; color: #64748b; margin: 3px 0 0 0; width: 100%;">
                         Daftarkan unit operasional, vendor rental, area default, kapasitas tangki, serta target rasio konsumsi BBM (KM/L) sekaligus.
                     </p>
                 </div>
                 <button type="button" id="unitCancelBtn" class="btn-digi btn-digi-gray" style="display: none; padding: 5px 14px; font-size: 12px;" onclick="resetUnitForm()">
-                    Batal Edit
+                    ✕ Batal Edit
                 </button>
             </div>
             <div class="digi-form-grid-3">
@@ -86,9 +448,14 @@
                     <input type="text" name="model" id="unit_model" class="digi-input" placeholder="Contoh: B/U FMC JB HDX TRITON" required>
                 </div>
             </div>
-            <div class="digi-form-grid-4" style="display: grid; grid-template-columns: 1.2fr 1.2fr 1fr 1fr; gap: 12px; margin-bottom: 0; align-items: flex-end;">
+            <div class="digi-responsive-grid-4" style="margin-bottom: 0;">
                 <div class="digi-form-group">
-                    <label class="digi-form-label">Perusahaan Rental Unit (Rental / Internal) <span class="digi-required">*</span></label>
+                    <label class="digi-form-label" style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 4px;">
+                        <span>Perusahaan Rental Unit <span class="digi-required">*</span></span>
+                        <a href="{{ route('admin.master', ['tab' => 'unit_vendors']) }}" class="digi-quick-link" title="Buka master Perusahaan Rental Unit">
+                            🏢 Kelola Rental Unit ↗
+                        </a>
+                    </label>
                     <select name="unit_vendor_id" id="unit_vendor_id" class="digi-select" required>
                         <option value="">-- Pilih Perusahaan Rental Unit --</option>
                         @foreach($allUnitVendors as $uv)
@@ -98,7 +465,12 @@
                     <input type="hidden" name="meter_type" id="unit_meter_type" value="km">
                 </div>
                 <div class="digi-form-group">
-                    <label class="digi-form-label">Area Operasional Default</label>
+                    <label class="digi-form-label" style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 4px;">
+                        <span>Area Default</span>
+                        <a href="{{ route('admin.master', ['tab' => 'areas']) }}" class="digi-quick-link" title="Buka master Area Operasional">
+                            📍 Kelola Area ↗
+                        </a>
+                    </label>
                     <select name="default_area_id" id="unit_default_area_id" class="digi-select">
                         <option value="">-- Pilih Area Default --</option>
                         @foreach($allAreas as $a)
@@ -120,6 +492,13 @@
             </div>
         </form>
 
+        <div class="digi-table-filter-bar">
+            <input type="text" class="digi-table-search-input" placeholder="🔍 Cari kode unit, nomor polisi, model, rental, area..." onkeyup="filterMasterTable(this)">
+            <div style="font-size: 12.5px; color: #64748b;">
+                Total: <strong>{{ method_exists($vehicles, 'total') ? $vehicles->total() : count($vehicles) }} unit</strong>
+            </div>
+        </div>
+
         @include('partials.pagination_top', ['paginator' => $vehicles])
 
         <div class="digi-table-responsive" style="overflow-x: auto; border: 1px solid #e2e8f0; border-radius: 12px;">
@@ -130,7 +509,7 @@
                         <th>Unit Code</th>
                         <th>Nomor Polisi</th>
                         <th>Tipe / Model Unit</th>
-                        <th>Perusahaan Rental</th>
+                        <th>Perusahaan Rental Unit (Rental / Internal)</th>
                         <th>Area Default</th>
                         <th>Kapasitas Tangki</th>
                         <th>Standar BBM</th>
@@ -168,8 +547,8 @@
                                 @endif
                             </td>
                             <td>
-                                <span class="digi-badge {{ $v->is_active ? 'digi-badge-green' : 'digi-badge-red' }}">
-                                    {{ $v->is_active ? 'Aktif' : 'Nonaktif' }}
+                                <span class="digi-status-dot-pill {{ $v->is_active ? 'is-active' : 'is-inactive' }}">
+                                    <span class="dot"></span>{{ $v->is_active ? 'Aktif' : 'Nonaktif' }}
                                 </span>
                             </td>
                             <td>
@@ -206,11 +585,22 @@
         <form id="unitVendorForm" action="{{ route('admin.master.unit-vendor') }}" method="POST" class="digi-form-box">
             @csrf
             <input type="hidden" name="id" id="unit_vendor_id_input" value="">
-            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 14px;">
-                <h3 class="digi-section-title" id="unitVendorFormTitle" style="margin: 0;">Langkah 3: Tambah Data Perusahaan Rental Unit (Penyedia Unit)</h3>
-                <button type="button" id="unitVendorCancelBtn" class="btn-digi btn-digi-gray" style="display: none; padding: 5px 14px; font-size: 12px;" onclick="resetUnitVendorForm()">
-                    Batal Edit
-                </button>
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 14px; flex-wrap: wrap; gap: 8px;">
+                <div style="display: flex; align-items: center; flex-wrap: wrap; gap: 6px;">
+                    <h3 class="digi-section-title" id="unitVendorFormTitle" style="margin: 0;">Langkah 3: Tambah Data Perusahaan Rental Unit (Penyedia Unit)</h3>
+                    <span class="digi-edit-pill-badge" id="unitVendorEditBadge">✏️ Mode Edit Aktif</span>
+                    <p style="font-size: 12.5px; color: #64748b; margin: 3px 0 0 0; width: 100%;">
+                        Daftarkan rekanan perusahaan penyedia unit sewa / rental kendaraan operasional.
+                    </p>
+                </div>
+                <div style="display: flex; gap: 6px; align-items: center;">
+                    <a href="{{ route('admin.master', ['tab' => 'units']) }}" class="digi-quick-link" title="Buka master Unit Kendaraan">
+                        🚗 Kelola Unit Terdaftar ↗
+                    </a>
+                    <button type="button" id="unitVendorCancelBtn" class="btn-digi btn-digi-gray" style="display: none; padding: 5px 14px; font-size: 12px;" onclick="resetUnitVendorForm()">
+                        ✕ Batal Edit
+                    </button>
+                </div>
             </div>
             <div class="digi-form-grid-3">
                 <div class="digi-form-group">
@@ -241,6 +631,13 @@
             </div>
         </form>
 
+        <div class="digi-table-filter-bar">
+            <input type="text" class="digi-table-search-input" placeholder="🔍 Cari kode perusahaan, nama rental, PIC, telepon..." onkeyup="filterMasterTable(this)">
+            <div style="font-size: 12.5px; color: #64748b;">
+                Total: <strong>{{ method_exists($unitVendors, 'total') ? $unitVendors->total() : count($unitVendors) }} perusahaan</strong>
+            </div>
+        </div>
+
         @include('partials.pagination_top', ['paginator' => $unitVendors])
 
         <div class="digi-table-responsive" style="overflow-x: auto; border: 1px solid #e2e8f0; border-radius: 12px;">
@@ -269,8 +666,8 @@
                                 <span class="digi-badge digi-badge-blue">{{ $uv->vehicles_count ?? $uv->vehicles()->count() }} Unit</span>
                             </td>
                             <td>
-                                <span class="digi-badge {{ $uv->is_active ? 'digi-badge-green' : 'digi-badge-red' }}">
-                                    {{ $uv->is_active ? 'Aktif' : 'Nonaktif' }}
+                                <span class="digi-status-dot-pill {{ $uv->is_active ? 'is-active' : 'is-inactive' }}">
+                                    <span class="dot"></span>{{ $uv->is_active ? 'Aktif' : 'Nonaktif' }}
                                 </span>
                             </td>
                             <td>
@@ -311,11 +708,19 @@
         <form id="employeeForm" action="{{ route('admin.master.employee') }}" method="POST" class="digi-form-box">
             @csrf
             <input type="hidden" name="id" id="emp_id" value="">
-            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 14px;">
-                <h3 class="digi-section-title" id="empFormTitle" style="margin: 0;">Tambah Data Employee (Lokal & Integrasi DIGISIM)</h3>
-                <button type="button" id="empCancelBtn" class="btn-digi btn-digi-gray" style="display: none; padding: 5px 14px; font-size: 12px;" onclick="resetEmployeeForm()">
-                    Batal Edit
-                </button>
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 14px; flex-wrap: wrap; gap: 8px;">
+                <div style="display: flex; align-items: center; flex-wrap: wrap; gap: 6px;">
+                    <h3 class="digi-section-title" id="empFormTitle" style="margin: 0;">Tambah Data Employee (Lokal & Integrasi DIGISIM)</h3>
+                    <span class="digi-edit-pill-badge" id="empEditBadge">✏️ Mode Edit Aktif</span>
+                </div>
+                <div style="display: flex; gap: 6px; align-items: center;">
+                    <a href="{{ route('admin.master', ['tab' => 'users']) }}" class="digi-quick-link" title="Buka master Akun Pengguna">
+                        👤 Kelola Akun Pengguna ↗
+                    </a>
+                    <button type="button" id="empCancelBtn" class="btn-digi btn-digi-gray" style="display: none; padding: 5px 14px; font-size: 12px;" onclick="resetEmployeeForm()">
+                        ✕ Batal Edit
+                    </button>
+                </div>
             </div>
             <div class="digi-form-grid-3">
                 <div class="digi-form-group">
@@ -352,6 +757,13 @@
             </div>
         </form>
 
+        <div class="digi-table-filter-bar">
+            <input type="text" class="digi-table-search-input" placeholder="🔍 Cari NRP, nama employee, jabatan, perusahaan..." onkeyup="filterMasterTable(this)">
+            <div style="font-size: 12.5px; color: #64748b;">
+                Total: <strong>{{ method_exists($employees, 'total') ? $employees->total() : count($employees) }} employee</strong>
+            </div>
+        </div>
+
         @include('partials.pagination_top', ['paginator' => $employees])
 
         <div class="digi-table-responsive" style="overflow-x: auto; border: 1px solid #e2e8f0; border-radius: 12px;">
@@ -380,8 +792,8 @@
                             <td><span class="digi-badge digi-badge-blue">{{ strtoupper($emp->source) }}</span></td>
                             <td>{{ $emp->external_reference ?? '-' }}</td>
                             <td>
-                                <span class="digi-badge {{ $emp->is_active ? 'digi-badge-green' : 'digi-badge-red' }}">
-                                    {{ $emp->is_active ? 'Aktif' : 'Nonaktif' }}
+                                <span class="digi-status-dot-pill {{ $emp->is_active ? 'is-active' : 'is-inactive' }}">
+                                    <span class="dot"></span>{{ $emp->is_active ? 'Aktif' : 'Nonaktif' }}
                                 </span>
                             </td>
                             <td>
@@ -418,11 +830,19 @@
         <form id="areaForm" action="{{ route('admin.master.area') }}" method="POST" class="digi-form-box">
             @csrf
             <input type="hidden" name="id" id="area_id" value="">
-            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 14px;">
-                <h3 class="digi-section-title" id="areaFormTitle" style="margin: 0;">Tambah Area Operasional</h3>
-                <button type="button" id="areaCancelBtn" class="btn-digi btn-digi-gray" style="display: none; padding: 5px 14px; font-size: 12px;" onclick="resetAreaForm()">
-                    Batal Edit
-                </button>
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 14px; flex-wrap: wrap; gap: 8px;">
+                <div style="display: flex; align-items: center; flex-wrap: wrap; gap: 6px;">
+                    <h3 class="digi-section-title" id="areaFormTitle" style="margin: 0;">Langkah 1: Tambah Area Operasional</h3>
+                    <span class="digi-edit-pill-badge" id="areaEditBadge">✏️ Mode Edit Aktif</span>
+                </div>
+                <div style="display: flex; gap: 6px; align-items: center;">
+                    <a href="{{ route('admin.master', ['tab' => 'users']) }}" class="digi-quick-link" title="Buka master Pengguna & Penugasan Area">
+                        👥 Penugasan Approver ↗
+                    </a>
+                    <button type="button" id="areaCancelBtn" class="btn-digi btn-digi-gray" style="display: none; padding: 5px 14px; font-size: 12px;" onclick="resetAreaForm()">
+                        ✕ Batal Edit
+                    </button>
+                </div>
             </div>
             <div class="digi-form-grid-3" style="margin-bottom: 0; align-items: flex-end;">
                 <div class="digi-form-group">
@@ -438,6 +858,13 @@
                 </div>
             </div>
         </form>
+
+        <div class="digi-table-filter-bar">
+            <input type="text" class="digi-table-search-input" placeholder="🔍 Cari kode area, nama area operasional..." onkeyup="filterMasterTable(this)">
+            <div style="font-size: 12.5px; color: #64748b;">
+                Total: <strong>{{ method_exists($areas, 'total') ? $areas->total() : count($areas) }} area</strong>
+            </div>
+        </div>
 
         @include('partials.pagination_top', ['paginator' => $areas])
 
@@ -459,8 +886,8 @@
                             <td style="font-weight:700; color: #0284c7;">{{ $a->code ?? 'AREA-' . $a->id }}</td>
                             <td style="font-weight:600;">{{ $a->name }}</td>
                             <td>
-                                <span class="digi-badge {{ $a->is_active ? 'digi-badge-green' : 'digi-badge-red' }}">
-                                    {{ $a->is_active ? 'Aktif' : 'Nonaktif' }}
+                                <span class="digi-status-dot-pill {{ $a->is_active ? 'is-active' : 'is-inactive' }}">
+                                    <span class="dot"></span>{{ $a->is_active ? 'Aktif' : 'Nonaktif' }}
                                 </span>
                             </td>
                             <td>
@@ -497,16 +924,25 @@
         <form id="vendorForm" action="{{ route('admin.master.vendor') }}" method="POST" class="digi-form-box">
             @csrf
             <input type="hidden" name="id" id="vendor_id" value="">
-            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 14px;">
-                <div>
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 14px; flex-wrap: wrap; gap: 8px;">
+                <div style="display: flex; align-items: center; flex-wrap: wrap; gap: 6px;">
                     <h3 class="digi-section-title" id="vendorFormTitle" style="margin: 0;">Langkah 2: Tambah Data Perusahaan & Harga Solar</h3>
-                    <p style="font-size: 12.5px; color: #64748b; margin: 3px 0 0 0;">
+                    <span class="digi-edit-pill-badge" id="vendorEditBadge">✏️ Mode Edit Aktif</span>
+                    <p style="font-size: 12.5px; color: #64748b; margin: 3px 0 0 0; width: 100%;">
                         Kelola data perusahaan penyedia solar industri serta penetapan harga per liter aktif langsung dalam satu formulir terpadu.
                     </p>
                 </div>
-                <button type="button" id="vendorCancelBtn" class="btn-digi btn-digi-gray" style="display: none; padding: 5px 14px; font-size: 12px;" onclick="resetVendorForm()">
-                    Batal Edit
-                </button>
+                <div style="display: flex; gap: 6px; align-items: center; flex-wrap: wrap;">
+                    <a href="{{ route('admin.master', ['tab' => 'prices']) }}" class="digi-quick-link" title="Buka detail riwayat perubahan harga BBM">
+                        💰 Riwayat Harga ↗
+                    </a>
+                    <a href="{{ route('admin.master', ['tab' => 'users']) }}" class="digi-quick-link" title="Buka akun login untuk vendor BBM">
+                        👤 Akun Vendor ↗
+                    </a>
+                    <button type="button" id="vendorCancelBtn" class="btn-digi btn-digi-gray" style="display: none; padding: 5px 14px; font-size: 12px;" onclick="resetVendorForm()">
+                        ✕ Batal Edit
+                    </button>
+                </div>
             </div>
             <div class="digi-form-grid-3">
                 <div class="digi-form-group">
@@ -535,6 +971,13 @@
                 <button type="submit" id="vendorSubmitBtn" class="btn-digi btn-digi-blue">Simpan Data Perusahaan</button>
             </div>
         </form>
+
+        <div class="digi-table-filter-bar">
+            <input type="text" class="digi-table-search-input" placeholder="🔍 Cari kode perusahaan, nama vendor bbm, PIC, telepon..." onkeyup="filterMasterTable(this)">
+            <div style="font-size: 12.5px; color: #64748b;">
+                Total: <strong>{{ method_exists($vendors, 'total') ? $vendors->total() : count($vendors) }} perusahaan</strong>
+            </div>
+        </div>
 
         @include('partials.pagination_top', ['paginator' => $vendors])
 
@@ -570,8 +1013,8 @@
                                 @endif
                             </td>
                             <td>
-                                <span class="digi-badge {{ $ven->is_active ? 'digi-badge-green' : 'digi-badge-red' }}">
-                                    {{ $ven->is_active ? 'Aktif' : 'Nonaktif' }}
+                                <span class="digi-status-dot-pill {{ $ven->is_active ? 'is-active' : 'is-inactive' }}">
+                                    <span class="dot"></span>{{ $ven->is_active ? 'Aktif' : 'Nonaktif' }}
                                 </span>
                             </td>
                             <td>
@@ -608,15 +1051,23 @@
         <form id="approverForm" action="{{ route('admin.master.approver') }}" method="POST" class="digi-form-box">
             @csrf
             <input type="hidden" name="id" id="aa_id" value="">
-            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 14px;">
-                <h3 class="digi-section-title" id="aaFormTitle" style="margin: 0;">Penugasan Approver & Petugas Berdasarkan Area</h3>
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 14px; flex-wrap: wrap; gap: 8px;">
+                <div style="display: flex; align-items: center; flex-wrap: wrap; gap: 6px;">
+                    <h3 class="digi-section-title" id="aaFormTitle" style="margin: 0;">Penugasan Approver & Petugas Berdasarkan Area</h3>
+                    <span class="digi-edit-pill-badge" id="aaEditBadge">✏️ Mode Edit Aktif</span>
+                </div>
                 <button type="button" id="aaCancelBtn" class="btn-digi btn-digi-gray" style="display: none; padding: 5px 14px; font-size: 12px;" onclick="resetApproverForm()">
-                    Batal Edit
+                    ✕ Batal Edit
                 </button>
             </div>
             <div class="digi-form-grid-3" style="margin-bottom: 0; align-items: flex-end;">
                 <div class="digi-form-group">
-                    <label class="digi-form-label">Area Operasional <span class="digi-required">*</span></label>
+                    <label class="digi-form-label" style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 4px;">
+                        <span>Area Operasional <span class="digi-required">*</span></span>
+                        <a href="{{ route('admin.master', ['tab' => 'areas']) }}" class="digi-quick-link" title="Buka master Area Operasional">
+                            📍 Kelola Area ↗
+                        </a>
+                    </label>
                     <select name="area_id" id="aa_area_id" class="digi-select" required>
                         @foreach(($allAreas ?? $areas) as $a)
                             <option value="{{ $a->id }}">{{ $a->name }}</option>
@@ -624,7 +1075,12 @@
                     </select>
                 </div>
                 <div class="digi-form-group">
-                    <label class="digi-form-label">Pengguna & Peran Tanggung Jawab <span class="digi-required">*</span></label>
+                    <label class="digi-form-label" style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 4px;">
+                        <span>Pengguna & Peran <span class="digi-required">*</span></span>
+                        <a href="{{ route('admin.master', ['tab' => 'users']) }}" class="digi-quick-link" title="Buka master Akun Pengguna">
+                            👤 Kelola Pengguna ↗
+                        </a>
+                    </label>
                     <div style="display:flex; gap:6px;">
                         <select name="user_id" id="aa_user_id" class="digi-select" required>
                             @foreach(($allUsers ?? $users) as $u)
@@ -644,6 +1100,13 @@
                 </div>
             </div>
         </form>
+
+        <div class="digi-table-filter-bar">
+            <input type="text" class="digi-table-search-input" placeholder="🔍 Cari area operasional, nama approver, tanggung jawab..." onkeyup="filterMasterTable(this)">
+            <div style="font-size: 12.5px; color: #64748b;">
+                Total: <strong>{{ method_exists($areaApprovers, 'total') ? $areaApprovers->total() : count($areaApprovers) }} penugasan</strong>
+            </div>
+        </div>
 
         @include('partials.pagination_top', ['paginator' => $areaApprovers])
 
@@ -669,8 +1132,8 @@
                             <td><span class="digi-badge digi-badge-blue">{{ strtoupper($aa->role_type) }}</span></td>
                             <td>{{ $aa->start_date?->format('d/m/Y') ?? '01/01/2025' }}</td>
                             <td>
-                                <span class="digi-badge {{ $aa->is_active ? 'digi-badge-green' : 'digi-badge-red' }}">
-                                    {{ $aa->is_active ? 'Aktif' : 'Nonaktif' }}
+                                <span class="digi-status-dot-pill {{ $aa->is_active ? 'is-active' : 'is-inactive' }}">
+                                    <span class="dot"></span>{{ $aa->is_active ? 'Aktif' : 'Nonaktif' }}
                                 </span>
                             </td>
                             <td>
@@ -728,22 +1191,28 @@
             <input type="hidden" name="id" id="std_id" value="">
             <input type="hidden" name="standard_type" id="std_type" value="km_per_liter">
 
-            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 14px;">
-                <div>
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 14px; flex-wrap: wrap; gap: 8px;">
+                <div style="display: flex; align-items: center; flex-wrap: wrap; gap: 6px;">
                     <h3 class="digi-section-title" id="stdFormTitle" style="margin: 0;">Pengaturan Standar Konsumsi BBM Unit</h3>
-                    <p style="font-size: 12.5px; color: #64748b; margin: 3px 0 0 0;">
+                    <span class="digi-edit-pill-badge" id="stdEditBadge">✏️ Mode Edit Aktif</span>
+                    <p style="font-size: 12.5px; color: #64748b; margin: 3px 0 0 0; width: 100%;">
                         Pilih unit, masukkan nilai standar konsumsi, dan tentukan tanggal mulai berlaku.
                     </p>
                 </div>
                 <button type="button" id="stdCancelBtn" class="btn-digi btn-digi-gray" style="display: none; padding: 5px 14px; font-size: 12px;" onclick="resetStandardForm()">
-                    Batal Edit
+                    ✕ Batal Edit
                 </button>
             </div>
 
             <div class="digi-form-grid-3">
                 <!-- 1. Unit Code Dropdown (Hanya unit aktif untuk standar baru) -->
                 <div class="digi-form-group">
-                    <label class="digi-form-label">Pilih Unit Kendaraan / Alat Berat <span class="digi-required">*</span></label>
+                    <label class="digi-form-label" style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 4px;">
+                        <span>Pilih Unit Kendaraan <span class="digi-required">*</span></span>
+                        <a href="{{ route('admin.master', ['tab' => 'units']) }}" class="digi-quick-link" title="Buka master Unit Kendaraan">
+                            🚗 Kelola Unit Kendaraan ↗
+                        </a>
+                    </label>
                     <select name="vehicle_id" id="std_vehicle_id" class="digi-select" onchange="onVehicleSelectChange(this)" required>
                         <option value="" disabled selected>-- Pilih Unit --</option>
                         @foreach(($allVehicles ?? $vehicles) as $v)
@@ -799,6 +1268,13 @@
             </div>
         </form>
 
+        <div class="digi-table-filter-bar">
+            <input type="text" class="digi-table-search-input" placeholder="🔍 Cari unit code, jenis unit, standar..." onkeyup="filterMasterTable(this)">
+            <div style="font-size: 12.5px; color: #64748b;">
+                Total: <strong>{{ method_exists($fuelStandards, 'total') ? $fuelStandards->total() : count($fuelStandards) }} standar</strong>
+            </div>
+        </div>
+
         @include('partials.pagination_top', ['paginator' => $fuelStandards])
 
         <!-- Tabel Sederhana Standar Konsumsi BBM -->
@@ -831,8 +1307,8 @@
                                 </span>
                             </td>
                             <td>
-                                <span class="digi-badge {{ $std->is_active ? 'digi-badge-green' : 'digi-badge-gray' }}">
-                                    {{ $std->is_active ? 'Aktif' : 'Nonaktif' }}
+                                <span class="digi-status-dot-pill {{ $std->is_active ? 'is-active' : 'is-inactive' }}">
+                                    <span class="dot"></span>{{ $std->is_active ? 'Aktif' : 'Nonaktif' }}
                                 </span>
                             </td>
                             <td>
@@ -869,15 +1345,23 @@
         <form id="priceForm" action="{{ route('admin.master.price') }}" method="POST" class="digi-form-box">
             @csrf
             <input type="hidden" name="id" id="price_id" value="">
-            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 14px;">
-                <h3 class="digi-section-title" id="priceFormTitle" style="margin: 0;">Tambah Riwayat Harga BBM per Liter</h3>
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 14px; flex-wrap: wrap; gap: 8px;">
+                <div style="display: flex; align-items: center; flex-wrap: wrap; gap: 6px;">
+                    <h3 class="digi-section-title" id="priceFormTitle" style="margin: 0;">Tambah Riwayat Harga BBM per Liter</h3>
+                    <span class="digi-edit-pill-badge" id="priceEditBadge">✏️ Mode Edit Aktif</span>
+                </div>
                 <button type="button" id="priceCancelBtn" class="btn-digi btn-digi-gray" style="display: none; padding: 5px 14px; font-size: 12px;" onclick="resetPriceForm()">
-                    Batal Edit
+                    ✕ Batal Edit
                 </button>
             </div>
-            <div style="display: grid; grid-template-columns: 1.2fr 1.5fr 1fr auto; gap: 12px; margin-bottom: 0; align-items: flex-end;">
+            <div class="digi-responsive-grid-4" style="margin-bottom: 0; align-items: flex-end;">
                 <div class="digi-form-group">
-                    <label class="digi-form-label">Vendor BBM <span class="digi-required">*</span></label>
+                    <label class="digi-form-label" style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 4px;">
+                        <span>Vendor BBM <span class="digi-required">*</span></span>
+                        <a href="{{ route('admin.master', ['tab' => 'vendors']) }}" class="digi-quick-link" title="Buka master Perusahaan BBM">
+                            ⛽ Kelola Perusahaan BBM ↗
+                        </a>
+                    </label>
                     <select name="vendor_id" id="price_vendor_id" class="digi-select" required>
                         <option value="">- Pilih Vendor BBM -</option>
                         @foreach(($allVendors ?? $vendors) as $ven)
@@ -901,6 +1385,13 @@
                 </div>
             </div>
         </form>
+
+        <div class="digi-table-filter-bar">
+            <input type="text" class="digi-table-search-input" placeholder="🔍 Cari vendor BBM, jenis BBM, harga..." onkeyup="filterMasterTable(this)">
+            <div style="font-size: 12.5px; color: #64748b;">
+                Total: <strong>{{ method_exists($fuelPrices, 'total') ? $fuelPrices->total() : count($fuelPrices) }} riwayat harga</strong>
+            </div>
+        </div>
 
         @include('partials.pagination_top', ['paginator' => $fuelPrices])
 
@@ -932,8 +1423,8 @@
                             <td>{{ $fp->effective_start?->format('d/m/Y') }}</td>
                             <td>{{ $fp->effective_end ? $fp->effective_end->format('d/m/Y') : 'Sekarang' }}</td>
                             <td>
-                                <span class="digi-badge {{ $fp->is_active ? 'digi-badge-green' : 'digi-badge-gray' }}">
-                                    {{ $fp->is_active ? 'Aktif' : 'Nonaktif / Historis' }}
+                                <span class="digi-status-dot-pill {{ $fp->is_active ? 'is-active' : 'is-inactive' }}">
+                                    <span class="dot"></span>{{ $fp->is_active ? 'Aktif' : 'Nonaktif' }}
                                 </span>
                             </td>
                             <td>
@@ -970,15 +1461,16 @@
         <form id="userForm" action="{{ route('admin.master.user') }}" method="POST" class="digi-form-box">
             @csrf
             <input type="hidden" name="id" id="usr_id" value="">
-            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 14px;">
-                <div>
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 14px; flex-wrap: wrap; gap: 8px;">
+                <div style="display: flex; align-items: center; flex-wrap: wrap; gap: 6px;">
                     <h3 class="digi-section-title" id="usrFormTitle" style="margin: 0;">Langkah 5: Tambah / Kelola Akun Pengguna, Karyawan & Penugasan Area</h3>
-                    <p style="font-size: 12.5px; color: #64748b; margin: 3px 0 0 0;">
+                    <span class="digi-edit-pill-badge" id="usrEditBadge">✏️ Mode Edit Aktif</span>
+                    <p style="font-size: 12.5px; color: #64748b; margin: 3px 0 0 0; width: 100%;">
                         1 formulir terpadu: mendaftarkan akun login, sinkronisasi otomatis data Karyawan (Employee) via NRP, serta penugasan wilayah kerja approver.
                     </p>
                 </div>
                 <button type="button" id="usrCancelBtn" class="btn-digi btn-digi-gray" style="display: none; padding: 5px 14px; font-size: 12px;" onclick="resetUserForm()">
-                    Batal Edit
+                    ✕ Batal Edit
                 </button>
             </div>
 
@@ -1022,7 +1514,12 @@
                     </div>
                 </div>
                 <div class="digi-form-group">
-                    <label class="digi-form-label">Perusahaan Terkait (Khusus Akun Perusahaan BBM)</label>
+                    <label class="digi-form-label" style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 4px;">
+                        <span>Perusahaan Terkait (Khusus Vendor BBM)</span>
+                        <a href="{{ route('admin.master', ['tab' => 'vendors']) }}" class="digi-quick-link" title="Buka master Perusahaan BBM">
+                            ⛽ Kelola Perusahaan BBM ↗
+                        </a>
+                    </label>
                     <select name="vendor_id" id="usr_vendor_id" class="digi-select">
                         <option value="">- Internal PT United Tractors -</option>
                         @foreach(($allVendors ?? $vendors) as $ven)
@@ -1038,9 +1535,14 @@
 
             <!-- Penugasan Area Operasional Terpadu -->
             <div id="usr_area_assignment_box" style="margin-top: 14px; background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 8px; padding: 12px 16px;">
-                <label class="digi-form-label" style="margin-bottom: 4px; font-weight: 700; color: #1e293b;">
-                    Penugasan Wilayah Kerja / Area Operasional:
-                </label>
+                <div style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 8px; margin-bottom: 4px;">
+                    <label class="digi-form-label" style="margin-bottom: 0; font-weight: 700; color: #1e293b;">
+                        Penugasan Wilayah Kerja / Area Operasional:
+                    </label>
+                    <a href="{{ route('admin.master', ['tab' => 'areas']) }}" class="digi-quick-link" title="Buka master Area Operasional">
+                        📍 Kelola Area ↗
+                    </a>
+                </div>
                 <div style="font-size: 12px; color: #64748b; margin-bottom: 8px;">
                     Centang seluruh area yang menjadi wilayah penugasan atau wewenang approver ini. Pilihan di formulir Fuel Request Driver akan otomatis menampilkan approver ini pada area yang dipilih.
                 </div>
@@ -1058,6 +1560,13 @@
                 <button type="submit" id="usrSubmitBtn" class="btn-digi btn-digi-blue">Simpan Akun Pengguna</button>
             </div>
         </form>
+
+        <div class="digi-table-filter-bar">
+            <input type="text" class="digi-table-search-input" placeholder="🔍 Cari pengguna, username, whatsapp, NRP, role, area..." onkeyup="filterMasterTable(this)">
+            <div style="font-size: 12.5px; color: #64748b;">
+                Total: <strong>{{ method_exists($users, 'total') ? $users->total() : count($users) }} pengguna</strong>
+            </div>
+        </div>
 
         @include('partials.pagination_top', ['paginator' => $users])
 
@@ -1103,8 +1612,8 @@
                                 @endforelse
                             </td>
                             <td>
-                                <span class="digi-badge {{ $u->is_active ? 'digi-badge-green' : 'digi-badge-red' }}">
-                                    {{ $u->is_active ? 'Aktif' : 'Nonaktif' }}
+                                <span class="digi-status-dot-pill {{ $u->is_active ? 'is-active' : 'is-inactive' }}">
+                                    <span class="dot"></span>{{ $u->is_active ? 'Aktif' : 'Nonaktif' }}
                                 </span>
                             </td>
                             <td>
@@ -1140,26 +1649,16 @@
     <!-- TAB 8B: SYSTEM BACKGROUNDS (CRUD BACKGROUND UT)              -->
     <!-- ============================================================ -->
     @if($tab === 'backgrounds')
-        <style>
-            .digi-bg-thumb {
-                width: 125px;
-                height: 68px;
-                object-fit: cover;
-                border-radius: 8px;
-                border: 2px solid #cbd5e1;
-                display: block;
-            }
-            .digi-bg-thumb.is-active {
-                border-color: #22c55e;
-            }
-        </style>
         <form id="bgForm" action="{{ route('admin.master.background') }}" method="POST" enctype="multipart/form-data" class="digi-form-box">
             @csrf
             <input type="hidden" name="id" id="bg_id" value="">
-            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 14px;">
-                <h3 class="digi-section-title" id="bgFormTitle" style="margin: 0;">Upload / Kelola Gambar Background Sistem Sesuai Ketentuan UT</h3>
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 14px; flex-wrap: wrap; gap: 8px;">
+                <div style="display: flex; align-items: center; flex-wrap: wrap; gap: 6px;">
+                    <h3 class="digi-section-title" id="bgFormTitle" style="margin: 0;">Upload / Kelola Gambar Background Sistem Sesuai Ketentuan UT</h3>
+                    <span class="digi-edit-pill-badge" id="bgEditBadge">✏️ Mode Edit Aktif</span>
+                </div>
                 <button type="button" id="bgCancelBtn" class="btn-digi btn-digi-gray" style="display: none; padding: 5px 14px; font-size: 12px;" onclick="resetBgForm()">
-                    Batal Edit
+                    ✕ Batal Edit
                 </button>
             </div>
             <div style="background: #f0f9ff; border: 1px solid #bae6fd; border-radius: 8px; padding: 10px 14px; margin-bottom: 16px; font-size: 12.5px; color: #0369a1;">
@@ -1189,6 +1688,13 @@
                 </button>
             </div>
         </form>
+
+        <div class="digi-table-filter-bar">
+            <input type="text" class="digi-table-search-input" placeholder="🔍 Cari judul background, ketentuan, pengunggah..." onkeyup="filterMasterTable(this)">
+            <div style="font-size: 12.5px; color: #64748b;">
+                Total: <strong>{{ method_exists($backgrounds, 'total') ? $backgrounds->total() : count($backgrounds) }} background</strong>
+            </div>
+        </div>
 
         @include('partials.pagination_top', ['paginator' => $backgrounds])
 
@@ -1224,11 +1730,9 @@
                                 <div style="font-size: 11px; color: #64748b;">Oleh: {{ $bg->uploader?->name ?? 'Admin Sistem' }}</div>
                             </td>
                             <td>
-                                @if($bg->is_active)
-                                    <span class="digi-badge digi-badge-green">Sedang Digunakan (Aktif)</span>
-                                @else
-                                    <span class="digi-badge digi-badge-gray">Tersimpan (Nonaktif)</span>
-                                @endif
+                                <span class="digi-status-dot-pill {{ $bg->is_active ? 'is-active' : 'is-inactive' }}">
+                                    <span class="dot"></span>{{ $bg->is_active ? 'Sedang Digunakan (Aktif)' : 'Tersimpan (Nonaktif)' }}
+                                </span>
                             </td>
                             <td>
                                 <div style="display: flex; gap: 6px; align-items: center; flex-wrap: wrap;">
@@ -1273,6 +1777,13 @@
     <!-- ============================================================ -->
     @if($tab === 'audit')
         <h3 class="digi-section-title">Log Aktivitas & Audit Trail Sistem</h3>
+
+        <div class="digi-table-filter-bar">
+            <input type="text" class="digi-table-search-input" placeholder="🔍 Cari log aktivitas, pengguna, aksi, nomor pengajuan, status..." onkeyup="filterMasterTable(this)">
+            <div style="font-size: 12.5px; color: #64748b;">
+                Total: <strong>{{ method_exists($auditLogs, 'total') ? $auditLogs->total() : count($auditLogs) }} log tercatat</strong>
+            </div>
+        </div>
 
         @include('partials.pagination_top', ['paginator' => $auditLogs])
 
@@ -1420,6 +1931,47 @@
 
 @section('scripts')
 <script>
+// Horizontal scroll function for Master Tabs navigation
+function scrollMasterTabs(offset) {
+    const container = document.getElementById('masterTabsScroll');
+    if (!container) return;
+    container.scrollBy({ left: offset, behavior: 'smooth' });
+}
+
+// Update left/right scroll arrows state
+function updateMasterTabsArrows() {
+    const container = document.getElementById('masterTabsScroll');
+    const leftBtn = document.getElementById('masterTabsScrollLeft');
+    const rightBtn = document.getElementById('masterTabsScrollRight');
+    if (!container || !leftBtn || !rightBtn) return;
+
+    const maxScroll = container.scrollWidth - container.clientWidth;
+    if (maxScroll <= 6) {
+        leftBtn.style.display = 'none';
+        rightBtn.style.display = 'none';
+    } else {
+        leftBtn.style.display = 'inline-flex';
+        rightBtn.style.display = 'inline-flex';
+        leftBtn.disabled = container.scrollLeft <= 5;
+        rightBtn.disabled = container.scrollLeft >= maxScroll - 5;
+    }
+}
+
+// Instant Client-side Table Filter Search
+function filterMasterTable(input) {
+    if (!input) return;
+    const filter = (input.value || '').toLowerCase().trim();
+    const container = input.closest('.digi-card') || document;
+    const table = container.querySelector('.digi-table tbody');
+    if (!table) return;
+    const rows = table.querySelectorAll('tr');
+    rows.forEach(row => {
+        if (row.querySelector('td[colspan]')) return;
+        const text = row.textContent.toLowerCase();
+        row.style.display = text.includes(filter) ? '' : 'none';
+    });
+}
+
 // Helper: Resolve data item from HTML button (data-item attribute) or direct JS object
 function resolveItemData(arg) {
     if (arg && arg.getAttribute && arg.getAttribute('data-item')) {
@@ -1477,10 +2029,18 @@ function editUnit(v) {
     document.getElementById('unitFormTitle').textContent = 'Edit Data Unit: ' + v.unit_code;
     document.getElementById('unitSubmitBtn').textContent = 'Perbarui Unit';
     document.getElementById('unitCancelBtn').style.display = 'inline-flex';
-    document.getElementById('unitForm').scrollIntoView({ behavior: 'smooth', block: 'center' });
+    const form = document.getElementById('unitForm');
+    if (form) form.classList.add('is-editing');
+    const badge = document.getElementById('unitEditBadge');
+    if (badge) badge.style.display = 'inline-flex';
+    form.scrollIntoView({ behavior: 'smooth', block: 'center' });
 }
 function resetUnitForm() {
-    document.getElementById('unitForm').reset();
+    const form = document.getElementById('unitForm');
+    if (form) {
+        form.reset();
+        form.classList.remove('is-editing');
+    }
     document.getElementById('unit_id').value = '';
     if (document.getElementById('unit_vendor_id')) {
         document.getElementById('unit_vendor_id').value = '';
@@ -1497,6 +2057,8 @@ function resetUnitForm() {
     document.getElementById('unitFormTitle').textContent = 'Langkah 4: Tambah Data Unit Kendaraan & Standar Konsumsi BBM';
     document.getElementById('unitSubmitBtn').textContent = 'Simpan Data Unit';
     document.getElementById('unitCancelBtn').style.display = 'none';
+    const badge = document.getElementById('unitEditBadge');
+    if (badge) badge.style.display = 'none';
 }
 
 // 1b. Unit Vendor Form Auto-Fill & Reset
@@ -1509,17 +2071,27 @@ function editUnitVendor(uv) {
     document.getElementById('uv_contact').value = uv.contact_person || '';
     document.getElementById('uv_phone').value = uv.phone || '';
     document.getElementById('uv_address').value = uv.address || '';
-    document.getElementById('unitVendorFormTitle').textContent = 'Edit Perusahaan Rental Unit: ' + uv.name;
-    document.getElementById('unitVendorSubmitBtn').textContent = 'Perbarui Perusahaan Rental Unit';
+    document.getElementById('unitVendorFormTitle').textContent = 'Edit Perusahaan Rental: ' + uv.name;
+    document.getElementById('unitVendorSubmitBtn').textContent = 'Perbarui Perusahaan Rental';
     document.getElementById('unitVendorCancelBtn').style.display = 'inline-flex';
-    document.getElementById('unitVendorForm').scrollIntoView({ behavior: 'smooth', block: 'center' });
+    const form = document.getElementById('unitVendorForm');
+    if (form) form.classList.add('is-editing');
+    const badge = document.getElementById('unitVendorEditBadge');
+    if (badge) badge.style.display = 'inline-flex';
+    form.scrollIntoView({ behavior: 'smooth', block: 'center' });
 }
 function resetUnitVendorForm() {
-    document.getElementById('unitVendorForm').reset();
+    const form = document.getElementById('unitVendorForm');
+    if (form) {
+        form.reset();
+        form.classList.remove('is-editing');
+    }
     document.getElementById('unit_vendor_id_input').value = '';
     document.getElementById('unitVendorFormTitle').textContent = 'Langkah 3: Tambah Data Perusahaan Rental Unit (Penyedia Unit)';
-    document.getElementById('unitVendorSubmitBtn').textContent = 'Simpan Perusahaan Rental Unit';
+    document.getElementById('unitVendorSubmitBtn').textContent = 'Simpan Perusahaan Rental';
     document.getElementById('unitVendorCancelBtn').style.display = 'none';
+    const badge = document.getElementById('unitVendorEditBadge');
+    if (badge) badge.style.display = 'none';
 }
 
 // 2. Employee Form Auto-Fill & Reset
@@ -1536,14 +2108,24 @@ function editEmployee(emp) {
     document.getElementById('empFormTitle').textContent = 'Edit Data Employee: ' + emp.name;
     document.getElementById('empSubmitBtn').textContent = 'Perbarui Employee';
     document.getElementById('empCancelBtn').style.display = 'inline-flex';
-    document.getElementById('employeeForm').scrollIntoView({ behavior: 'smooth', block: 'center' });
+    const form = document.getElementById('employeeForm');
+    if (form) form.classList.add('is-editing');
+    const badge = document.getElementById('empEditBadge');
+    if (badge) badge.style.display = 'inline-flex';
+    form.scrollIntoView({ behavior: 'smooth', block: 'center' });
 }
 function resetEmployeeForm() {
-    document.getElementById('employeeForm').reset();
+    const form = document.getElementById('employeeForm');
+    if (form) {
+        form.reset();
+        form.classList.remove('is-editing');
+    }
     document.getElementById('emp_id').value = '';
     document.getElementById('empFormTitle').textContent = 'Tambah Data Employee (Lokal & Integrasi DIGISIM)';
     document.getElementById('empSubmitBtn').textContent = 'Simpan Employee';
     document.getElementById('empCancelBtn').style.display = 'none';
+    const badge = document.getElementById('empEditBadge');
+    if (badge) badge.style.display = 'none';
 }
 
 // 3. Area Form Auto-Fill & Reset
@@ -1556,14 +2138,24 @@ function editArea(a) {
     document.getElementById('areaFormTitle').textContent = 'Edit Area Operasional: ' + a.name;
     document.getElementById('areaSubmitBtn').textContent = 'Perbarui Area';
     document.getElementById('areaCancelBtn').style.display = 'inline-flex';
-    document.getElementById('areaForm').scrollIntoView({ behavior: 'smooth', block: 'center' });
+    const form = document.getElementById('areaForm');
+    if (form) form.classList.add('is-editing');
+    const badge = document.getElementById('areaEditBadge');
+    if (badge) badge.style.display = 'inline-flex';
+    form.scrollIntoView({ behavior: 'smooth', block: 'center' });
 }
 function resetAreaForm() {
-    document.getElementById('areaForm').reset();
+    const form = document.getElementById('areaForm');
+    if (form) {
+        form.reset();
+        form.classList.remove('is-editing');
+    }
     document.getElementById('area_id').value = '';
-    document.getElementById('areaFormTitle').textContent = 'Tambah Area Operasional';
+    document.getElementById('areaFormTitle').textContent = 'Langkah 1: Tambah Area Operasional';
     document.getElementById('areaSubmitBtn').textContent = 'Simpan Area';
     document.getElementById('areaCancelBtn').style.display = 'none';
+    const badge = document.getElementById('areaEditBadge');
+    if (badge) badge.style.display = 'none';
 }
 
 // 4. Vendor Form Auto-Fill & Reset
@@ -1584,10 +2176,18 @@ function editVendor(ven) {
     document.getElementById('vendorFormTitle').textContent = 'Edit Data Perusahaan: ' + ven.name;
     document.getElementById('vendorSubmitBtn').textContent = 'Perbarui Data Perusahaan';
     document.getElementById('vendorCancelBtn').style.display = 'inline-flex';
-    document.getElementById('vendorForm').scrollIntoView({ behavior: 'smooth', block: 'center' });
+    const form = document.getElementById('vendorForm');
+    if (form) form.classList.add('is-editing');
+    const badge = document.getElementById('vendorEditBadge');
+    if (badge) badge.style.display = 'inline-flex';
+    form.scrollIntoView({ behavior: 'smooth', block: 'center' });
 }
 function resetVendorForm() {
-    document.getElementById('vendorForm').reset();
+    const form = document.getElementById('vendorForm');
+    if (form) {
+        form.reset();
+        form.classList.remove('is-editing');
+    }
     document.getElementById('vendor_id').value = '';
     if (document.getElementById('vendor_price_per_liter')) {
         document.getElementById('vendor_price_per_liter').value = '';
@@ -1598,6 +2198,8 @@ function resetVendorForm() {
     document.getElementById('vendorFormTitle').textContent = 'Langkah 2: Tambah Data Perusahaan & Harga Solar';
     document.getElementById('vendorSubmitBtn').textContent = 'Simpan Data Perusahaan';
     document.getElementById('vendorCancelBtn').style.display = 'none';
+    const badge = document.getElementById('vendorEditBadge');
+    if (badge) badge.style.display = 'none';
 }
 
 // 5. Area Approver Form Auto-Fill & Reset
@@ -1611,14 +2213,24 @@ function editApprover(aa) {
     document.getElementById('aaFormTitle').textContent = 'Edit Penugasan Approver Area #' + aa.id;
     document.getElementById('aaSubmitBtn').textContent = 'Perbarui Penugasan';
     document.getElementById('aaCancelBtn').style.display = 'inline-flex';
-    document.getElementById('approverForm').scrollIntoView({ behavior: 'smooth', block: 'center' });
+    const form = document.getElementById('approverForm');
+    if (form) form.classList.add('is-editing');
+    const badge = document.getElementById('aaEditBadge');
+    if (badge) badge.style.display = 'inline-flex';
+    form.scrollIntoView({ behavior: 'smooth', block: 'center' });
 }
 function resetApproverForm() {
-    document.getElementById('approverForm').reset();
+    const form = document.getElementById('approverForm');
+    if (form) {
+        form.reset();
+        form.classList.remove('is-editing');
+    }
     document.getElementById('aa_id').value = '';
     document.getElementById('aaFormTitle').textContent = 'Penugasan Approver & Petugas Berdasarkan Area';
     document.getElementById('aaSubmitBtn').textContent = 'Simpan Penugasan';
     document.getElementById('aaCancelBtn').style.display = 'none';
+    const badge = document.getElementById('aaEditBadge');
+    if (badge) badge.style.display = 'none';
 }
 
 // 6. Fuel Standard Form Auto-Fill, Dynamic Units & Reset
@@ -1679,13 +2291,21 @@ function editStandard(std, startDate) {
     document.getElementById('stdFormTitle').textContent = 'Edit Standar Konsumsi BBM: ' + vCode;
     document.getElementById('stdSubmitBtn').textContent = 'Perbarui Standar BBM';
     document.getElementById('stdCancelBtn').style.display = 'inline-flex';
+    const form = document.getElementById('standardForm');
+    if (form) form.classList.add('is-editing');
+    const badge = document.getElementById('stdEditBadge');
+    if (badge) badge.style.display = 'inline-flex';
 
     onVehicleSelectChange(vehSelect);
-    document.getElementById('standardForm').scrollIntoView({ behavior: 'smooth', block: 'center' });
+    form.scrollIntoView({ behavior: 'smooth', block: 'center' });
 }
 
 function resetStandardForm() {
-    document.getElementById('standardForm').reset();
+    const form = document.getElementById('standardForm');
+    if (form) {
+        form.reset();
+        form.classList.remove('is-editing');
+    }
     document.getElementById('std_id').value = '';
     const infoElem = document.getElementById('std_vehicle_info');
     if (infoElem) infoElem.style.display = 'none';
@@ -1698,6 +2318,8 @@ function resetStandardForm() {
     document.getElementById('stdFormTitle').textContent = 'Pengaturan Standar Konsumsi BBM Unit';
     document.getElementById('stdSubmitBtn').textContent = 'Simpan Standar BBM';
     document.getElementById('stdCancelBtn').style.display = 'none';
+    const badge = document.getElementById('stdEditBadge');
+    if (badge) badge.style.display = 'none';
 }
 
 // 7. Fuel Price Form Auto-Fill & Reset
@@ -1715,15 +2337,120 @@ function editPrice(fp, startDate) {
     document.getElementById('priceFormTitle').textContent = 'Edit Harga BBM: ' + fp.fuel_type;
     document.getElementById('priceSubmitBtn').textContent = 'Perbarui Harga BBM';
     document.getElementById('priceCancelBtn').style.display = 'inline-flex';
-    document.getElementById('priceForm').scrollIntoView({ behavior: 'smooth', block: 'center' });
+    const form = document.getElementById('priceForm');
+    if (form) form.classList.add('is-editing');
+    const badge = document.getElementById('priceEditBadge');
+    if (badge) badge.style.display = 'inline-flex';
+    form.scrollIntoView({ behavior: 'smooth', block: 'center' });
 }
 function resetPriceForm() {
-    document.getElementById('priceForm').reset();
+    const form = document.getElementById('priceForm');
+    if (form) {
+        form.reset();
+        form.classList.remove('is-editing');
+    }
     document.getElementById('price_id').value = '';
     document.getElementById('price_vendor_id').value = '';
     document.getElementById('priceFormTitle').textContent = 'Tambah Riwayat Harga BBM per Liter';
     document.getElementById('priceSubmitBtn').textContent = 'Simpan Harga BBM';
     document.getElementById('priceCancelBtn').style.display = 'none';
+    const badge = document.getElementById('priceEditBadge');
+    if (badge) badge.style.display = 'none';
+}
+
+function onUserRoleChange(selectElem) {
+    if (!selectElem) return;
+    const role = selectElem.value;
+    const venSelect = document.getElementById('usr_vendor_id');
+    if (venSelect && venSelect.parentElement) {
+        venSelect.parentElement.style.opacity = (role === 'vendor') ? '1' : '0.7';
+    }
+}
+
+// 8. User Form Auto-Fill & Reset
+function editUser(u) {
+    u = resolveItemData(u);
+    if (!u) return;
+    document.getElementById('usr_id').value = u.id;
+    document.getElementById('usr_name').value = u.name || '';
+    document.getElementById('usr_nrp').value = u.nrp || '';
+    document.getElementById('usr_username').value = u.username || '';
+    document.getElementById('usr_email').value = u.email || '';
+    document.getElementById('usr_phone').value = u.phone || '';
+    document.getElementById('usr_role').value = u.role || 'driver';
+    document.getElementById('usr_jabatan').value = u.jabatan || '';
+    document.getElementById('usr_vendor_id').value = u.vendor_id || '';
+    document.getElementById('usr_password').value = '';
+
+    // Reset all area checkboxes
+    document.querySelectorAll('.usr-area-cb').forEach(cb => cb.checked = false);
+
+    // Auto-check assigned areas
+    if (u.area_approvers && Array.isArray(u.area_approvers)) {
+        u.area_approvers.forEach(aa => {
+            const cb = document.getElementById('usr_area_' + aa.area_id);
+            if (cb) cb.checked = true;
+        });
+    }
+
+    onUserRoleChange(document.getElementById('usr_role'));
+    document.getElementById('usrFormTitle').textContent = 'Edit Akun Pengguna: ' + u.name;
+    document.getElementById('usrSubmitBtn').textContent = 'Perbarui Akun Pengguna';
+    document.getElementById('usrCancelBtn').style.display = 'inline-flex';
+    const form = document.getElementById('userForm');
+    if (form) form.classList.add('is-editing');
+    const badge = document.getElementById('usrEditBadge');
+    if (badge) badge.style.display = 'inline-flex';
+    form.scrollIntoView({ behavior: 'smooth', block: 'center' });
+}
+function resetUserForm() {
+    const form = document.getElementById('userForm');
+    if (form) {
+        form.reset();
+        form.classList.remove('is-editing');
+    }
+    document.getElementById('usr_id').value = '';
+    document.getElementById('usr_phone').value = '';
+    document.querySelectorAll('.usr-area-cb').forEach(cb => cb.checked = false);
+    onUserRoleChange(document.getElementById('usr_role'));
+    document.getElementById('usrFormTitle').textContent = 'Langkah 5: Tambah / Kelola Akun Pengguna, Karyawan & Penugasan Area';
+    document.getElementById('usrSubmitBtn').textContent = 'Simpan Akun Pengguna';
+    document.getElementById('usrCancelBtn').style.display = 'none';
+    const badge = document.getElementById('usrEditBadge');
+    if (badge) badge.style.display = 'none';
+}
+
+// 8B. Background Form Auto-Fill & Reset
+function editBackground(bg) {
+    bg = resolveItemData(bg);
+    if (!bg) return;
+    document.getElementById('bg_id').value = bg.id;
+    document.getElementById('bg_title').value = bg.title || '';
+    document.getElementById('bg_notes').value = bg.notes || '';
+    document.getElementById('bg_set_active').checked = !!bg.is_active;
+    document.getElementById('bg_file_req').style.display = 'none';
+    document.getElementById('bgFormTitle').textContent = 'Edit Background Sistem: ' + bg.title;
+    document.getElementById('bgSubmitBtn').textContent = 'Perbarui Background';
+    document.getElementById('bgCancelBtn').style.display = 'inline-flex';
+    const form = document.getElementById('bgForm');
+    if (form) form.classList.add('is-editing');
+    const badge = document.getElementById('bgEditBadge');
+    if (badge) badge.style.display = 'inline-flex';
+    form.scrollIntoView({ behavior: 'smooth', block: 'center' });
+}
+function resetBgForm() {
+    const form = document.getElementById('bgForm');
+    if (form) {
+        form.reset();
+        form.classList.remove('is-editing');
+    }
+    document.getElementById('bg_id').value = '';
+    document.getElementById('bg_file_req').style.display = 'inline';
+    document.getElementById('bgFormTitle').textContent = 'Upload / Kelola Gambar Background Sistem Sesuai Ketentuan UT';
+    document.getElementById('bgSubmitBtn').textContent = 'Simpan & Terapkan Background';
+    document.getElementById('bgCancelBtn').style.display = 'none';
+    const badge = document.getElementById('bgEditBadge');
+    if (badge) badge.style.display = 'none';
 }
 
 function onUserRoleChange(selectElem) {
@@ -1898,5 +2625,50 @@ function updatePerPage(val) {
     url.searchParams.set('page', '1');
     window.location.href = url.toString();
 }
+
+// Preserve horizontal scroll and vertical page scroll across tab navigation
+document.addEventListener('DOMContentLoaded', function() {
+    const tabsContainer = document.getElementById('masterTabsScroll');
+    if (tabsContainer) {
+        const savedX = sessionStorage.getItem('digi_master_tabs_scroll_x');
+        if (savedX !== null) {
+            tabsContainer.scrollLeft = parseInt(savedX, 10);
+        } else {
+            // First visit: gently center active tab in viewport
+            const activeTab = tabsContainer.querySelector('.digi-tab-pill.is-active');
+            if (activeTab) {
+                activeTab.scrollIntoView({ behavior: 'auto', block: 'nearest', inline: 'center' });
+            }
+        }
+
+        tabsContainer.addEventListener('scroll', function() {
+            sessionStorage.setItem('digi_master_tabs_scroll_x', tabsContainer.scrollLeft);
+            updateMasterTabsArrows();
+        }, { passive: true });
+
+        updateMasterTabsArrows();
+        window.addEventListener('resize', updateMasterTabsArrows);
+    }
+
+    // Save scroll position when clicking any master tab pill, button or quick shortcut
+    document.querySelectorAll('.digi-tab-pill, .digi-master-tabs-nav-wrapper a, .digi-quick-link').forEach(link => {
+        link.addEventListener('click', function() {
+            if (tabsContainer) {
+                sessionStorage.setItem('digi_master_tabs_scroll_x', tabsContainer.scrollLeft);
+            }
+            sessionStorage.setItem('digi_master_page_scroll_y', window.scrollY);
+            sessionStorage.setItem('digi_master_tab_switched', '1');
+        });
+    });
+
+    // Restore page scroll position after switching tabs so user remains at current scroll
+    if (sessionStorage.getItem('digi_master_tab_switched') === '1') {
+        sessionStorage.removeItem('digi_master_tab_switched');
+        const savedY = sessionStorage.getItem('digi_master_page_scroll_y');
+        if (savedY !== null) {
+            window.scrollTo({ top: parseInt(savedY, 10), behavior: 'instant' });
+        }
+    }
+});
 </script>
 @endsection
