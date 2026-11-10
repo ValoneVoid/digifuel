@@ -175,15 +175,17 @@
                             <td>
                                 <div style="display: flex; gap: 6px; align-items: center;">
                                     <button type="button" class="btn-digi btn-digi-yellow" style="padding: 5px 12px; font-size: 12px;"
-                                        onclick='editUnit(@json($v))'>
+                                        data-item="{{ json_encode($v) }}" onclick="editUnit(this)">
                                         Edit
                                     </button>
                                     <button type="button" class="btn-digi {{ $v->is_active ? 'btn-digi-red' : 'btn-digi-green' }}" style="padding: 5px 12px; font-size: 12px;"
-                                        onclick="openToggleModal('unit', {{ $v->id }}, 'units', '{{ addslashes($v->unit_code) }}', {{ $v->is_active ? 'true' : 'false' }})">
+                                        data-type="unit" data-id="{{ $v->id }}" data-tab="units" data-name="{{ $v->unit_code }}" data-active="{{ $v->is_active ? '1' : '0' }}"
+                                        onclick="openToggleModalFromBtn(this)">
                                         {{ $v->is_active ? 'Nonaktifkan' : 'Aktifkan' }}
                                     </button>
                                     <button type="button" class="btn-digi btn-digi-gray" style="padding: 5px 12px; font-size: 12px; background: #fee2e2; color: #b91c1c; border: 1px solid #fecaca;"
-                                        onclick="openDeleteModal('{{ route('admin.master.units.destroy', $v->id) }}', 'Data Unit / Kendaraan', '{{ addslashes($v->unit_code . ' (' . $v->police_no . ')') }}')">
+                                        data-action="{{ route('admin.master.units.destroy', $v->id) }}" data-entity="Data Unit / Kendaraan" data-name="{{ $v->unit_code }} ({{ $v->police_no }})"
+                                        onclick="openDeleteModalFromBtn(this)">
                                         Hapus
                                     </button>
                                 </div>
@@ -274,15 +276,17 @@
                             <td>
                                 <div style="display: flex; gap: 6px; align-items: center;">
                                     <button type="button" class="btn-digi btn-digi-yellow" style="padding: 5px 12px; font-size: 12px;"
-                                        onclick='editUnitVendor(@json($uv))'>
+                                        data-item="{{ json_encode($uv) }}" onclick="editUnitVendor(this)">
                                         Edit
                                     </button>
                                     <button type="button" class="btn-digi {{ $uv->is_active ? 'btn-digi-red' : 'btn-digi-green' }}" style="padding: 5px 12px; font-size: 12px;"
-                                        onclick="openToggleModal('unit_vendor', {{ $uv->id }}, 'unit_vendors', '{{ addslashes($uv->name) }}', {{ $uv->is_active ? 'true' : 'false' }})">
+                                        data-type="unit_vendor" data-id="{{ $uv->id }}" data-tab="unit_vendors" data-name="{{ $uv->name }}" data-active="{{ $uv->is_active ? '1' : '0' }}"
+                                        onclick="openToggleModalFromBtn(this)">
                                         {{ $uv->is_active ? 'Nonaktifkan' : 'Aktifkan' }}
                                     </button>
                                     <button type="button" class="btn-digi btn-digi-gray" style="padding: 5px 12px; font-size: 12px; background: #fee2e2; color: #b91c1c; border: 1px solid #fecaca;"
-                                        onclick="openDeleteModal('{{ route('admin.master.unit-vendors.destroy', $uv->id) }}', 'Data Perusahaan Rental Unit', '{{ addslashes(($uv->code ? $uv->code . ' - ' : '') . $uv->name) }}')">
+                                        data-action="{{ route('admin.master.unit-vendors.destroy', $uv->id) }}" data-entity="Data Perusahaan Rental Unit" data-name="{{ ($uv->code ? $uv->code . ' - ' : '') . $uv->name }}"
+                                        onclick="openDeleteModalFromBtn(this)">
                                         Hapus
                                     </button>
                                 </div>
@@ -383,15 +387,17 @@
                             <td>
                                 <div style="display: flex; gap: 6px; align-items: center;">
                                     <button type="button" class="btn-digi btn-digi-yellow" style="padding: 5px 12px; font-size: 12px;"
-                                        onclick='editEmployee(@json($emp))'>
+                                        data-item="{{ json_encode($emp) }}" onclick="editEmployee(this)">
                                         Edit
                                     </button>
                                     <button type="button" class="btn-digi {{ $emp->is_active ? 'btn-digi-red' : 'btn-digi-green' }}" style="padding: 5px 12px; font-size: 12px;"
-                                        onclick="openToggleModal('employee', {{ $emp->id }}, 'employees', '{{ addslashes($emp->name) }}', {{ $emp->is_active ? 'true' : 'false' }})">
+                                        data-type="employee" data-id="{{ $emp->id }}" data-tab="employees" data-name="{{ $emp->name }}" data-active="{{ $emp->is_active ? '1' : '0' }}"
+                                        onclick="openToggleModalFromBtn(this)">
                                         {{ $emp->is_active ? 'Nonaktifkan' : 'Aktifkan' }}
                                     </button>
                                     <button type="button" class="btn-digi btn-digi-gray" style="padding: 5px 12px; font-size: 12px; background: #fee2e2; color: #b91c1c; border: 1px solid #fecaca;"
-                                        onclick="openDeleteModal('{{ route('admin.master.employees.destroy', $emp->id) }}', 'Data Employee', '{{ addslashes($emp->nrp . ' - ' . $emp->name) }}')">
+                                        data-action="{{ route('admin.master.employees.destroy', $emp->id) }}" data-entity="Data Employee" data-name="{{ $emp->nrp . ' - ' . $emp->name }}"
+                                        onclick="openDeleteModalFromBtn(this)">
                                         Hapus
                                     </button>
                                 </div>
@@ -460,15 +466,17 @@
                             <td>
                                 <div style="display: flex; gap: 6px; align-items: center;">
                                     <button type="button" class="btn-digi btn-digi-yellow" style="padding: 5px 12px; font-size: 12px;"
-                                        onclick='editArea(@json($a))'>
+                                        data-item="{{ json_encode($a) }}" onclick="editArea(this)">
                                         Edit
                                     </button>
                                     <button type="button" class="btn-digi {{ $a->is_active ? 'btn-digi-red' : 'btn-digi-green' }}" style="padding: 5px 12px; font-size: 12px;"
-                                        onclick="openToggleModal('area', {{ $a->id }}, 'areas', '{{ addslashes($a->name) }}', {{ $a->is_active ? 'true' : 'false' }})">
+                                        data-type="area" data-id="{{ $a->id }}" data-tab="areas" data-name="{{ $a->name }}" data-active="{{ $a->is_active ? '1' : '0' }}"
+                                        onclick="openToggleModalFromBtn(this)">
                                         {{ $a->is_active ? 'Nonaktifkan' : 'Aktifkan' }}
                                     </button>
                                     <button type="button" class="btn-digi btn-digi-gray" style="padding: 5px 12px; font-size: 12px; background: #fee2e2; color: #b91c1c; border: 1px solid #fecaca;"
-                                        onclick="openDeleteModal('{{ route('admin.master.areas.destroy', $a->id) }}', 'Area Operasional', '{{ addslashes(($a->code ? $a->code . ' - ' : '') . $a->name) }}')">
+                                        data-action="{{ route('admin.master.areas.destroy', $a->id) }}" data-entity="Area Operasional" data-name="{{ ($a->code ? $a->code . ' - ' : '') . $a->name }}"
+                                        onclick="openDeleteModalFromBtn(this)">
                                         Hapus
                                     </button>
                                 </div>
@@ -569,15 +577,17 @@
                             <td>
                                 <div style="display: flex; gap: 6px; align-items: center;">
                                     <button type="button" class="btn-digi btn-digi-yellow" style="padding: 5px 12px; font-size: 12px;"
-                                        onclick='editVendor(@json($ven))'>
+                                        data-item="{{ json_encode($ven) }}" onclick="editVendor(this)">
                                         Edit
                                     </button>
                                     <button type="button" class="btn-digi {{ $ven->is_active ? 'btn-digi-red' : 'btn-digi-green' }}" style="padding: 5px 12px; font-size: 12px;"
-                                        onclick="openToggleModal('vendor', {{ $ven->id }}, 'vendors', '{{ addslashes($ven->name) }}', {{ $ven->is_active ? 'true' : 'false' }})">
+                                        data-type="vendor" data-id="{{ $ven->id }}" data-tab="vendors" data-name="{{ $ven->name }}" data-active="{{ $ven->is_active ? '1' : '0' }}"
+                                        onclick="openToggleModalFromBtn(this)">
                                         {{ $ven->is_active ? 'Nonaktifkan' : 'Aktifkan' }}
                                     </button>
                                     <button type="button" class="btn-digi btn-digi-gray" style="padding: 5px 12px; font-size: 12px; background: #fee2e2; color: #b91c1c; border: 1px solid #fecaca;"
-                                        onclick="openDeleteModal('{{ route('admin.master.vendors.destroy', $ven->id) }}', 'Data Perusahaan', '{{ addslashes(($ven->code ? $ven->code . ' - ' : '') . $ven->name) }}')">
+                                        data-action="{{ route('admin.master.vendors.destroy', $ven->id) }}" data-entity="Data Perusahaan" data-name="{{ ($ven->code ? $ven->code . ' - ' : '') . $ven->name }}"
+                                        onclick="openDeleteModalFromBtn(this)">
                                         Hapus
                                     </button>
                                 </div>
@@ -666,15 +676,17 @@
                             <td>
                                 <div style="display: flex; gap: 6px; align-items: center;">
                                     <button type="button" class="btn-digi btn-digi-yellow" style="padding: 5px 12px; font-size: 12px;"
-                                        onclick='editApprover(@json($aa))'>
+                                        data-item="{{ json_encode($aa) }}" onclick="editApprover(this)">
                                         Edit
                                     </button>
                                     <button type="button" class="btn-digi {{ $aa->is_active ? 'btn-digi-red' : 'btn-digi-green' }}" style="padding: 5px 12px; font-size: 12px;"
-                                        onclick="openToggleModal('approver', {{ $aa->id }}, 'approvers', '{{ addslashes(($aa->area?->name ?? "") . " - " . ($aa->user?->name ?? "")) }}', {{ $aa->is_active ? 'true' : 'false' }})">
+                                        data-type="approver" data-id="{{ $aa->id }}" data-tab="approvers" data-name="{{ ($aa->area?->name ?? '') . ' - ' . ($aa->user?->name ?? '') }}" data-active="{{ $aa->is_active ? '1' : '0' }}"
+                                        onclick="openToggleModalFromBtn(this)">
                                         {{ $aa->is_active ? 'Nonaktifkan' : 'Aktifkan' }}
                                     </button>
                                     <button type="button" class="btn-digi btn-digi-gray" style="padding: 5px 12px; font-size: 12px; background: #fee2e2; color: #b91c1c; border: 1px solid #fecaca;"
-                                        onclick="openDeleteModal('{{ route('admin.master.approvers.destroy', $aa->id) }}', 'Penugasan Approver Area', '{{ addslashes(($aa->area?->name ?? "") . " - " . ($aa->user?->name ?? "") . " (" . strtoupper($aa->role_type) . ")") }}')">
+                                        data-action="{{ route('admin.master.approvers.destroy', $aa->id) }}" data-entity="Penugasan Approver Area" data-name="{{ ($aa->area?->name ?? '') . ' - ' . ($aa->user?->name ?? '') . ' (' . strtoupper($aa->role_type) . ')' }}"
+                                        onclick="openDeleteModalFromBtn(this)">
                                         Hapus
                                     </button>
                                 </div>
@@ -826,15 +838,17 @@
                             <td>
                                 <div style="display: flex; gap: 6px; align-items: center;">
                                     <button type="button" class="btn-digi btn-digi-yellow" style="padding: 5px 12px; font-size: 12px;"
-                                        onclick='editStandard(@json($std), "{{ $std->effective_start?->format("Y-m-d") }}")'>
+                                        data-item="{{ json_encode($std) }}" onclick="editStandard(this)">
                                         Edit
                                     </button>
                                     <button type="button" class="btn-digi {{ $std->is_active ? 'btn-digi-red' : 'btn-digi-green' }}" style="padding: 5px 12px; font-size: 12px;"
-                                        onclick="openToggleModal('standard', {{ $std->id }}, 'standards', '{{ addslashes(($std->vehicle?->unit_code ?? "") . " (" . (float)$std->standard_value . ")") }}', {{ $std->is_active ? 'true' : 'false' }})">
+                                        data-type="standard" data-id="{{ $std->id }}" data-tab="standards" data-name="{{ ($std->vehicle?->unit_code ?? '') . ' (' . (float)$std->standard_value . ')' }}" data-active="{{ $std->is_active ? '1' : '0' }}"
+                                        onclick="openToggleModalFromBtn(this)">
                                         {{ $std->is_active ? 'Nonaktifkan' : 'Aktifkan' }}
                                     </button>
                                     <button type="button" class="btn-digi btn-digi-gray" style="padding: 5px 12px; font-size: 12px; background: #fee2e2; color: #b91c1c; border: 1px solid #fecaca;"
-                                        onclick="openDeleteModal('{{ route('admin.master.standards.destroy', $std->id) }}', 'Standar Konsumsi BBM', '{{ addslashes(($std->vehicle?->unit_code ?? "") . " (" . (float)$std->standard_value . ")") }}')">
+                                        data-action="{{ route('admin.master.standards.destroy', $std->id) }}" data-entity="Standar Konsumsi BBM" data-name="{{ ($std->vehicle?->unit_code ?? '') . ' (' . (float)$std->standard_value . ')' }}"
+                                        onclick="openDeleteModalFromBtn(this)">
                                         Hapus
                                     </button>
                                 </div>
@@ -925,15 +939,17 @@
                             <td>
                                 <div style="display: flex; gap: 6px; align-items: center;">
                                     <button type="button" class="btn-digi btn-digi-yellow" style="padding: 5px 12px; font-size: 12px;"
-                                        onclick='editPrice(@json($fp), "{{ $fp->effective_start?->format("Y-m-d") }}")'>
+                                        data-item="{{ json_encode($fp) }}" onclick="editPrice(this)">
                                         Edit
                                     </button>
                                     <button type="button" class="btn-digi {{ $fp->is_active ? 'btn-digi-red' : 'btn-digi-green' }}" style="padding: 5px 12px; font-size: 12px;"
-                                        onclick="openToggleModal('price', {{ $fp->id }}, 'prices', '{{ addslashes($fp->fuel_type . " (Rp " . number_format($fp->price_per_liter, 0, ",", ".") . ")") }}', {{ $fp->is_active ? 'true' : 'false' }})">
+                                        data-type="price" data-id="{{ $fp->id }}" data-tab="prices" data-name="{{ $fp->fuel_type . ' (Rp ' . number_format($fp->price_per_liter, 0, ',', '.') . ')' }}" data-active="{{ $fp->is_active ? '1' : '0' }}"
+                                        onclick="openToggleModalFromBtn(this)">
                                         {{ $fp->is_active ? 'Nonaktifkan' : 'Aktifkan' }}
                                     </button>
                                     <button type="button" class="btn-digi btn-digi-gray" style="padding: 5px 12px; font-size: 12px; background: #fee2e2; color: #b91c1c; border: 1px solid #fecaca;"
-                                        onclick="openDeleteModal('{{ route('admin.master.prices.destroy', $fp->id) }}', 'Harga BBM per Liter', '{{ addslashes($fp->fuel_type . " (Rp " . number_format($fp->price_per_liter, 0, ",", ".") . "/L)") }}')">
+                                        data-action="{{ route('admin.master.prices.destroy', $fp->id) }}" data-entity="Harga BBM per Liter" data-name="{{ $fp->fuel_type . ' (Rp ' . number_format($fp->price_per_liter, 0, ',', '.') . '/L)' }}"
+                                        onclick="openDeleteModalFromBtn(this)">
                                         Hapus
                                     </button>
                                 </div>
@@ -1094,16 +1110,18 @@
                             <td>
                                 <div style="display: flex; gap: 6px; align-items: center;">
                                     <button type="button" class="btn-digi btn-digi-yellow" style="padding: 5px 12px; font-size: 12px;"
-                                        onclick='editUser(@json($u))'>
+                                        data-item="{{ json_encode($u) }}" onclick="editUser(this)">
                                         Edit
                                     </button>
                                     <button type="button" class="btn-digi {{ $u->is_active ? 'btn-digi-red' : 'btn-digi-green' }}" style="padding: 5px 12px; font-size: 12px;"
-                                        onclick="openToggleModal('user', {{ $u->id }}, 'users', '{{ addslashes($u->name . " (" . $u->username . ")") }}', {{ $u->is_active ? 'true' : 'false' }})">
+                                        data-type="user" data-id="{{ $u->id }}" data-tab="users" data-name="{{ $u->name . ' (' . $u->username . ')' }}" data-active="{{ $u->is_active ? '1' : '0' }}"
+                                        onclick="openToggleModalFromBtn(this)">
                                         {{ $u->is_active ? 'Nonaktifkan' : 'Aktifkan' }}
                                     </button>
                                     @if((int)$u->id !== (int)$user->id)
                                         <button type="button" class="btn-digi btn-digi-gray" style="padding: 5px 12px; font-size: 12px; background: #fee2e2; color: #b91c1c; border: 1px solid #fecaca;"
-                                            onclick="openDeleteModal('{{ route('admin.master.users.destroy', $u->id) }}', 'Akun Pengguna', '{{ addslashes($u->name . " (" . $u->username . ")") }}')">
+                                            data-action="{{ route('admin.master.users.destroy', $u->id) }}" data-entity="Akun Pengguna" data-name="{{ $u->name . ' (' . $u->username . ')' }}"
+                                            onclick="openDeleteModalFromBtn(this)">
                                             Hapus
                                         </button>
                                     @endif
@@ -1122,6 +1140,19 @@
     <!-- TAB 8B: SYSTEM BACKGROUNDS (CRUD BACKGROUND UT)              -->
     <!-- ============================================================ -->
     @if($tab === 'backgrounds')
+        <style>
+            .digi-bg-thumb {
+                width: 125px;
+                height: 68px;
+                object-fit: cover;
+                border-radius: 8px;
+                border: 2px solid #cbd5e1;
+                display: block;
+            }
+            .digi-bg-thumb.is-active {
+                border-color: #22c55e;
+            }
+        </style>
         <form id="bgForm" action="{{ route('admin.master.background') }}" method="POST" enctype="multipart/form-data" class="digi-form-box">
             @csrf
             <input type="hidden" name="id" id="bg_id" value="">
@@ -1180,7 +1211,7 @@
                             <td>{{ method_exists($backgrounds, 'firstItem') && $backgrounds->firstItem() ? ($backgrounds->firstItem() + $idx) : ($idx + 1) }}</td>
                             <td>
                                 <a href="{{ asset($bg->image_path) }}" target="_blank" title="Klik untuk melihat ukuran penuh">
-                                    <img src="{{ asset($bg->image_path) }}" alt="{{ $bg->title }}" style="width: 125px; height: 68px; object-fit: cover; border-radius: 8px; border: 2px solid {{ $bg->is_active ? '#22c55e' : '#cbd5e1' }}; display: block;">
+                                    <img src="{{ asset($bg->image_path) }}" alt="{{ $bg->title }}" class="digi-bg-thumb {{ $bg->is_active ? 'is-active' : '' }}">
                                 </a>
                             </td>
                             <td>
@@ -1202,12 +1233,13 @@
                             <td>
                                 <div style="display: flex; gap: 6px; align-items: center; flex-wrap: wrap;">
                                     <button type="button" class="btn-digi btn-digi-yellow" style="padding: 5px 12px; font-size: 12px;"
-                                        onclick='editBackground(@json($bg))'>
+                                        data-item="{{ json_encode($bg) }}" onclick="editBackground(this)">
                                         Edit
                                     </button>
                                     @if(!$bg->is_active)
                                         <button type="button" class="btn-digi btn-digi-green" style="padding: 5px 12px; font-size: 12px;"
-                                            onclick="openToggleModal('background', {{ $bg->id }}, 'backgrounds', '{{ addslashes($bg->title) }}', false)">
+                                            data-type="background" data-id="{{ $bg->id }}" data-tab="backgrounds" data-name="{{ $bg->title }}" data-active="0"
+                                            onclick="openToggleModalFromBtn(this)">
                                             Gunakan Background Ini
                                         </button>
                                     @endif
@@ -1388,8 +1420,43 @@
 
 @section('scripts')
 <script>
+// Helper: Resolve data item from HTML button (data-item attribute) or direct JS object
+function resolveItemData(arg) {
+    if (arg && arg.getAttribute && arg.getAttribute('data-item')) {
+        try {
+            return JSON.parse(arg.getAttribute('data-item'));
+        } catch (e) {
+            console.error('Failed to parse data-item', e);
+        }
+    }
+    return arg;
+}
+
+// Generic Button Trigger for Status Toggle Modal
+function openToggleModalFromBtn(btn) {
+    if (!btn) return;
+    const entity = btn.getAttribute('data-type') || btn.getAttribute('data-entity');
+    const id = btn.getAttribute('data-id');
+    const tab = btn.getAttribute('data-tab');
+    const label = btn.getAttribute('data-name') || btn.getAttribute('data-label');
+    const activeRaw = btn.getAttribute('data-active');
+    const isCurrentlyActive = (activeRaw === '1' || activeRaw === 'true');
+    openToggleModal(entity, id, tab, label, isCurrentlyActive);
+}
+
+// Generic Button Trigger for Delete Master Data Modal
+function openDeleteModalFromBtn(btn) {
+    if (!btn) return;
+    const actionUrl = btn.getAttribute('data-action');
+    const categoryLabel = btn.getAttribute('data-entity') || btn.getAttribute('data-category');
+    const targetLabel = btn.getAttribute('data-name') || btn.getAttribute('data-label');
+    openDeleteModal(actionUrl, categoryLabel, targetLabel);
+}
+
 // 1. Unit Form Auto-Fill & Reset
 function editUnit(v) {
+    v = resolveItemData(v);
+    if (!v) return;
     document.getElementById('unit_id').value = v.id;
     document.getElementById('unit_code').value = v.unit_code || '';
     document.getElementById('unit_police_no').value = v.police_no || '';
@@ -1434,6 +1501,8 @@ function resetUnitForm() {
 
 // 1b. Unit Vendor Form Auto-Fill & Reset
 function editUnitVendor(uv) {
+    uv = resolveItemData(uv);
+    if (!uv) return;
     document.getElementById('unit_vendor_id_input').value = uv.id;
     document.getElementById('uv_code').value = uv.code || '';
     document.getElementById('uv_name').value = uv.name || '';
@@ -1455,6 +1524,8 @@ function resetUnitVendorForm() {
 
 // 2. Employee Form Auto-Fill & Reset
 function editEmployee(emp) {
+    emp = resolveItemData(emp);
+    if (!emp) return;
     document.getElementById('emp_id').value = emp.id;
     document.getElementById('emp_nrp').value = emp.nrp || '';
     document.getElementById('emp_name').value = emp.name || '';
@@ -1477,6 +1548,8 @@ function resetEmployeeForm() {
 
 // 3. Area Form Auto-Fill & Reset
 function editArea(a) {
+    a = resolveItemData(a);
+    if (!a) return;
     document.getElementById('area_id').value = a.id;
     document.getElementById('area_code').value = a.code || '';
     document.getElementById('area_name').value = a.name || '';
@@ -1495,6 +1568,8 @@ function resetAreaForm() {
 
 // 4. Vendor Form Auto-Fill & Reset
 function editVendor(ven) {
+    ven = resolveItemData(ven);
+    if (!ven) return;
     document.getElementById('vendor_id').value = ven.id;
     document.getElementById('vendor_code').value = ven.code || '';
     document.getElementById('vendor_name').value = ven.name || '';
@@ -1527,6 +1602,8 @@ function resetVendorForm() {
 
 // 5. Area Approver Form Auto-Fill & Reset
 function editApprover(aa) {
+    aa = resolveItemData(aa);
+    if (!aa) return;
     document.getElementById('aa_id').value = aa.id;
     document.getElementById('aa_area_id').value = aa.area_id;
     document.getElementById('aa_user_id').value = aa.user_id;
@@ -1572,6 +1649,11 @@ function onVehicleSelectChange(selectElem) {
 }
 
 function editStandard(std, startDate) {
+    std = resolveItemData(std);
+    if (!std) return;
+    if (!startDate && std.effective_start) {
+        startDate = typeof std.effective_start === 'string' ? std.effective_start.substring(0, 10) : '';
+    }
     document.getElementById('std_id').value = std.id;
     const vehSelect = document.getElementById('std_vehicle_id');
     if (vehSelect) {
@@ -1620,6 +1702,11 @@ function resetStandardForm() {
 
 // 7. Fuel Price Form Auto-Fill & Reset
 function editPrice(fp, startDate) {
+    fp = resolveItemData(fp);
+    if (!fp) return;
+    if (!startDate && fp.effective_start) {
+        startDate = typeof fp.effective_start === 'string' ? fp.effective_start.substring(0, 10) : '';
+    }
     document.getElementById('price_id').value = fp.id;
     document.getElementById('price_vendor_id').value = fp.vendor_id || '';
     document.getElementById('price_fuel_type').value = fp.fuel_type || '';
@@ -1650,6 +1737,8 @@ function onUserRoleChange(selectElem) {
 
 // 8. User Form Auto-Fill & Reset
 function editUser(u) {
+    u = resolveItemData(u);
+    if (!u) return;
     document.getElementById('usr_id').value = u.id;
     document.getElementById('usr_name').value = u.name || '';
     document.getElementById('usr_nrp').value = u.nrp || '';
@@ -1691,6 +1780,8 @@ function resetUserForm() {
 
 // 8B. Background Form Auto-Fill & Reset
 function editBackground(bg) {
+    bg = resolveItemData(bg);
+    if (!bg) return;
     document.getElementById('bg_id').value = bg.id;
     document.getElementById('bg_title').value = bg.title || '';
     document.getElementById('bg_notes').value = bg.notes || '';

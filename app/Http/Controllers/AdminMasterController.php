@@ -124,7 +124,7 @@ class AdminMasterController extends Controller
     // 1. EMPLOYEE CRUD
     // =========================================================================
 
-    public function editEmployee($id)
+    public function editEmployee(int|string $id)
     {
         $employee = Employee::findOrFail($id);
 
@@ -171,7 +171,7 @@ class AdminMasterController extends Controller
         return $this->respondSuccess($request, 'employees', "Data Employee {$emp->name} ({$emp->nrp}) berhasil disimpan.", $emp);
     }
 
-    public function updateEmployee(Request $request, $id)
+    public function updateEmployee(Request $request, int|string $id)
     {
         $user = $this->getActiveUser();
         $emp = Employee::findOrFail($id);
@@ -209,12 +209,12 @@ class AdminMasterController extends Controller
         return $this->respondSuccess($request, 'employees', "Data Employee {$emp->name} ({$emp->nrp}) berhasil diperbarui.", $emp->fresh());
     }
 
-    public function toggleEmployee(Request $request, $id)
+    public function toggleEmployee(Request $request, int|string $id)
     {
         return $this->toggleEntityById($request, Employee::class, $id, 'employee', 'employees');
     }
 
-    public function destroyEmployee(Request $request, $id)
+    public function destroyEmployee(Request $request, int|string $id)
     {
         $admin = $this->getActiveUser();
         $emp = Employee::findOrFail($id);
@@ -241,7 +241,7 @@ class AdminMasterController extends Controller
     // 2. UNIT / VEHICLE CRUD
     // =========================================================================
 
-    public function editVehicle($id)
+    public function editVehicle(int|string $id)
     {
         $vehicle = Vehicle::with(['defaultArea', 'activeFuelStandard', 'unitVendor'])->findOrFail($id);
 
@@ -302,7 +302,7 @@ class AdminMasterController extends Controller
         return $this->respondSuccess($request, 'units', "Data Unit {$veh->unit_code} berhasil disimpan.", $veh);
     }
 
-    public function updateVehicle(Request $request, $id)
+    public function updateVehicle(Request $request, int|string $id)
     {
         $user = $this->getActiveUser();
         $veh = Vehicle::findOrFail($id);
@@ -359,12 +359,12 @@ class AdminMasterController extends Controller
         return $this->respondSuccess($request, 'units', "Data Unit {$veh->unit_code} berhasil diperbarui.", $veh->fresh());
     }
 
-    public function toggleVehicle(Request $request, $id)
+    public function toggleVehicle(Request $request, int|string $id)
     {
         return $this->toggleEntityById($request, Vehicle::class, $id, 'unit', 'units');
     }
 
-    public function destroyVehicle(Request $request, $id)
+    public function destroyVehicle(Request $request, int|string $id)
     {
         $admin = $this->getActiveUser();
         $veh = Vehicle::findOrFail($id);
@@ -391,7 +391,7 @@ class AdminMasterController extends Controller
     // 3. AREA CRUD
     // =========================================================================
 
-    public function editArea($id)
+    public function editArea(int|string $id)
     {
         $area = Area::findOrFail($id);
 
@@ -430,7 +430,7 @@ class AdminMasterController extends Controller
         return $this->respondSuccess($request, 'areas', "Area operasional {$area->name} berhasil disimpan.", $area);
     }
 
-    public function updateArea(Request $request, $id)
+    public function updateArea(Request $request, int|string $id)
     {
         $user = $this->getActiveUser();
         $area = Area::findOrFail($id);
@@ -456,12 +456,12 @@ class AdminMasterController extends Controller
         return $this->respondSuccess($request, 'areas', "Area operasional {$area->name} berhasil diperbarui.", $area->fresh());
     }
 
-    public function toggleArea(Request $request, $id)
+    public function toggleArea(Request $request, int|string $id)
     {
         return $this->toggleEntityById($request, Area::class, $id, 'area', 'areas');
     }
 
-    public function destroyArea(Request $request, $id)
+    public function destroyArea(Request $request, int|string $id)
     {
         $admin = $this->getActiveUser();
         $area = Area::findOrFail($id);
@@ -493,7 +493,7 @@ class AdminMasterController extends Controller
     // 4. VENDOR CRUD
     // =========================================================================
 
-    public function editVendor($id)
+    public function editVendor(int|string $id)
     {
         $vendor = Vendor::with('activeFuelPrice')->findOrFail($id);
 
@@ -550,7 +550,7 @@ class AdminMasterController extends Controller
         return $this->respondSuccess($request, 'vendors', "Data Vendor {$vendor->name} berhasil disimpan.", $vendor);
     }
 
-    public function updateVendor(Request $request, $id)
+    public function updateVendor(Request $request, int|string $id)
     {
         $user = $this->getActiveUser();
         $vendor = Vendor::findOrFail($id);
@@ -601,12 +601,12 @@ class AdminMasterController extends Controller
         return $this->respondSuccess($request, 'vendors', "Data Vendor {$vendor->name} berhasil diperbarui.", $vendor->fresh());
     }
 
-    public function toggleVendor(Request $request, $id)
+    public function toggleVendor(Request $request, int|string $id)
     {
         return $this->toggleEntityById($request, Vendor::class, $id, 'vendor', 'vendors');
     }
 
-    public function destroyVendor(Request $request, $id)
+    public function destroyVendor(Request $request, int|string $id)
     {
         $admin = $this->getActiveUser();
         $vendor = Vendor::findOrFail($id);
@@ -638,7 +638,7 @@ class AdminMasterController extends Controller
     // 4b. UNIT VENDOR (PENYEDIA UNIT KENDARAAN) CRUD
     // =========================================================================
 
-    public function editUnitVendor($id)
+    public function editUnitVendor(int|string $id)
     {
         $vendor = UnitVendor::findOrFail($id);
 
@@ -685,7 +685,7 @@ class AdminMasterController extends Controller
         return $this->respondSuccess($request, 'unit_vendors', "Data Vendor Unit {$vendor->name} berhasil disimpan.", $vendor);
     }
 
-    public function updateUnitVendor(Request $request, $id)
+    public function updateUnitVendor(Request $request, int|string $id)
     {
         $user = $this->getActiveUser();
         $vendor = UnitVendor::findOrFail($id);
@@ -721,12 +721,12 @@ class AdminMasterController extends Controller
         return $this->respondSuccess($request, 'unit_vendors', "Data Vendor Unit {$vendor->name} berhasil diperbarui.", $vendor->fresh());
     }
 
-    public function toggleUnitVendor(Request $request, $id)
+    public function toggleUnitVendor(Request $request, int|string $id)
     {
         return $this->toggleEntityById($request, UnitVendor::class, $id, 'unit_vendor', 'unit_vendors');
     }
 
-    public function destroyUnitVendor(Request $request, $id)
+    public function destroyUnitVendor(Request $request, int|string $id)
     {
         $admin = $this->getActiveUser();
         $vendor = UnitVendor::findOrFail($id);
@@ -790,7 +790,7 @@ class AdminMasterController extends Controller
     // 5. USER & ROLE CRUD
     // =========================================================================
 
-    public function editUser($id)
+    public function editUser(int|string $id)
     {
         $targetUser = User::with(['employee', 'vendor', 'roles', 'areaApprovers'])->findOrFail($id);
 
@@ -857,7 +857,7 @@ class AdminMasterController extends Controller
         return $this->respondSuccess($request, 'users', "Akun pengguna {$targetUser->name} berhasil disimpan.", $targetUser->fresh(['roles', 'employee', 'vendor', 'areaApprovers']));
     }
 
-    public function updateUser(Request $request, $id)
+    public function updateUser(Request $request, int|string $id)
     {
         $admin = $this->getActiveUser();
         $targetUser = User::findOrFail($id);
@@ -972,12 +972,12 @@ class AdminMasterController extends Controller
         }
     }
 
-    public function toggleUser(Request $request, $id)
+    public function toggleUser(Request $request, int|string $id)
     {
         return $this->toggleEntityById($request, User::class, $id, 'user', 'users');
     }
 
-    public function destroyUser(Request $request, $id)
+    public function destroyUser(Request $request, int|string $id)
     {
         $admin = $this->getActiveUser();
         $targetUser = User::findOrFail($id);
@@ -1028,7 +1028,7 @@ class AdminMasterController extends Controller
     // 6. AREA APPROVER CRUD
     // =========================================================================
 
-    public function editAreaApprover($id)
+    public function editAreaApprover(int|string $id)
     {
         $approver = AreaApprover::with(['area', 'user'])->findOrFail($id);
 
@@ -1062,7 +1062,7 @@ class AdminMasterController extends Controller
         return $this->respondSuccess($request, 'approvers', 'Penugasan Approver Area berhasil disimpan.', $aa->load(['area', 'user']));
     }
 
-    public function updateAreaApprover(Request $request, $id)
+    public function updateAreaApprover(Request $request, int|string $id)
     {
         $admin = $this->getActiveUser();
         $aa = AreaApprover::findOrFail($id);
@@ -1083,12 +1083,12 @@ class AdminMasterController extends Controller
         return $this->respondSuccess($request, 'approvers', 'Penugasan Approver Area berhasil diperbarui.', $aa->fresh(['area', 'user']));
     }
 
-    public function toggleAreaApprover(Request $request, $id)
+    public function toggleAreaApprover(Request $request, int|string $id)
     {
         return $this->toggleEntityById($request, AreaApprover::class, $id, 'approver', 'approvers');
     }
 
-    public function destroyAreaApprover(Request $request, $id)
+    public function destroyAreaApprover(Request $request, int|string $id)
     {
         $admin = $this->getActiveUser();
         $aa = AreaApprover::findOrFail($id);
@@ -1234,7 +1234,7 @@ class AdminMasterController extends Controller
             ->with('success', "Background '{$bg->title}' berhasil disimpan" . ($bg->is_active ? ' dan diterapkan sebagai background aktif.' : '.'));
     }
 
-    public function deleteBackground(Request $request, $id)
+    public function deleteBackground(Request $request, int|string $id)
     {
         $admin = $this->getActiveUser();
         $bg = SystemBackground::findOrFail($id);
@@ -1273,7 +1273,7 @@ class AdminMasterController extends Controller
     // 10. TOGGLE ACTIVE / INACTIVE STATUS
     // =========================================================================
 
-    protected function toggleEntityById(Request $request, string $modelClass, $id, string $entityName, string $tab)
+    protected function toggleEntityById(Request $request, string $modelClass, int|string $id, string $entityName, string $tab)
     {
         $admin = $this->getActiveUser();
         $record = $modelClass::findOrFail($id);
@@ -1474,7 +1474,7 @@ class AdminMasterController extends Controller
         return redirect()->route('admin.master', ['tab' => 'prices'])->with('success', "Harga BBM baru untuk {$venName} berhasil disimpan.");
     }
 
-    public function destroyFuelStandard(Request $request, $id)
+    public function destroyFuelStandard(Request $request, int|string $id)
     {
         $admin = $this->getActiveUser();
         $std = FuelStandard::findOrFail($id);
@@ -1489,7 +1489,7 @@ class AdminMasterController extends Controller
         return $this->respondSuccess($request, 'standards', "Data Standar BBM {$label} berhasil dihapus.");
     }
 
-    public function destroyFuelPrice(Request $request, $id)
+    public function destroyFuelPrice(Request $request, int|string $id)
     {
         $admin = $this->getActiveUser();
         $price = FuelPrice::findOrFail($id);
