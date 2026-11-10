@@ -4,8 +4,13 @@
 [![Laravel](https://img.shields.io/badge/Laravel-11.x-FF2D20?style=for-the-badge&logo=laravel&logoColor=white)](https://laravel.com)
 [![PHP](https://img.shields.io/badge/PHP-8.2%2B-777BB4?style=for-the-badge&logo=php&logoColor=white)](https://php.net)
 [![MySQL](https://img.shields.io/badge/MySQL-8.0%2B-4479A1?style=for-the-badge&logo=mysql&logoColor=white)](https://mysql.com)
-[![Tests](https://img.shields.io/badge/Tests-59%20Passed%20(614%20Assertions)-success?style=for-the-badge&logo=checkmarx&logoColor=white)]()
+[![Tests](https://img.shields.io/badge/Tests-67%20Passed%20(685%20Assertions)-success?style=for-the-badge&logo=checkmarx&logoColor=white)]()
 [![Security](https://img.shields.io/badge/Security-Hardened%20(OWASP%20Ready)-blue?style=for-the-badge&logo=shield&logoColor=white)]()
+
+> 📘 **Butuh Panduan Penggunaan untuk Pengguna Lapangan?**  
+> Baca panduan lengkap dan mudah dipahami untuk orang awam di: **[PANDUAN_PENGGUNAAN.md](PANDUAN_PENGGUNAAN.md)** atau akses langsung di aplikasi web melalui menu **`Panduan`** (`/panduan`).
+
+---
 
 **DigiFuel** adalah sistem informasi berbasis web terintegrasi yang dirancang khusus untuk mengelola, menyetujui, mencatat realisasi, serta mengevaluasi konsumsi Bahan Bakar Minyak (BBM) armada operasional dan unit kendaraan di lingkungan **PT United Tractors Tbk Site Satui**.
 
@@ -52,6 +57,20 @@ Proses pengajuan BBM berjalan secara sekuensial dan terotomatisasi:
 - **Isolasi Akun Vendor**: Akun vendor hanya memiliki akses ke pengajuan dan kuota perusahaannya sendiri.
 - **HTTP Security Headers**: Header proteksi bawaan (`X-Frame-Options: SAMEORIGIN`, `X-Content-Type-Options: nosniff`, `Referrer-Policy`, dll).
 - **Validasi File Ketat**: Unggah foto profil dan tanda tangan divalidasi hingga struktur biner gambar (`getimagesize`) dan disajikan secara aman tanpa risiko *Directory Traversal*.
+
+### 7. Navigasi Cepat Burger Bar & Pengurutan Kolom Master Data
+- **Menu Burger Bar Ringkas (☰)**: Tombol pemicu cepat 32px di sisi kiri bar navigasi master data yang membuka katalog seluruh 7 langkah konfigurasi (popover di desktop dan bottom-sheet drawer di mobile).
+- **Pencarian Cepat & Click-to-Sort**: Filter instan client-side dan pengurutan dinamis seluruh kolom tabel (A-Z, 1-9, mata uang rupiah, dan tanggal) hanya dengan mengklik kepala kolom (`<th>`).
+- **Formulir Terpadu**: Input data master terintegrasi tanpa duplikasi dan dilindungi verifikasi modal 2 langkah.
+
+### 8. Sistem Retensi Audit Trail & Ekspor Arsip Cadangan
+- **Ekspor Arsip Excel**: Admin dapat mengunduh seluruh catatan log audit ke format Excel (`.xlsx`) sewaktu-waktu sebagai cadangan offline (*cold storage*).
+- **Kebijakan Retensi Otomatis**: Dilengkapi Artisan command `audit:purge --days=180` yang dijadwalkan mingguan untuk menjaga kapasitas database tetap ramping tanpa kehilangan riwayat aktif.
+- **Pembersihan Manual dengan Verifikasi Keamanan**: Pilihan retensi di antarmuka web (90, 180, 365 hari) yang dilindungi kata kunci konfirmasi `BERSIHKAN`.
+
+### 9. Pusat Panduan & Edukasi Pengguna Awam (`/panduan`)
+- Halaman panduan terpadu yang ramah pengguna awam dengan tab peran (Driver, SPV, Manager, Vendor, Fuelman, Admin) dan tanya jawab populer (FAQ).
+- Tombol akses cepat **Panduan** (`?`) disematkan langsung di bilah navigasi atas aplikasi agar dapat dibuka seketika dari halaman manapun.
 
 ---
 
@@ -167,8 +186,8 @@ php artisan test
 
 **Hasil Pengujian:**
 ```text
-Tests:    59 passed (614 assertions)
-Duration: ~15 detik
+Tests:    67 passed (685 assertions)
+Duration: ~20 detik
 Status:   100% Passed
 ```
 

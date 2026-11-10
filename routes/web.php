@@ -30,6 +30,11 @@ Route::middleware(['auth'])->group(function () {
         Route::get('/dashboard', [DashboardController::class, 'index'])->name('dashboard');
         Route::get('/dashboard/charts', [DashboardController::class, 'charts'])->name('dashboard.charts');
 
+        // Panduan & Tutorial Penggunaan Sistem
+        Route::get('/panduan', function () {
+            return view('panduan');
+        })->name('panduan');
+
         // History & Excel (.xlsx) Export
         Route::get('/history', [HistoryController::class, 'index'])->name('history.index');
         Route::get('/history/export', [HistoryController::class, 'export'])->name('history.export');
