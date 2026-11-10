@@ -100,6 +100,306 @@
         background: #0284c7;
     }
 
+    /* Burger Bar Menu & Dropdown Drawer */
+    .digi-burger-menu-wrap {
+        position: relative;
+        flex-shrink: 0;
+        z-index: 45;
+    }
+    .digi-burger-btn {
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        width: 32px;
+        height: 32px;
+        padding: 0;
+        background: #ffffff;
+        border: 1px solid #cbd5e1;
+        border-radius: 50%;
+        color: #334155;
+        cursor: pointer;
+        transition: all 0.15s ease;
+        box-shadow: 0 1px 3px rgba(0, 0, 0, 0.08);
+        user-select: none;
+        margin-bottom: 6px;
+        flex-shrink: 0;
+    }
+    .digi-burger-btn:hover {
+        background: #f1f5f9;
+        border-color: #0284c7;
+        color: #0284c7;
+        transform: scale(1.06);
+    }
+    .digi-burger-btn.is-open {
+        background: #0284c7;
+        border-color: #0284c7;
+        color: #ffffff;
+        transform: scale(1.06);
+        box-shadow: 0 3px 10px rgba(2, 132, 199, 0.3);
+    }
+    .digi-burger-btn.is-open .digi-burger-icon {
+        stroke: #ffffff;
+    }
+    .digi-tabs-divider {
+        width: 1px;
+        height: 20px;
+        background: #cbd5e1;
+        margin: 0 3px 6px 3px;
+        flex-shrink: 0;
+    }
+
+    /* Dropdown Popover (Desktop) */
+    .digi-burger-dropdown {
+        position: absolute;
+        top: calc(100% + 2px);
+        left: 0;
+        width: 340px;
+        max-width: calc(100vw - 32px);
+        max-height: 500px;
+        background: #ffffff;
+        border: 1px solid #e2e8f0;
+        border-radius: 12px;
+        box-shadow: 0 16px 38px -6px rgba(15, 23, 42, 0.16), 0 6px 14px -3px rgba(15, 23, 42, 0.08);
+        z-index: 100;
+        display: flex;
+        flex-direction: column;
+        overflow: hidden;
+        animation: digiDropdownFadeIn 0.18s cubic-bezier(0.16, 1, 0.3, 1);
+    }
+    @keyframes digiDropdownFadeIn {
+        from {
+            opacity: 0;
+            transform: translateY(-8px) scale(0.98);
+        }
+        to {
+            opacity: 1;
+            transform: translateY(0) scale(1);
+        }
+    }
+    .digi-burger-dropdown-header {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        padding: 12px 16px;
+        background: #f8fafc;
+        border-bottom: 1px solid #e2e8f0;
+    }
+    .digi-burger-dropdown-title {
+        font-size: 13.5px;
+        font-weight: 700;
+        color: #0f172a;
+    }
+    .digi-burger-badge-pill {
+        font-size: 11px;
+        font-weight: 600;
+        color: #0284c7;
+        background: #e0f2fe;
+        border: 1px solid #bae6fd;
+        padding: 2px 7px;
+        border-radius: 9999px;
+    }
+    .digi-burger-close-btn {
+        background: none;
+        border: none;
+        color: #94a3b8;
+        cursor: pointer;
+        padding: 4px;
+        border-radius: 6px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        transition: all 0.15s ease;
+    }
+    .digi-burger-close-btn:hover {
+        background: #e2e8f0;
+        color: #0f172a;
+    }
+    .digi-burger-dropdown-body {
+        padding: 8px;
+        overflow-y: auto;
+        max-height: 440px;
+        display: flex;
+        flex-direction: column;
+        gap: 4px;
+        scrollbar-width: thin;
+        scrollbar-color: #cbd5e1 #f8fafc;
+    }
+    .digi-burger-dropdown-body::-webkit-scrollbar {
+        width: 6px;
+    }
+    .digi-burger-dropdown-body::-webkit-scrollbar-thumb {
+        background: #cbd5e1;
+        border-radius: 6px;
+    }
+    .digi-burger-item {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        padding: 8px 10px;
+        border-radius: 9px;
+        text-decoration: none;
+        color: inherit;
+        border: 1px solid transparent;
+        transition: all 0.15s ease;
+        background: #ffffff;
+    }
+    .digi-burger-item:hover {
+        background: #f8fafc;
+        border-color: #e2e8f0;
+        transform: translateX(2px);
+    }
+    .digi-burger-item.is-active {
+        background: #f0f9ff;
+        border-color: #bae6fd;
+    }
+    .digi-burger-item-left {
+        display: flex;
+        align-items: center;
+        gap: 9px;
+        min-width: 0;
+        flex: 1;
+    }
+    .digi-burger-item-step {
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        width: 24px;
+        height: 24px;
+        border-radius: 50%;
+        font-size: 11px;
+        font-weight: 700;
+        background: #f1f5f9;
+        color: #334155;
+        flex-shrink: 0;
+        transition: all 0.15s ease;
+    }
+    .digi-burger-item.is-active .digi-burger-item-step {
+        background: #0284c7;
+        color: #ffffff;
+        box-shadow: 0 2px 6px rgba(2, 132, 199, 0.35);
+    }
+    .digi-burger-item-text {
+        display: flex;
+        flex-direction: column;
+        min-width: 0;
+        gap: 1px;
+    }
+    .digi-burger-item-header {
+        display: flex;
+        align-items: center;
+        gap: 6px;
+        flex-wrap: wrap;
+    }
+    .digi-burger-item-name {
+        font-size: 13px;
+        font-weight: 600;
+        color: #0f172a;
+    }
+    .digi-burger-item.is-active .digi-burger-item-name {
+        color: #0369a1;
+        font-weight: 700;
+    }
+    .digi-burger-active-tag {
+        display: inline-flex;
+        align-items: center;
+        gap: 3px;
+        font-size: 10px;
+        font-weight: 700;
+        color: #0284c7;
+        background: #e0f2fe;
+        border: 1px solid #bae6fd;
+        padding: 1px 6px;
+        border-radius: 9999px;
+        text-transform: uppercase;
+        letter-spacing: 0.3px;
+    }
+    .digi-burger-item-desc {
+        font-size: 11px;
+        color: #64748b;
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
+    }
+    .digi-burger-item-right {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        flex-shrink: 0;
+        margin-left: 8px;
+    }
+    .digi-burger-item-count {
+        font-size: 11px;
+        font-weight: 600;
+        color: #64748b;
+        background: #f1f5f9;
+        padding: 2px 7px;
+        border-radius: 6px;
+    }
+    .digi-burger-item.is-active .digi-burger-item-count {
+        color: #0284c7;
+        background: #e0f2fe;
+    }
+    .digi-burger-item-arrow {
+        color: #cbd5e1;
+        transition: transform 0.15s ease, color 0.15s ease;
+    }
+    .digi-burger-item:hover .digi-burger-item-arrow {
+        color: #0284c7;
+        transform: translateX(2px);
+    }
+
+    /* Mobile Bottom-Sheet Drawer */
+    @media (max-width: 640px) {
+        .digi-burger-label {
+            font-size: 12px;
+        }
+        .digi-burger-dropdown {
+            position: fixed;
+            top: auto;
+            bottom: 0;
+            left: 0;
+            right: 0;
+            width: 100%;
+            max-width: 100vw;
+            max-height: 80vh;
+            border-radius: 20px 20px 0 0;
+            box-shadow: 0 -12px 36px rgba(15, 23, 42, 0.25);
+            z-index: 1050;
+            border-bottom: none;
+            animation: digiBottomSheetSlideUp 0.22s cubic-bezier(0.16, 1, 0.3, 1);
+        }
+        @keyframes digiBottomSheetSlideUp {
+            from {
+                transform: translateY(100%);
+            }
+            to {
+                transform: translateY(0);
+            }
+        }
+        .digi-burger-dropdown-header {
+            padding: 16px 18px 12px 18px;
+        }
+        .digi-burger-dropdown-body {
+            max-height: calc(80vh - 65px);
+            padding: 10px 14px 24px 14px;
+        }
+        .digi-burger-backdrop {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100vw;
+            height: 100vh;
+            background: rgba(15, 23, 42, 0.48);
+            backdrop-filter: blur(2px);
+            z-index: 1040;
+            animation: digiBackdropFadeIn 0.2s ease;
+        }
+        @keyframes digiBackdropFadeIn {
+            from { opacity: 0; }
+            to { opacity: 1; }
+        }
+    }
+
     /* Table Horizontal Scrollbar Styling */
     .digi-table-responsive {
         overflow-x: auto;
@@ -365,17 +665,121 @@
     @php
         $getCount = fn($col) => method_exists($col, 'total') ? $col->total() : (is_countable($col) ? count($col) : 0);
         $primaryTabs = [
-            'areas' => ['step' => '1', 'name' => 'Wilayah & Area', 'count' => $getCount($areas)],
-            'vendors' => ['step' => '2', 'name' => 'Perusahaan BBM & Harga', 'count' => $getCount($vendors)],
-            'unit_vendors' => ['step' => '3', 'name' => 'Perusahaan Rental Unit', 'count' => $getCount($unitVendors)],
-            'units' => ['step' => '4', 'name' => 'Unit Kendaraan & Standar', 'count' => $getCount($vehicles)],
-            'users' => ['step' => '5', 'name' => 'Pengguna, Karyawan & Penugasan', 'count' => $getCount($users)],
-            'backgrounds' => ['step' => '6', 'name' => 'Background Sistem', 'count' => $getCount($backgrounds ?? collect())],
-            'audit' => ['step' => '7', 'name' => 'Audit Trail', 'count' => $getCount($auditLogs)],
+            'areas' => [
+                'step' => '1',
+                'name' => 'Wilayah & Area',
+                'desc' => 'Wilayah kerja operasional, site penugasan, pool & rayon',
+                'count' => $getCount($areas)
+            ],
+            'vendors' => [
+                'step' => '2',
+                'name' => 'Perusahaan BBM & Harga',
+                'desc' => 'Penyedia solar industri, PIC vendor & penetapan harga aktif',
+                'count' => $getCount($vendors)
+            ],
+            'unit_vendors' => [
+                'step' => '3',
+                'name' => 'Perusahaan Rental Unit',
+                'desc' => 'Perusahaan pemilik / penyedia sewa unit kendaraan operasional',
+                'count' => $getCount($unitVendors)
+            ],
+            'units' => [
+                'step' => '4',
+                'name' => 'Unit Kendaraan & Standar',
+                'desc' => 'Plat nomor, tipe unit, kapasitas tangki & standar rasio KM/L',
+                'count' => $getCount($vehicles)
+            ],
+            'users' => [
+                'step' => '5',
+                'name' => 'Pengguna, Karyawan & Penugasan',
+                'desc' => 'Akun login, karyawan driver / employee & matriks approval per area',
+                'count' => $getCount($users)
+            ],
+            'backgrounds' => [
+                'step' => '6',
+                'name' => 'Background Sistem',
+                'desc' => 'Kustomisasi gambar wallpaper aplikasi & halaman login',
+                'count' => $getCount($backgrounds ?? collect())
+            ],
+            'audit' => [
+                'step' => '7',
+                'name' => 'Audit Trail',
+                'desc' => 'Catatan log aktivitas perubahan & riwayat aksi sistem',
+                'count' => $getCount($auditLogs)
+            ],
         ];
     @endphp
 
     <div class="digi-master-tabs-nav-wrapper">
+        <!-- Burger Menu Bar (Clean Universal Master Data Selector) -->
+        <div class="digi-burger-menu-wrap" id="masterBurgerWrap">
+            <button type="button" 
+                    class="digi-burger-btn" 
+                    id="masterBurgerBtn" 
+                    onclick="toggleMasterBurgerMenu(event)" 
+                    aria-expanded="false" 
+                    aria-controls="masterBurgerDropdown" 
+                    title="Daftar Semua Master Data (Langkah 1 - 7)"
+                    aria-label="Daftar Semua Master Data">
+                <svg class="digi-burger-icon" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.3" stroke-linecap="round" stroke-linejoin="round">
+                    <line x1="3" y1="12" x2="21" y2="12"></line>
+                    <line x1="3" y1="6" x2="21" y2="6"></line>
+                    <line x1="3" y1="18" x2="21" y2="18"></line>
+                </svg>
+            </button>
+
+            <!-- Dropdown Popover & Drawer -->
+            <div class="digi-burger-dropdown" id="masterBurgerDropdown" style="display: none;">
+                <div class="digi-burger-dropdown-header">
+                    <div style="display: flex; align-items: center; gap: 8px;">
+                        <span class="digi-burger-dropdown-title">Katalog Master Data</span>
+                        <span class="digi-burger-badge-pill">7 Kategori</span>
+                    </div>
+                    <button type="button" class="digi-burger-close-btn" onclick="closeMasterBurgerMenu(event)" title="Tutup menu">
+                        <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+                            <line x1="18" y1="6" x2="6" y2="18"></line>
+                            <line x1="6" y1="6" x2="18" y2="18"></line>
+                        </svg>
+                    </button>
+                </div>
+                <div class="digi-burger-dropdown-body">
+                    @foreach($primaryTabs as $key => $tabInfo)
+                        <a href="{{ route('admin.master', array_merge(request()->query(), ['tab' => $key, 'page' => 1])) }}"
+                           class="digi-burger-item {{ $tab === $key ? 'is-active' : '' }}"
+                           title="Buka Langkah {{ $tabInfo['step'] }}: {{ $tabInfo['name'] }}">
+                            <div class="digi-burger-item-left">
+                                <span class="digi-burger-item-step">{{ $tabInfo['step'] }}</span>
+                                <div class="digi-burger-item-text">
+                                    <div class="digi-burger-item-header">
+                                        <span class="digi-burger-item-name">{{ $tabInfo['name'] }}</span>
+                                        @if($tab === $key)
+                                            <span class="digi-burger-active-tag">
+                                                <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round">
+                                                    <polyline points="20 6 9 17 4 12"></polyline>
+                                                </svg>
+                                                Aktif
+                                            </span>
+                                        @endif
+                                    </div>
+                                    <span class="digi-burger-item-desc">{{ $tabInfo['desc'] }}</span>
+                                </div>
+                            </div>
+                            <div class="digi-burger-item-right">
+                                <span class="digi-burger-item-count">{{ $tabInfo['count'] }} data</span>
+                                <svg class="digi-burger-item-arrow" width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+                                    <polyline points="9 18 15 12 9 6"></polyline>
+                                </svg>
+                            </div>
+                        </a>
+                    @endforeach
+                </div>
+            </div>
+            <!-- Mobile Backdrop -->
+            <div class="digi-burger-backdrop" id="masterBurgerBackdrop" onclick="closeMasterBurgerMenu(event)" style="display: none;"></div>
+        </div>
+
+        <div class="digi-tabs-divider"></div>
+
         <button type="button" class="digi-tabs-scroll-btn btn-left" id="masterTabsScrollLeft" onclick="scrollMasterTabs(-240)" title="Geser tab ke kiri" aria-label="Geser tab ke kiri">
             ‹
         </button>
@@ -1906,6 +2310,58 @@
 
 @section('scripts')
 <script>
+// Master Data Burger Bar Menu Handler
+function toggleMasterBurgerMenu(event) {
+    if (event) {
+        event.stopPropagation();
+        event.preventDefault();
+    }
+    const dropdown = document.getElementById('masterBurgerDropdown');
+    const btn = document.getElementById('masterBurgerBtn');
+    const backdrop = document.getElementById('masterBurgerBackdrop');
+    if (!dropdown || !btn) return;
+
+    const isOpen = dropdown.style.display !== 'none';
+    if (isOpen) {
+        closeMasterBurgerMenu();
+    } else {
+        dropdown.style.display = 'flex';
+        btn.classList.add('is-open');
+        btn.setAttribute('aria-expanded', 'true');
+        if (backdrop && window.innerWidth <= 640) {
+            backdrop.style.display = 'block';
+        }
+    }
+}
+
+function closeMasterBurgerMenu(event) {
+    if (event) {
+        event.stopPropagation();
+    }
+    const dropdown = document.getElementById('masterBurgerDropdown');
+    const btn = document.getElementById('masterBurgerBtn');
+    const backdrop = document.getElementById('masterBurgerBackdrop');
+    if (dropdown) dropdown.style.display = 'none';
+    if (btn) {
+        btn.classList.remove('is-open');
+        btn.setAttribute('aria-expanded', 'false');
+    }
+    if (backdrop) backdrop.style.display = 'none';
+}
+
+// Global click outside & Escape key listeners for Burger Menu
+document.addEventListener('click', function(e) {
+    const wrap = document.getElementById('masterBurgerWrap');
+    if (wrap && !wrap.contains(e.target)) {
+        closeMasterBurgerMenu();
+    }
+});
+document.addEventListener('keydown', function(e) {
+    if (e.key === 'Escape') {
+        closeMasterBurgerMenu();
+    }
+});
+
 // Horizontal scroll function for Master Tabs navigation
 function scrollMasterTabs(offset) {
     const container = document.getElementById('masterTabsScroll');
