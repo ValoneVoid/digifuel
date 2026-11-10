@@ -484,16 +484,9 @@ class AdminMasterController extends Controller
         return $this->respondSuccess($request, 'areas', "Area operasional {$areaName} berhasil dihapus.");
     }
 
-    protected function generateUniqueAreaCode(string $name, ?int $ignoreId = null): string
+    protected function generateUniqueAreaCode(string $name = '', ?int $ignoreId = null): string
     {
-        $base = strtoupper(substr(preg_replace('/[^A-Za-z0-9]/', '', $name), 0, 6)) ?: 'AREA';
-        $code = $base;
-        $counter = 1;
-        while (Area::where('code', $code)->when($ignoreId, fn($q) => $q->where('id', '!=', $ignoreId))->exists()) {
-            $code = $base . '-' . $counter;
-            $counter++;
-        }
-        return $code;
+        return $this->generateSequentialCode(Area::class, $ignoreId);
     }
 
     // =========================================================================
@@ -638,11 +631,7 @@ class AdminMasterController extends Controller
 
     protected function generateUniqueVendorCode(?int $ignoreId = null): string
     {
-        do {
-            $code = 'VND-' . rand(100, 999);
-        } while (Vendor::where('code', $code)->when($ignoreId, fn($q) => $q->where('id', '!=', $ignoreId))->exists());
-
-        return $code;
+        return $this->generateSequentialCode(Vendor::class, $ignoreId);
     }
 
     // =========================================================================
@@ -711,17 +700,19 @@ class AdminMasterController extends Controller
             'is_active' => ['nullable', 'boolean'],
         ]);
 
+        $code = !empty($validated['code'])
+            ? $validated['code']
+            : ($vendor->code ?: $this->generateUniqueUnitVendorCode($vendor->id));
+
         $payload = [
             'name' => $validated['name'],
+            'code' => $code,
             'contact_person' => $validated['contact_person'] ?? null,
             'phone' => $validated['phone'] ?? null,
             'email' => $validated['email'] ?? null,
             'address' => $validated['address'] ?? null,
             'is_active' => $request->has('is_active') ? $request->boolean('is_active') : $vendor->is_active,
         ];
-        if (!empty($validated['code'])) {
-            $payload['code'] = $validated['code'];
-        }
 
         $vendor->update($payload);
 
@@ -760,9 +751,37 @@ class AdminMasterController extends Controller
 
     protected function generateUniqueUnitVendorCode(?int $ignoreId = null): string
     {
+        return $this->generateSequentialCode(UnitVendor::class, $ignoreId);
+    }
+
+    /**
+     * Generate sequential 2-digit numeric code ('01', '02', '03', ...)
+     * by reading existing numeric codes in the table and incrementing.
+     */
+    protected function generateSequentialCode(string $modelClass, ?int $ignoreId = null): string
+    {
+        $query = $modelClass::query();
+        if ($ignoreId) {
+            $query->where('id', '!=', $ignoreId);
+        }
+        $existingCodes = $query->pluck('code');
+
+        $maxNumber = 0;
+        foreach ($existingCodes as $c) {
+            $trimmed = trim((string)$c);
+            if (preg_match('/^\d+$/', $trimmed)) {
+                $num = (int)$trimmed;
+                if ($num > $maxNumber) {
+                    $maxNumber = $num;
+                }
+            }
+        }
+
+        $candidateNumber = $maxNumber + 1;
         do {
-            $code = 'UVND-' . rand(100, 999);
-        } while (UnitVendor::where('code', $code)->when($ignoreId, fn($q) => $q->where('id', '!=', $ignoreId))->exists());
+            $code = sprintf('%02d', $candidateNumber);
+            $candidateNumber++;
+        } while ($existingCodes->contains($code));
 
         return $code;
     }

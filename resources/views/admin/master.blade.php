@@ -18,8 +18,8 @@
         $getCount = fn($col) => method_exists($col, 'total') ? $col->total() : (is_countable($col) ? count($col) : 0);
         $primaryTabs = [
             'areas' => '1. Wilayah & Area (' . $getCount($areas) . ')',
-            'vendors' => '2. Penyedia BBM & Harga (' . $getCount($vendors) . ')',
-            'unit_vendors' => '3. Vendor Rental Unit (' . $getCount($unitVendors) . ')',
+            'vendors' => '2. Perusahaan BBM & Harga (' . $getCount($vendors) . ')',
+            'unit_vendors' => '3. Perusahaan Rental Unit (' . $getCount($unitVendors) . ')',
             'units' => '4. Unit Kendaraan & Standar (' . $getCount($vehicles) . ')',
             'users' => '5. Pengguna, Karyawan & Penugasan (' . $getCount($users) . ')',
             'backgrounds' => 'Background Sistem (' . $getCount($backgrounds ?? collect()) . ')',
@@ -88,11 +88,11 @@
             </div>
             <div class="digi-form-grid-4" style="display: grid; grid-template-columns: 1.2fr 1.2fr 1fr 1fr; gap: 12px; margin-bottom: 0; align-items: flex-end;">
                 <div class="digi-form-group">
-                    <label class="digi-form-label">Vendor Unit (Rental / Internal) <span class="digi-required">*</span></label>
+                    <label class="digi-form-label">Perusahaan Rental Unit (Rental / Internal) <span class="digi-required">*</span></label>
                     <select name="unit_vendor_id" id="unit_vendor_id" class="digi-select" required>
-                        <option value="">-- Pilih Vendor Unit --</option>
+                        <option value="">-- Pilih Perusahaan Rental Unit --</option>
                         @foreach($allUnitVendors as $uv)
-                            <option value="{{ $uv->id }}">{{ $uv->name }} ({{ $uv->code ?? 'Vendor' }})</option>
+                            <option value="{{ $uv->id }}">{{ $uv->name }} ({{ $uv->code ?? 'Perusahaan' }})</option>
                         @endforeach
                     </select>
                     <input type="hidden" name="meter_type" id="unit_meter_type" value="km">
@@ -130,7 +130,7 @@
                         <th>Unit Code</th>
                         <th>Nomor Polisi</th>
                         <th>Tipe / Model Unit</th>
-                        <th>Vendor Unit</th>
+                        <th>Perusahaan Rental</th>
                         <th>Area Default</th>
                         <th>Kapasitas Tangki</th>
                         <th>Standar BBM</th>
@@ -205,18 +205,18 @@
             @csrf
             <input type="hidden" name="id" id="unit_vendor_id_input" value="">
             <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 14px;">
-                <h3 class="digi-section-title" id="unitVendorFormTitle" style="margin: 0;">Tambah Data Vendor Unit (Penyedia Unit)</h3>
+                <h3 class="digi-section-title" id="unitVendorFormTitle" style="margin: 0;">Langkah 3: Tambah Data Perusahaan Rental Unit (Penyedia Unit)</h3>
                 <button type="button" id="unitVendorCancelBtn" class="btn-digi btn-digi-gray" style="display: none; padding: 5px 14px; font-size: 12px;" onclick="resetUnitVendorForm()">
                     Batal Edit
                 </button>
             </div>
             <div class="digi-form-grid-3">
                 <div class="digi-form-group">
-                    <label class="digi-form-label">Kode Vendor Unit</label>
-                    <input type="text" name="code" id="uv_code" class="digi-input" placeholder="Contoh: UVND-001 (Kosongkan utk auto)">
+                    <label class="digi-form-label">Kode Perusahaan</label>
+                    <input type="text" name="code" id="uv_code" class="digi-input" placeholder="Contoh: 01 (Kosongkan utk auto)">
                 </div>
                 <div class="digi-form-group">
-                    <label class="digi-form-label">Nama Vendor Unit <span class="digi-required">*</span></label>
+                    <label class="digi-form-label">Nama Perusahaan Rental Unit <span class="digi-required">*</span></label>
                     <input type="text" name="name" id="uv_name" class="digi-input" placeholder="Contoh: PT Serasi Autoraya (TRAC)" required>
                 </div>
                 <div class="digi-form-group">
@@ -234,7 +234,7 @@
                     <input type="text" name="address" id="uv_address" class="digi-input" placeholder="Contoh: Site Satui Km 4">
                 </div>
                 <div>
-                    <button type="submit" id="unitVendorSubmitBtn" class="btn-digi btn-digi-blue">Simpan Vendor Unit</button>
+                    <button type="submit" id="unitVendorSubmitBtn" class="btn-digi btn-digi-blue">Simpan Perusahaan Rental</button>
                 </div>
             </div>
         </form>
@@ -246,8 +246,8 @@
                 <thead>
                     <tr>
                         <th style="width: 50px;">No</th>
-                        <th>Kode Vendor</th>
-                        <th>Nama Vendor Unit</th>
+                        <th>Kode Perusahaan</th>
+                        <th>Nama Perusahaan Rental Unit</th>
                         <th>Kontak PIC</th>
                         <th>Telepon</th>
                         <th>Total Unit Terdaftar</th>
@@ -282,7 +282,7 @@
                                         {{ $uv->is_active ? 'Nonaktifkan' : 'Aktifkan' }}
                                     </button>
                                     <button type="button" class="btn-digi btn-digi-gray" style="padding: 5px 12px; font-size: 12px; background: #fee2e2; color: #b91c1c; border: 1px solid #fecaca;"
-                                        onclick="openDeleteModal('{{ route('admin.master.unit-vendors.destroy', $uv->id) }}', 'Data Vendor Unit', '{{ addslashes(($uv->code ? $uv->code . ' - ' : '') . $uv->name) }}')">
+                                        onclick="openDeleteModal('{{ route('admin.master.unit-vendors.destroy', $uv->id) }}', 'Data Perusahaan Rental Unit', '{{ addslashes(($uv->code ? $uv->code . ' - ' : '') . $uv->name) }}')">
                                         Hapus
                                     </button>
                                 </div>
@@ -290,7 +290,7 @@
                         </tr>
                     @empty
                         <tr>
-                            <td colspan="8" style="text-align: center; color: #94a3b8; padding: 24px;">Belum ada data Vendor Unit. Silakan tambahkan pada formulir di atas.</td>
+                            <td colspan="8" style="text-align: center; color: #94a3b8; padding: 24px;">Belum ada data Perusahaan Rental Unit. Silakan tambahkan pada formulir di atas.</td>
                         </tr>
                     @endforelse
                 </tbody>
@@ -421,7 +421,7 @@
             <div class="digi-form-grid-3" style="margin-bottom: 0; align-items: flex-end;">
                 <div class="digi-form-group">
                     <label class="digi-form-label">Kode Area</label>
-                    <input type="text" name="code" id="area_code" class="digi-input" placeholder="Contoh: SDU-01">
+                    <input type="text" name="code" id="area_code" class="digi-input" placeholder="Contoh: 01 (Kosongkan utk auto)">
                 </div>
                 <div class="digi-form-group">
                     <label class="digi-form-label">Nama Area Operasional <span class="digi-required">*</span></label>
@@ -483,7 +483,7 @@
     @endif
 
     <!-- ============================================================ -->
-    <!-- TAB 4: VENDORS                                               -->
+    <!-- TAB 4: VENDORS (PERUSAHAAN PENYEDIA BBM & HARGA SOLAR)       -->
     <!-- ============================================================ -->
     @if($tab === 'vendors')
         <form id="vendorForm" action="{{ route('admin.master.vendor') }}" method="POST" class="digi-form-box">
@@ -491,9 +491,9 @@
             <input type="hidden" name="id" id="vendor_id" value="">
             <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 14px;">
                 <div>
-                    <h3 class="digi-section-title" id="vendorFormTitle" style="margin: 0;">Langkah 2: Tambah Perusahaan Vendor BBM & Harga Solar</h3>
+                    <h3 class="digi-section-title" id="vendorFormTitle" style="margin: 0;">Langkah 2: Tambah Data Perusahaan & Harga Solar</h3>
                     <p style="font-size: 12.5px; color: #64748b; margin: 3px 0 0 0;">
-                        Kelola data penyedia BBM (solar industri) serta penetapan harga per liter aktif langsung dalam satu formulir terpadu.
+                        Kelola data perusahaan penyedia solar industri serta penetapan harga per liter aktif langsung dalam satu formulir terpadu.
                     </p>
                 </div>
                 <button type="button" id="vendorCancelBtn" class="btn-digi btn-digi-gray" style="display: none; padding: 5px 14px; font-size: 12px;" onclick="resetVendorForm()">
@@ -502,9 +502,9 @@
             </div>
             <div class="digi-form-grid-3">
                 <div class="digi-form-group">
-                    <label class="digi-form-label">Kode & Nama Vendor BBM <span class="digi-required">*</span></label>
+                    <label class="digi-form-label">Kode & Nama Perusahaan <span class="digi-required">*</span></label>
                     <div style="display: flex; gap: 6px;">
-                        <input type="text" name="code" id="vendor_code" class="digi-input" placeholder="Kode" style="width: 105px;">
+                        <input type="text" name="code" id="vendor_code" class="digi-input" placeholder="Kode (01)" style="width: 110px;" title="Kosongkan untuk auto (01, 02, ...)">
                         <input type="text" name="name" id="vendor_name" class="digi-input" placeholder="Contoh: Cv. Sudan Mandiri" required>
                     </div>
                 </div>
@@ -524,7 +524,7 @@
                 </div>
             </div>
             <div style="display: flex; justify-content: flex-end; margin-top: 14px;">
-                <button type="submit" id="vendorSubmitBtn" class="btn-digi btn-digi-blue">Simpan Vendor BBM & Harga</button>
+                <button type="submit" id="vendorSubmitBtn" class="btn-digi btn-digi-blue">Simpan Data Perusahaan</button>
             </div>
         </form>
 
@@ -535,8 +535,8 @@
                 <thead>
                     <tr>
                         <th style="width: 50px;">No</th>
-                        <th>Kode Vendor BBM</th>
-                        <th>Nama Vendor BBM</th>
+                        <th>Kode Perusahaan</th>
+                        <th>Nama Perusahaan</th>
                         <th>Kontak Petugas</th>
                         <th>Telepon</th>
                         <th>Harga Solar Aktif</th>
@@ -577,7 +577,7 @@
                                         {{ $ven->is_active ? 'Nonaktifkan' : 'Aktifkan' }}
                                     </button>
                                     <button type="button" class="btn-digi btn-digi-gray" style="padding: 5px 12px; font-size: 12px; background: #fee2e2; color: #b91c1c; border: 1px solid #fecaca;"
-                                        onclick="openDeleteModal('{{ route('admin.master.vendors.destroy', $ven->id) }}', 'Data Vendor BBM', '{{ addslashes(($ven->code ? $ven->code . ' - ' : '') . $ven->name) }}')">
+                                        onclick="openDeleteModal('{{ route('admin.master.vendors.destroy', $ven->id) }}', 'Data Perusahaan', '{{ addslashes(($ven->code ? $ven->code . ' - ' : '') . $ven->name) }}')">
                                         Hapus
                                     </button>
                                 </div>
@@ -1006,7 +1006,7 @@
                     </div>
                 </div>
                 <div class="digi-form-group">
-                    <label class="digi-form-label">Perusahaan Vendor BBM Terkait (Khusus Role Vendor BBM)</label>
+                    <label class="digi-form-label">Perusahaan Terkait (Khusus Akun Perusahaan BBM)</label>
                     <select name="vendor_id" id="usr_vendor_id" class="digi-select">
                         <option value="">- Internal PT United Tractors -</option>
                         @foreach(($allVendors ?? $vendors) as $ven)
@@ -1056,7 +1056,7 @@
                         <th>NRP</th>
                         <th>Role Sistem</th>
                         <th>Jabatan</th>
-                        <th>Vendor BBM Terkait</th>
+                        <th>Perusahaan Terkait</th>
                         <th>Penugasan Area</th>
                         <th>Status</th>
                         <th>Aksi</th>
@@ -1440,16 +1440,16 @@ function editUnitVendor(uv) {
     document.getElementById('uv_contact').value = uv.contact_person || '';
     document.getElementById('uv_phone').value = uv.phone || '';
     document.getElementById('uv_address').value = uv.address || '';
-    document.getElementById('unitVendorFormTitle').textContent = 'Edit Vendor Unit: ' + uv.name;
-    document.getElementById('unitVendorSubmitBtn').textContent = 'Perbarui Vendor Unit';
+    document.getElementById('unitVendorFormTitle').textContent = 'Edit Perusahaan Rental Unit: ' + uv.name;
+    document.getElementById('unitVendorSubmitBtn').textContent = 'Perbarui Perusahaan Rental Unit';
     document.getElementById('unitVendorCancelBtn').style.display = 'inline-flex';
     document.getElementById('unitVendorForm').scrollIntoView({ behavior: 'smooth', block: 'center' });
 }
 function resetUnitVendorForm() {
     document.getElementById('unitVendorForm').reset();
     document.getElementById('unit_vendor_id_input').value = '';
-    document.getElementById('unitVendorFormTitle').textContent = 'Tambah Data Vendor Unit (Penyedia Unit)';
-    document.getElementById('unitVendorSubmitBtn').textContent = 'Simpan Vendor Unit';
+    document.getElementById('unitVendorFormTitle').textContent = 'Langkah 3: Tambah Data Perusahaan Rental Unit (Penyedia Unit)';
+    document.getElementById('unitVendorSubmitBtn').textContent = 'Simpan Perusahaan Rental Unit';
     document.getElementById('unitVendorCancelBtn').style.display = 'none';
 }
 
@@ -1506,8 +1506,8 @@ function editVendor(ven) {
     if (document.getElementById('vendor_price_per_liter')) {
         document.getElementById('vendor_price_per_liter').value = (ven.active_fuel_price ? parseFloat(ven.active_fuel_price.price_per_liter) : '');
     }
-    document.getElementById('vendorFormTitle').textContent = 'Edit Perusahaan Vendor: ' + ven.name;
-    document.getElementById('vendorSubmitBtn').textContent = 'Perbarui Vendor BBM & Harga';
+    document.getElementById('vendorFormTitle').textContent = 'Edit Data Perusahaan: ' + ven.name;
+    document.getElementById('vendorSubmitBtn').textContent = 'Perbarui Data Perusahaan';
     document.getElementById('vendorCancelBtn').style.display = 'inline-flex';
     document.getElementById('vendorForm').scrollIntoView({ behavior: 'smooth', block: 'center' });
 }
@@ -1520,8 +1520,8 @@ function resetVendorForm() {
     if (document.getElementById('vendor_fuel_type')) {
         document.getElementById('vendor_fuel_type').value = 'Solar Industri B35';
     }
-    document.getElementById('vendorFormTitle').textContent = 'Langkah 2: Tambah Perusahaan Vendor BBM & Harga Solar';
-    document.getElementById('vendorSubmitBtn').textContent = 'Simpan Vendor BBM & Harga';
+    document.getElementById('vendorFormTitle').textContent = 'Langkah 2: Tambah Data Perusahaan & Harga Solar';
+    document.getElementById('vendorSubmitBtn').textContent = 'Simpan Data Perusahaan';
     document.getElementById('vendorCancelBtn').style.display = 'none';
 }
 

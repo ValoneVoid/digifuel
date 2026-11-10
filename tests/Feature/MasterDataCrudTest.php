@@ -805,7 +805,7 @@ class MasterDataCrudTest extends TestCase
         $pageResp = $this->actingAs($this->admin)
             ->get(route('admin.master', ['tab' => 'units']));
         $pageResp->assertStatus(200)
-            ->assertSee('Vendor Unit (Rental / Internal)')
+            ->assertSee('Perusahaan Rental Unit (Rental / Internal)')
             ->assertSee('PT Rental Perkasa Mandiri Tbk');
     }
 
@@ -948,5 +948,62 @@ class MasterDataCrudTest extends TestCase
         $remainingAreaIds = AreaApprover::where('user_id', $user->id)->pluck('area_id')->toArray();
         $this->assertCount(1, $remainingAreaIds);
         $this->assertEquals([$areas->first()->id], $remainingAreaIds);
+    }
+
+    /**
+     * Skenario 33: Penomoran kode otomatis Area dan Perusahaan berurutan (01, 02, ...) membaca data sebelumnya
+     */
+    public function test_auto_sequential_code_generation_for_area_and_vendors(): void
+    {
+        // 1. Uji Area Auto-Code
+        $respArea1 = $this->actingAs($this->admin)->post(route('admin.master.area'), [
+            'name' => 'Area Auto Test 1',
+            'code' => '', // kosongkan
+        ]);
+        $respArea1->assertRedirect();
+        $area1 = Area::where('name', 'Area Auto Test 1')->firstOrFail();
+        $this->assertSame('01', $area1->code);
+
+        $respArea2 = $this->actingAs($this->admin)->post(route('admin.master.area'), [
+            'name' => 'Area Auto Test 2',
+            'code' => '', // kosongkan lagi
+        ]);
+        $respArea2->assertRedirect();
+        $area2 = Area::where('name', 'Area Auto Test 2')->firstOrFail();
+        $this->assertSame('02', $area2->code);
+
+        // 2. Uji Perusahaan BBM Auto-Code
+        $respVendor1 = $this->actingAs($this->admin)->post(route('admin.master.vendor'), [
+            'name' => 'PT Vendor BBM Seq 1',
+            'code' => '',
+        ]);
+        $respVendor1->assertRedirect();
+        $vendor1 = Vendor::where('name', 'PT Vendor BBM Seq 1')->firstOrFail();
+        $this->assertSame('01', $vendor1->code);
+
+        $respVendor2 = $this->actingAs($this->admin)->post(route('admin.master.vendor'), [
+            'name' => 'PT Vendor BBM Seq 2',
+            'code' => '',
+        ]);
+        $respVendor2->assertRedirect();
+        $vendor2 = Vendor::where('name', 'PT Vendor BBM Seq 2')->firstOrFail();
+        $this->assertSame('02', $vendor2->code);
+
+        // 3. Uji Perusahaan Rental Unit Auto-Code
+        $respUV1 = $this->actingAs($this->admin)->post(route('admin.master.unit-vendor'), [
+            'name' => 'PT Unit Rental Seq 1',
+            'code' => '',
+        ]);
+        $respUV1->assertRedirect();
+        $uv1 = UnitVendor::where('name', 'PT Unit Rental Seq 1')->firstOrFail();
+        $this->assertSame('01', $uv1->code);
+
+        $respUV2 = $this->actingAs($this->admin)->post(route('admin.master.unit-vendor'), [
+            'name' => 'PT Unit Rental Seq 2',
+            'code' => '',
+        ]);
+        $respUV2->assertRedirect();
+        $uv2 = UnitVendor::where('name', 'PT Unit Rental Seq 2')->firstOrFail();
+        $this->assertSame('02', $uv2->code);
     }
 }

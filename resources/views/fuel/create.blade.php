@@ -177,9 +177,9 @@
                 </div>
 
                 <div class="digi-form-group" style="margin-bottom: 16px;">
-                    <label class="digi-form-label">Vendor BBM <span class="digi-required">*</span></label>
+                    <label class="digi-form-label">Perusahaan BBM <span class="digi-required">*</span></label>
                     <select name="vendor_name" id="vendor_select" class="digi-select" required>
-                        <option value="">- Pilih Vendor BBM Pengisian -</option>
+                        <option value="">- Pilih Perusahaan Pengisian -</option>
                         @foreach($vendors as $ven)
                             <option value="{{ $ven->name }}" {{ old('vendor_name', 'Cv. Sudan Mandiri') === $ven->name ? 'selected' : '' }}>
                                 {{ $ven->name }}
@@ -227,7 +227,7 @@
                 <tr><td style="padding: 6px 0; color:#64748b;">Area Operasional</td><td style="font-weight:600;" id="prev_area">: -</td></tr>
                 <tr><td style="padding: 6px 0; color:#64748b;">Tahap 1 (SPV)</td><td style="font-weight:600;" id="prev_spv">: -</td></tr>
                 <tr><td style="padding: 6px 0; color:#64748b;">Tahap 2 (Dept Head)</td><td style="font-weight:600;" id="prev_depthead">: -</td></tr>
-                <tr><td style="padding: 6px 0; color:#64748b;">Tahap 3 (Vendor BBM)</td><td style="font-weight:600;" id="prev_vendor">: -</td></tr>
+                <tr><td style="padding: 6px 0; color:#64748b;">Tahap 3 (Perusahaan BBM)</td><td style="font-weight:600;" id="prev_vendor">: -</td></tr>
             </table>
         </div>
         <div class="digi-modal-footer">
@@ -317,7 +317,7 @@ function handleAreaChange(areaName) {
         populateSelect('spv_select', data.spvs, 'id', 'label', '- Pilih Approval SPV -');
         populateSelect('fuelman_select', data.fuelmen, 'id', 'label', '- Pilih Approval Fuel Man -');
         populateSelect('depthead_select', data.deptheads, 'id', 'label', '- Pilih Approval Dept Head -');
-        populateSelect('vendor_select', data.vendors, 'name', 'name', '- Pilih Vendor Pengisian -');
+        populateSelect('vendor_select', data.vendors, 'name', 'name', '- Pilih Perusahaan Pengisian -');
     }
 
     // Also synchronize dynamically via Fetch API
@@ -328,7 +328,7 @@ function handleAreaChange(areaName) {
                 populateSelect('spv_select', data.spvs, 'id', 'label', '- Pilih Approval SPV -');
                 populateSelect('fuelman_select', data.fuelmen, 'id', 'label', '- Pilih Approval Fuel Man -');
                 populateSelect('depthead_select', data.deptheads, 'id', 'label', '- Pilih Approval Dept Head -');
-                populateSelect('vendor_select', data.vendors, 'name', 'name', '- Pilih Vendor Pengisian -');
+                populateSelect('vendor_select', data.vendors, 'name', 'name', '- Pilih Perusahaan Pengisian -');
             }
         })
         .catch(() => {});
