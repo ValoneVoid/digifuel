@@ -348,10 +348,23 @@
         transform: translateX(2px);
     }
 
+    .digi-bottom-sheet-handle {
+        display: none;
+    }
+    .digi-burger-backdrop {
+        display: none;
+    }
+
     /* Mobile Bottom-Sheet Drawer */
     @media (max-width: 640px) {
-        .digi-burger-label {
-            font-size: 12px;
+        .digi-bottom-sheet-handle {
+            display: block;
+            width: 38px;
+            height: 4px;
+            background: #cbd5e1;
+            border-radius: 9999px;
+            margin: 10px auto 4px auto;
+            flex-shrink: 0;
         }
         .digi-burger-dropdown {
             position: fixed;
@@ -377,13 +390,26 @@
             }
         }
         .digi-burger-dropdown-header {
-            padding: 16px 18px 12px 18px;
+            padding: 12px 18px 10px 18px;
         }
         .digi-burger-dropdown-body {
-            max-height: calc(80vh - 65px);
-            padding: 10px 14px 24px 14px;
+            max-height: calc(80vh - 75px);
+            padding: 8px 14px calc(24px + env(safe-area-inset-bottom, 16px)) 14px;
+            -webkit-overflow-scrolling: touch;
         }
-        .digi-burger-backdrop {
+        .digi-burger-item {
+            padding: 10px 12px;
+            min-height: 50px;
+        }
+        .digi-burger-item-desc {
+            white-space: normal;
+            display: -webkit-box;
+            -webkit-line-clamp: 2;
+            -webkit-box-orient: vertical;
+            line-height: 1.35;
+        }
+        .digi-burger-backdrop.is-open {
+            display: block !important;
             position: fixed;
             top: 0;
             left: 0;
@@ -391,6 +417,7 @@
             height: 100vh;
             background: rgba(15, 23, 42, 0.48);
             backdrop-filter: blur(2px);
+            -webkit-backdrop-filter: blur(2px);
             z-index: 1040;
             animation: digiBackdropFadeIn 0.2s ease;
         }
@@ -730,6 +757,7 @@
 
             <!-- Dropdown Popover & Drawer -->
             <div class="digi-burger-dropdown" id="masterBurgerDropdown" style="display: none;">
+                <div class="digi-bottom-sheet-handle"></div>
                 <div class="digi-burger-dropdown-header">
                     <div style="display: flex; align-items: center; gap: 8px;">
                         <span class="digi-burger-dropdown-title">Katalog Master Data</span>
@@ -2328,8 +2356,11 @@ function toggleMasterBurgerMenu(event) {
         dropdown.style.display = 'flex';
         btn.classList.add('is-open');
         btn.setAttribute('aria-expanded', 'true');
-        if (backdrop && window.innerWidth <= 640) {
-            backdrop.style.display = 'block';
+        if (backdrop) {
+            backdrop.classList.add('is-open');
+        }
+        if (window.innerWidth <= 640) {
+            document.body.style.overflow = 'hidden';
         }
     }
 }
@@ -2346,7 +2377,10 @@ function closeMasterBurgerMenu(event) {
         btn.classList.remove('is-open');
         btn.setAttribute('aria-expanded', 'false');
     }
-    if (backdrop) backdrop.style.display = 'none';
+    if (backdrop) {
+        backdrop.classList.remove('is-open');
+    }
+    document.body.style.overflow = '';
 }
 
 // Global click outside & Escape key listeners for Burger Menu
