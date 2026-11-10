@@ -373,8 +373,6 @@
             'backgrounds' => ['step' => '6', 'name' => 'Background Sistem', 'count' => $getCount($backgrounds ?? collect())],
             'audit' => ['step' => '7', 'name' => 'Audit Trail', 'count' => $getCount($auditLogs)],
         ];
-
-        $isLegacyTab = in_array($tab, ['employees', 'approvers', 'standards', 'prices'], true);
     @endphp
 
     <div class="digi-master-tabs-nav-wrapper">
@@ -396,20 +394,6 @@
             ›
         </button>
     </div>
-
-    @if($isLegacyTab)
-        <div style="background: #f1f5f9; border: 1px solid #cbd5e1; border-radius: 8px; padding: 10px 14px; margin-top: 10px; display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 8px;">
-            <div style="font-size: 13px; color: #334155;">
-                ℹ️ Anda sedang membuka tab detail lanjutan: <strong>{{ strtoupper($tab) }}</strong>. Kini konfigurasi data ini juga dapat dikelola langsung pada alur utama (Langkah 1 - 5) di atas.
-            </div>
-            <div style="display: flex; gap: 6px; flex-wrap: wrap;">
-                <a href="{{ route('admin.master', ['tab' => 'employees']) }}" class="btn-digi {{ $tab === 'employees' ? 'btn-digi-blue' : 'btn-digi-gray' }}" style="font-size: 11.5px; padding: 4px 10px;">Detail Karyawan</a>
-                <a href="{{ route('admin.master', ['tab' => 'standards']) }}" class="btn-digi {{ $tab === 'standards' ? 'btn-digi-blue' : 'btn-digi-gray' }}" style="font-size: 11.5px; padding: 4px 10px;">Detail Standar BBM</a>
-                <a href="{{ route('admin.master', ['tab' => 'prices']) }}" class="btn-digi {{ $tab === 'prices' ? 'btn-digi-blue' : 'btn-digi-gray' }}" style="font-size: 11.5px; padding: 4px 10px;">Detail Riwayat Harga</a>
-                <a href="{{ route('admin.master', ['tab' => 'approvers']) }}" class="btn-digi {{ $tab === 'approvers' ? 'btn-digi-blue' : 'btn-digi-gray' }}" style="font-size: 11.5px; padding: 4px 10px;">Detail Matriks Approver</a>
-            </div>
-        </div>
-    @endif
 
     <div class="digi-mobile-swipe-hint">
         <span><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="display:inline-block; vertical-align:middle; margin-right:4px;"><line x1="5" y1="12" x2="19" y2="12"></line><polyline points="12 5 19 12 12 19"></polyline></svg>Geser tab & tabel ke samping untuk melihat seluruh data</span>
@@ -836,9 +820,6 @@
                     <span class="digi-edit-pill-badge" id="areaEditBadge"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" style="display:inline-block; vertical-align:middle; margin-right:4px;"><path d="M12 20h9"/><path d="M16.5 3.5a2.121 2.121 0 0 1 3 3L7 19l-4 1 1-4L16.5 3.5z"/></svg>Mode Edit Aktif</span>
                 </div>
                 <div style="display: flex; gap: 6px; align-items: center;">
-                    <a href="{{ route('admin.master', ['tab' => 'users']) }}" class="digi-quick-link" title="Buka master Pengguna & Penugasan Area">
-                        <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="display:inline-block; vertical-align:-1px; margin-right:4px;"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"></path><circle cx="9" cy="7" r="4"></circle><path d="M23 21v-2a4 4 0 0 0-3-3.87"></path><path d="M16 3.13a4 4 0 0 1 0 7.75"></path></svg>Penugasan Approver &rarr;
-                    </a>
                     <button type="button" id="areaCancelBtn" class="btn-digi btn-digi-gray" style="display: none; padding: 5px 14px; font-size: 12px;" onclick="resetAreaForm()">
                         <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" style="display:inline-block; vertical-align:middle; margin-right:3px;"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg>Batal Edit
                     </button>
@@ -933,12 +914,6 @@
                     </p>
                 </div>
                 <div style="display: flex; gap: 6px; align-items: center; flex-wrap: wrap;">
-                    <a href="{{ route('admin.master', ['tab' => 'prices']) }}" class="digi-quick-link" title="Buka detail riwayat perubahan harga BBM">
-                        <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="display:inline-block; vertical-align:-1px; margin-right:4px;"><line x1="12" y1="1" x2="12" y2="23"></line><path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"></path></svg>Riwayat Harga &rarr;
-                    </a>
-                    <a href="{{ route('admin.master', ['tab' => 'users']) }}" class="digi-quick-link" title="Buka akun login untuk vendor BBM">
-                        <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="display:inline-block; vertical-align:-1px; margin-right:4px;"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path><circle cx="12" cy="7" r="4"></circle></svg>Akun Vendor &rarr;
-                    </a>
                     <button type="button" id="vendorCancelBtn" class="btn-digi btn-digi-gray" style="display: none; padding: 5px 14px; font-size: 12px;" onclick="resetVendorForm()">
                         <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" style="display:inline-block; vertical-align:middle; margin-right:3px;"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg>Batal Edit
                     </button>

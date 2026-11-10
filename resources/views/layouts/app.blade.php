@@ -158,6 +158,26 @@
         2026© PT United Tractors Tbk - Site Satui
     </footer>
 
+    <!-- Flash Notification Data Container for Safe Client-Side Parsing -->
+    @php
+        $flashSuccess = session('success');
+        $flashError = session('error');
+        $flashErrorsList = $errors->any() ? $errors->all() : [];
+        $isLoginMsg = $flashSuccess && (str_contains(strtolower($flashSuccess), 'selamat datang') || str_contains(strtolower($flashSuccess), 'login') || str_contains(strtolower($flashSuccess), 'beralih ke akun'));
+        $isApprovedMsg = $flashSuccess && (str_contains(strtolower($flashSuccess), 'disetujui') || str_contains(strtolower($flashSuccess), 'realisasi'));
+        $isSubmittedMsg = $flashSuccess && (str_contains(strtolower($flashSuccess), 'diajukan') || str_contains(strtolower($flashSuccess), 'dikirim') || str_contains(strtolower($flashSuccess), 'berhasil dibuat'));
+        $swalTitle = $isApprovedMsg ? 'Pengajuan Disetujui!' : ($isSubmittedMsg ? 'Pengajuan Berhasil Dikirim!' : 'Berhasil!');
+        $isRejectedMsg = $flashError && (str_contains(strtolower($flashError), 'ditolak') || str_contains(strtolower($flashError), 'dibatalkan'));
+        $swalErrTitle = $isRejectedMsg ? 'Pengajuan Ditolak!' : 'Proses Gagal / Ditolak';
+    @endphp
+    <div id="digiFlashData" style="display: none;"
+         data-success="{{ $flashSuccess ? e($flashSuccess) : '' }}"
+         data-success-title="{{ e($swalTitle) }}"
+         data-is-login="{{ $isLoginMsg ? '1' : '0' }}"
+         data-error="{{ $flashError ? e($flashError) : '' }}"
+         data-error-title="{{ e($swalErrTitle) }}"
+         data-errors="{{ !empty($flashErrorsList) ? e(json_encode($flashErrorsList)) : '' }}"></div>
+
     <script>
     function toggleNotifMenu() {
         const menu = document.getElementById('digiNotifMenu');
@@ -176,90 +196,87 @@
     document.addEventListener('DOMContentLoaded', function() {
         if (typeof Swal === 'undefined') return;
 
-        @if(session('success'))
-            @php
-                $successMsg = session('success');
-                $isLoginMsg = str_contains(strtolower($successMsg), 'selamat datang') || str_contains(strtolower($successMsg), 'login') || str_contains(strtolower($successMsg), 'beralih ke akun');
-                $isApprovedMsg = str_contains(strtolower($successMsg), 'disetujui') || str_contains(strtolower($successMsg), 'realisasi');
-                $isSubmittedMsg = str_contains(strtolower($successMsg), 'diajukan') || str_contains(strtolower($successMsg), 'dikirim') || str_contains(strtolower($successMsg), 'berhasil dibuat');
-                $swalTitle = $isApprovedMsg
-                    ? 'Pengajuan Disetujui!'
-                    : ($isSubmittedMsg ? 'Pengajuan Berhasil Dikirim!' : 'Berhasil!');
-            @endphp
-            @if($isLoginMsg)
-                // Notifikasi Login Sederhana & Non-Intrusif: Toast di pojok kanan atas, tidak menghalangi tengah layar
+        const flashElem = document.getElementById('digiFlashData');
+        if (flashElem) {
+            const successMsg = flashElem.dataset.success;
+            const successTitle = flashElem.dataset.successTitle;
+            const isLoginMsg = flashElem.dataset.isLogin === '1';
+
+            if (successMsg) {
+                if (isLoginMsg) {
+                    Swal.fire({
+                        toast: true,
+                        position: 'top-end',
+                        icon: 'success',
+                        title: successMsg,
+                        showConfirmButton: false,
+                        timer: 3500,
+                        timerProgressBar: true,
+                        customClass: {
+                            popup: 'digi-toast-popup'
+                        },
+                        didOpen: (toast) => {
+                            toast.addEventListener('mouseenter', Swal.stopTimer);
+                            toast.addEventListener('mouseleave', Swal.resumeTimer);
+                        }
+                    });
+                } else {
+                    Swal.fire({
+                        icon: 'success',
+                        title: successTitle,
+                        text: successMsg,
+                        confirmButtonText: 'OK, Mengerti',
+                        confirmButtonColor: '#0284c7',
+                        timer: 4500,
+                        timerProgressBar: true,
+                        showClass: {
+                            popup: 'animate__animated animate__zoomIn animate__faster'
+                        },
+                        hideClass: {
+                            popup: 'animate__animated animate__zoomOut animate__faster'
+                        },
+                        customClass: {
+                            popup: 'digi-swal-popup digi-swal-success-popup'
+                        }
+                    });
+                }
+            }
+
+            const errorMsg = flashElem.dataset.error;
+            const errorTitle = flashElem.dataset.errorTitle;
+            if (errorMsg) {
                 Swal.fire({
-                    toast: true,
-                    position: 'top-end',
-                    icon: 'success',
-                    title: @json($successMsg),
-                    showConfirmButton: false,
-                    timer: 3500,
-                    timerProgressBar: true,
+                    icon: 'error',
+                    title: errorTitle,
+                    text: errorMsg,
+                    confirmButtonText: 'Tutup',
+                    confirmButtonColor: '#ef4444',
                     customClass: {
-                        popup: 'digi-toast-popup'
-                    },
-                    didOpen: (toast) => {
-                        toast.addEventListener('mouseenter', Swal.stopTimer);
-                        toast.addEventListener('mouseleave', Swal.resumeTimer);
+                        popup: 'digi-swal-popup'
                     }
                 });
-            @else
-                Swal.fire({
-                    icon: 'success',
-                    title: @json($swalTitle),
-                    text: @json($successMsg),
-                    confirmButtonText: 'OK, Mengerti',
-                    confirmButtonColor: '#0284c7',
-                    timer: 4500,
-                    timerProgressBar: true,
-                    showClass: {
-                        popup: 'animate__animated animate__zoomIn animate__faster'
-                    },
-                    hideClass: {
-                        popup: 'animate__animated animate__zoomOut animate__faster'
-                    },
-                    customClass: {
-                        popup: 'digi-swal-popup digi-swal-success-popup'
+            }
+
+            const errorsRaw = flashElem.dataset.errors;
+            if (errorsRaw) {
+                try {
+                    const errList = JSON.parse(errorsRaw);
+                    if (Array.isArray(errList) && errList.length > 0) {
+                        const htmlList = errList.map(e => `<li>${e}</li>`).join('');
+                        Swal.fire({
+                            icon: 'warning',
+                            title: 'Periksa Kembali Input Anda',
+                            html: `<ul style="text-align:left; margin: 6px 0 0 16px; font-size: 13.5px; color: #334155; line-height: 1.5;">${htmlList}</ul>`,
+                            confirmButtonText: 'Perbaiki Data',
+                            confirmButtonColor: '#f59e0b',
+                            customClass: {
+                                popup: 'digi-swal-popup'
+                            }
+                        });
                     }
-                });
-            @endif
-        @endif
-
-        @if(session('error'))
-            @php
-                $errorMsg = session('error');
-                $isRejectedMsg = str_contains(strtolower($errorMsg), 'ditolak') || str_contains(strtolower($errorMsg), 'dibatalkan');
-                $swalErrTitle = $isRejectedMsg ? 'Pengajuan Ditolak!' : 'Proses Gagal / Ditolak';
-            @endphp
-            Swal.fire({
-                icon: 'error',
-                title: @json($swalErrTitle),
-                text: @json($errorMsg),
-                confirmButtonText: 'Tutup',
-                confirmButtonColor: '#ef4444',
-                customClass: {
-                    popup: 'digi-swal-popup'
-                }
-            });
-        @endif
-
-        @if($errors->any())
-            Swal.fire({
-                icon: 'warning',
-                title: 'Periksa Kembali Input Anda',
-                html: `<ul style="text-align:left; margin: 6px 0 0 16px; font-size: 13.5px; color: #334155; line-height: 1.5;">
-                    @foreach($errors->all() as $err)
-                        <li>{{ addslashes($err) }}</li>
-                    @endforeach
-                </ul>`,
-                confirmButtonText: 'Perbaiki Data',
-                confirmButtonColor: '#f59e0b',
-                customClass: {
-                    popup: 'digi-swal-popup'
-                }
-            });
-        @endif
+                } catch (e) {}
+            }
+        }
 
         // Upgrade native onsubmit="return confirm('...')" forms into animated SweetAlert2 confirmation dialogs
         document.querySelectorAll('form[onsubmit*="confirm("]').forEach(function(form) {
