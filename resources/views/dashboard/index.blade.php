@@ -22,29 +22,34 @@
         </div>
 
         <!-- Tombol Navigasi Menuju Fitur Utama sesuai Role -->
-        <div style="display: flex; align-items: center; gap: 10px; flex-wrap: wrap;">
+        <div class="digi-dashboard-quick-actions">
             @if($user->isDriver() || $user->isAdmin())
                 <a href="{{ route('fuel.create') }}" class="btn-digi btn-digi-blue">
-                    + Buat Fuel Request
+                    <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="5" x2="12" y2="19"></line><line x1="5" y1="12" x2="19" y2="12"></line></svg>
+                    <span>Buat Fuel Request</span>
                 </a>
             @endif
 
             @if($user->isApprover() || $user->isAdmin())
                 <a href="{{ route('approval.index') }}" class="btn-digi btn-digi-yellow">
-                    Halaman Approval ({{ $stats['waiting_my_action'] }})
+                    <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M9 11l3 3L22 4"></path><path d="M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11"></path></svg>
+                    <span>Halaman Approval ({{ $stats['waiting_my_action'] }})</span>
                 </a>
             @endif
 
             @if($user->isAdmin())
                 <a href="{{ route('evaluation.index') }}" class="btn-digi btn-digi-green">
-                    Evaluasi Konsumsi BBM
+                    <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="20" x2="18" y2="10"></line><line x1="12" y1="20" x2="12" y2="4"></line><line x1="6" y1="20" x2="6" y2="14"></line></svg>
+                    <span>Evaluasi Konsumsi BBM</span>
                 </a>
                 <a href="{{ route('admin.master') }}" class="btn-digi btn-digi-gray">
-                    Kelola Master Data
+                    <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><ellipse cx="12" cy="5" rx="9" ry="3"></ellipse><path d="M21 12c0 1.66-4 3-9 3s-9-1.34-9-3"></path><path d="M3 5v14c0 1.66 4 3 9 3s9-1.34 9-3V5"></path></svg>
+                    <span>Kelola Master Data</span>
                 </a>
             @else
                 <a href="{{ route('history.index') }}" class="btn-digi btn-digi-gray">
-                    Riwayat Pengajuan
+                    <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"></circle><polyline points="12 6 12 12 16 14"></polyline></svg>
+                    <span>Riwayat Pengajuan</span>
                 </a>
             @endif
         </div>

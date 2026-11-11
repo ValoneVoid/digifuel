@@ -170,37 +170,55 @@ body {
   box-shadow: 0 2px 5px rgba(0, 0, 0, 0.28);
 }
 
-/* User Guide Help Pill Button in Navbar */
+/* User Guide Help Icon Button in Navbar (?) */
+.digi-help-icon-btn,
 .digi-help-pill-btn {
   display: inline-flex;
   align-items: center;
-  gap: 5px;
-  padding: 5px 12px;
-  border-radius: 9999px;
+  justify-content: center;
+  width: 36px;
+  height: 36px;
+  border-radius: 50%;
   background: #ffffff;
-  color: #334155;
-  font-size: 12px;
-  font-weight: 600;
-  text-decoration: none;
-  border: 1.5px solid #cbd5e1;
-  transition: all 0.15s ease;
-  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
-  margin-right: 2px;
-}
-.digi-help-pill-btn:hover {
-  background: #f0f9ff;
   color: #0284c7;
-  border-color: #0284c7;
-  transform: translateY(-1px);
-  box-shadow: 0 3px 8px rgba(2, 132, 199, 0.18);
+  text-decoration: none !important;
+  border: 1.5px solid #0284c7;
+  transition: all 0.18s cubic-bezier(0.4, 0, 0.2, 1);
+  box-shadow: 0 2px 6px rgba(2, 132, 199, 0.18);
+  position: relative;
+  flex-shrink: 0;
+  cursor: pointer;
 }
-@media screen and (max-width: 640px) {
-  .digi-help-pill-btn span {
-    display: none;
-  }
+.digi-help-icon-btn:hover,
+.digi-help-pill-btn:hover {
+  background: #0284c7;
+  color: #ffffff;
+  border-color: #0284c7;
+  transform: translateY(-1px) scale(1.06);
+  box-shadow: 0 4px 12px rgba(2, 132, 199, 0.35);
+  text-decoration: none !important;
+}
+.digi-help-icon-btn.active,
+.digi-help-pill-btn.active {
+  background: #0284c7;
+  color: #ffffff;
+  border-color: #0369a1;
+  box-shadow: 0 0 0 3px rgba(2, 132, 199, 0.25);
+}
+.digi-help-icon-btn svg,
+.digi-help-pill-btn svg {
+  display: block;
+}
+@media screen and (max-width: 900px) {
+  .digi-help-icon-btn,
   .digi-help-pill-btn {
-    padding: 6px;
-    border-radius: 50%;
+    width: 32px;
+    height: 32px;
+  }
+  .digi-help-icon-btn svg,
+  .digi-help-pill-btn svg {
+    width: 17px;
+    height: 17px;
   }
 }
 
@@ -624,6 +642,37 @@ body {
 
 .btn-digi-gray:hover {
   background-color: #cbd5e1;
+}
+
+/* DASHBOARD QUICK ACTION BUTTONS */
+.digi-dashboard-quick-actions {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  flex-wrap: wrap;
+}
+
+.digi-dashboard-quick-actions .btn-digi {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 7px;
+  font-weight: 600;
+  font-size: 13.5px;
+  padding: 9px 18px;
+  border-radius: 8px;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.08);
+  transition: all 0.18s cubic-bezier(0.4, 0, 0.2, 1);
+  white-space: nowrap;
+}
+
+.digi-dashboard-quick-actions .btn-digi:hover {
+  transform: translateY(-1px);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.14);
+}
+
+.digi-dashboard-quick-actions .btn-digi svg {
+  flex-shrink: 0;
 }
 
 /* TABLE & HISTORY STYLES */
@@ -1525,6 +1574,24 @@ div[style*="overflow-x: auto"]::-webkit-scrollbar-thumb:hover {
     max-width: 100% !important;
     width: 100% !important;
     overflow: hidden;
+  }
+
+  .digi-dashboard-quick-actions {
+    width: 100%;
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+    gap: 8px;
+    margin-top: 10px;
+  }
+
+  .digi-dashboard-quick-actions .btn-digi {
+    width: 100%;
+    box-sizing: border-box;
+    justify-content: center;
+    text-align: center;
+    padding: 11px 16px;
+    font-size: 13.5px;
+    border-radius: 8px;
   }
 
   .digi-form-grid-2, .digi-form-grid-3 {

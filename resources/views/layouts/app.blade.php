@@ -42,30 +42,29 @@
                 <a href="{{ route('history.index') }}" class="digi-nav-link {{ request()->routeIs('history.*') ? 'active' : '' }}">History</a>
                 <a href="{{ route('evaluation.index') }}" class="digi-nav-link {{ request()->routeIs('evaluation.*') ? 'active' : '' }}">Evaluasi BBM</a>
                 <a href="{{ route('admin.master') }}" class="digi-nav-link {{ request()->routeIs('admin.master*') ? 'active' : '' }}">Master Data</a>
-                <a href="{{ route('panduan') }}" class="digi-nav-link {{ request()->routeIs('panduan*') ? 'active' : '' }}">Panduan</a>
                 <a href="{{ route('profile.index') }}" class="digi-nav-link {{ request()->routeIs('profile.*') ? 'active' : '' }}">Profil</a>
             @elseif($isApprover)
                 <a href="{{ route('approval.index') }}" class="digi-nav-link {{ request()->routeIs('approval.*') ? 'active' : '' }}">Pengajuan</a>
                 <a href="{{ route('history.index') }}" class="digi-nav-link {{ request()->routeIs('history.*') ? 'active' : '' }}">History</a>
-                <a href="{{ route('panduan') }}" class="digi-nav-link {{ request()->routeIs('panduan*') ? 'active' : '' }}">Panduan</a>
                 <a href="{{ route('profile.index') }}" class="digi-nav-link {{ request()->routeIs('profile.*') ? 'active' : '' }}">Profil</a>
             @else
                 <a href="{{ route('fuel.create') }}" class="digi-nav-link {{ request()->routeIs('fuel.create') ? 'active' : '' }}">Form Request</a>
                 <a href="{{ route('history.index') }}" class="digi-nav-link {{ request()->routeIs('history.*') ? 'active' : '' }}">History</a>
-                <a href="{{ route('panduan') }}" class="digi-nav-link {{ request()->routeIs('panduan*') ? 'active' : '' }}">Panduan</a>
                 <a href="{{ route('profile.index') }}" class="digi-nav-link {{ request()->routeIs('profile.*') ? 'active' : '' }}">Profil</a>
             @endif
         </div>
 
         <div class="digi-nav-right">
-            <!-- Panduan Penggunaan Help Button -->
-            <a href="{{ route('panduan') }}" class="digi-help-pill-btn" title="Panduan & Tutorial Penggunaan DigiFuel">
-                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.3" stroke-linecap="round" stroke-linejoin="round">
+            <!-- Tombol Panduan Penggunaan (Tanda Tanya Ikon Mencolok Dekat Notifikasi) -->
+            <a href="{{ route('panduan') }}" 
+               class="digi-help-icon-btn {{ request()->routeIs('panduan*') ? 'active' : '' }}" 
+               title="Panduan & Tutorial Penggunaan DigiFuel" 
+               aria-label="Panduan Sistem">
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round">
                     <circle cx="12" cy="12" r="10"></circle>
                     <path d="M9.09 9a3 3 0 0 1 5.83 1c0 2-3 3-3 3"></path>
                     <line x1="12" y1="17" x2="12.01" y2="17"></line>
                 </svg>
-                <span>Panduan</span>
             </a>
 
             <!-- Notification Dropdown -->
