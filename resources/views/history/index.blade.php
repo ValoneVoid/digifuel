@@ -69,7 +69,7 @@
     <!-- Controls: Show & Search -->
     <div class="digi-table-controls">
         <div>
-            Show 
+            <span>Tampilkan:</span>
             <select onchange="updatePerPage(this.value)">
                 <option value="10" {{ request('per_page', 10) == 10 ? 'selected' : '' }}>10</option>
                 <option value="25" {{ request('per_page') == 25 ? 'selected' : '' }}>25</option>
@@ -78,7 +78,7 @@
         </div>
 
         <div>
-            Search: 
+            <span>Cari:</span>
             <input type="text" id="searchInput" placeholder="Cari No, Nama, Unit..." value="{{ request('search') }}" onkeyup="handleSearch(event)">
         </div>
     </div>
@@ -221,26 +221,26 @@
     <!-- Pagination & Record count -->
     <div class="digi-pagination-bar">
         <div>
-            Showing {{ $requests->firstItem() ?? 0 }} to {{ $requests->lastItem() ?? 0 }} of {{ $requests->total() }} records
+            Menampilkan {{ $requests->firstItem() ?? 0 }} sampai {{ $requests->lastItem() ?? 0 }} dari total {{ $requests->total() }} data
         </div>
 
         <div class="digi-page-btns">
             @if($requests->onFirstPage())
-                <span class="digi-page-btn" style="opacity: 0.5; cursor: default;">&lt;</span>
+                <span class="digi-page-btn" style="opacity: 0.5; cursor: default;" title="Halaman Pertama">&lt;</span>
             @else
-                <a href="{{ $requests->previousPageUrl() }}" class="digi-page-btn">&lt;</a>
+                <a href="{{ $requests->previousPageUrl() }}" class="digi-page-btn" title="Halaman Sebelumnya">&lt;</a>
             @endif
 
             @foreach(range(1, max(1, $requests->lastPage())) as $page)
-                <a href="{{ $requests->url($page) }}" class="digi-page-btn {{ $page == $requests->currentPage() ? 'active' : '' }}">
+                <a href="{{ $requests->url($page) }}" class="digi-page-btn {{ $page == $requests->currentPage() ? 'active' : '' }}" title="Halaman {{ $page }}">
                     {{ $page }}
                 </a>
             @endforeach
 
             @if($requests->hasMorePages())
-                <a href="{{ $requests->nextPageUrl() }}" class="digi-page-btn">&gt;</a>
+                <a href="{{ $requests->nextPageUrl() }}" class="digi-page-btn" title="Halaman Berikutnya">&gt;</a>
             @else
-                <span class="digi-page-btn" style="opacity: 0.5; cursor: default;">&gt;</span>
+                <span class="digi-page-btn" style="opacity: 0.5; cursor: default;" title="Halaman Terakhir">&gt;</span>
             @endif
         </div>
     </div>

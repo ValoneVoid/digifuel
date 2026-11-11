@@ -35,6 +35,34 @@ class StoreFuelRequest extends FormRequest
         ];
     }
 
+    public function messages(): array
+    {
+        return [
+            'request_date.required' => 'Tanggal pengajuan BBM wajib diisi.',
+            'request_date.date' => 'Format tanggal pengajuan tidak valid.',
+            'planned_fuel_time.date' => 'Format rencana waktu pengisian tidak valid.',
+            'unit_code.required' => 'Unit Code kendaraan wajib dipilih.',
+            'unit_code.exists' => 'Unit Code kendaraan yang dipilih tidak terdaftar pada sistem.',
+            'police_no.required' => 'Nomor polisi kendaraan wajib diisi.',
+            'total_liters.required' => 'Total (jumlah) liter BBM wajib diisi.',
+            'total_liters.numeric' => 'Total liter BBM harus berupa angka numerik.',
+            'total_liters.gt' => 'Total liter BBM harus lebih besar dari 0 Liter.',
+            'total_liters.max' => 'Total liter BBM tidak boleh lebih dari 5.000 Liter per pengajuan.',
+            'hm_km.required' => 'HM / KM pengajuan wajib diisi.',
+            'hm_km.numeric' => 'HM / KM harus berupa angka numerik valid.',
+            'hm_km.min' => 'Nilai HM / KM tidak boleh bernilai negatif.',
+            'area.required' => 'Area operasional wajib dipilih.',
+            'spv_id.required' => 'Approver SPV wajib dipilih.',
+            'spv_id.exists' => 'Approver SPV yang dipilih tidak valid atau sedang nonaktif.',
+            'fuelman_id.required' => 'Petugas Fuel Man wajib dipilih.',
+            'fuelman_id.exists' => 'Petugas Fuel Man yang dipilih tidak valid atau sedang nonaktif.',
+            'depthead_id.required' => 'Approver Dept Head / Manager wajib dipilih.',
+            'depthead_id.exists' => 'Approver Dept Head / Manager yang dipilih tidak valid atau sedang nonaktif.',
+            'vendor_name.required' => 'Vendor pengisian BBM wajib dipilih.',
+            'notes.max' => 'Catatan keperluan BBM maksimal 1.000 karakter.',
+        ];
+    }
+
     public function withValidator($validator): void
     {
         $validator->after(function ($validator) {
@@ -127,26 +155,6 @@ class StoreFuelRequest extends FormRequest
                 }
             }
         });
-    }
-
-    public function messages(): array
-    {
-        return [
-            'request_date.required' => 'Tanggal & waktu pengajuan wajib diisi.',
-            'unit_code.required' => 'Unit Code wajib dipilih.',
-            'unit_code.exists' => 'Unit Code tidak ditemukan dalam data master.',
-            'police_no.required' => 'Nomor polisi wajib terisi.',
-            'total_liters.required' => 'Jumlah liter BBM wajib diisi.',
-            'total_liters.gt' => 'Jumlah liter BBM harus lebih besar dari nol (0).',
-            'hm_km.required' => 'Nilai KM wajib diisi.',
-            'hm_km.numeric' => 'Nilai KM harus berupa angka.',
-            'hm_km.min' => 'Nilai KM tidak boleh negatif.',
-            'area.required' => 'Area operasional wajib dipilih.',
-            'spv_id.required' => 'Approver SPV wajib dipilih.',
-            'fuelman_id.required' => 'Approver Fuel Man wajib dipilih.',
-            'depthead_id.required' => 'Approver Dept Head wajib dipilih.',
-            'vendor_name.required' => 'Vendor pengisian wajib dipilih.',
-        ];
     }
 }
 

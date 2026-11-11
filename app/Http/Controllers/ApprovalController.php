@@ -220,10 +220,14 @@ class ApprovalController extends Controller
             'notes' => ['nullable', 'string', 'max:1000'],
         ], [
             'actual_liters.required' => 'Jumlah liter aktual wajib diisi.',
+            'actual_liters.numeric' => 'Jumlah liter aktual harus berupa angka numerik.',
             'actual_liters.gt' => 'Jumlah liter aktual harus lebih besar dari nol (0).',
+            'actual_liters.max' => 'Jumlah liter aktual tidak boleh lebih dari 5.000 Liter.',
             'meter_at_fueling.required' => 'HM / KM aktual saat pengisian wajib diisi.',
+            'meter_at_fueling.numeric' => 'HM / KM aktual harus berupa angka numerik valid.',
             'meter_at_fueling.min' => 'HM / KM aktual tidak boleh negatif.',
             'fueled_at.required' => 'Tanggal dan waktu pengisian aktual wajib diisi.',
+            'fueled_at.date' => 'Format tanggal dan waktu pengisian tidak valid.',
         ]);
 
         $transaction = $service->recordRealization($fuelRequest, $user, $validated);

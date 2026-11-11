@@ -224,11 +224,11 @@
     <!-- Pagination -->
     <div class="digi-pagination-bar">
         <div>
-            Showing {{ $evaluations->firstItem() ?? 0 }} to {{ $evaluations->lastItem() ?? 0 }} of {{ $evaluations->total() }} unit evaluations
+            Menampilkan {{ $evaluations->firstItem() ?? 0 }} sampai {{ $evaluations->lastItem() ?? 0 }} dari total {{ $evaluations->total() }} data evaluasi unit
         </div>
         <div class="digi-page-btns">
             @foreach(range(1, max(1, $evaluations->lastPage())) as $page)
-                <a href="{{ $evaluations->url($page) }}" class="digi-page-btn {{ $page == $evaluations->currentPage() ? 'active' : '' }}">
+                <a href="{{ $evaluations->url($page) }}" class="digi-page-btn {{ $page == $evaluations->currentPage() ? 'active' : '' }}" title="Halaman {{ $page }}">
                     {{ $page }}
                 </a>
             @endforeach

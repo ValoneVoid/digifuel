@@ -617,5 +617,31 @@ class DigiFuelWorkflowTest extends TestCase
             $this->assertDatabaseHas('fuel_requests', ['id' => $completedReq->id]);
         }
     }
+
+    /**
+     * Memastikan pesan error validasi form pengajuan BBM tampil dalam Bahasa Indonesia yang jelas & santun.
+     */
+    public function test_fuel_request_validation_errors_are_localized_in_indonesian(): void
+    {
+        $driver = User::where('username', 'adji')->firstOrFail();
+        $this->actingAs($driver);
+
+        $response = $this->post(route('fuel.store'), [
+            'total_liters' => 6000,
+        ]);
+
+        $response->assertSessionHasErrors([
+            'total_liters' => 'Total liter BBM tidak boleh lebih dari 5.000 Liter per pengajuan.',
+            'request_date' => 'Tanggal pengajuan BBM wajib diisi.',
+            'unit_code' => 'Unit Code kendaraan wajib dipilih.',
+            'police_no' => 'Nomor polisi kendaraan wajib diisi.',
+            'hm_km' => 'HM / KM pengajuan wajib diisi.',
+            'area' => 'Area operasional wajib dipilih.',
+            'spv_id' => 'Approver SPV wajib dipilih.',
+            'fuelman_id' => 'Petugas Fuel Man wajib dipilih.',
+            'depthead_id' => 'Approver Dept Head / Manager wajib dipilih.',
+            'vendor_name' => 'Vendor pengisian BBM wajib dipilih.',
+        ]);
+    }
 }
 

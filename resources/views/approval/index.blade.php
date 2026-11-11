@@ -182,26 +182,26 @@
     <!-- Pagination -->
     <div class="digi-pagination-bar">
         <div>
-            Showing {{ $requests->firstItem() ?? 0 }} to {{ $requests->lastItem() ?? 0 }} of {{ $requests->total() }} records
+            Menampilkan {{ $requests->firstItem() ?? 0 }} sampai {{ $requests->lastItem() ?? 0 }} dari total {{ $requests->total() }} data
         </div>
 
         <div class="digi-page-btns">
             @if($requests->onFirstPage())
-                <span class="digi-page-btn" style="opacity: 0.5; cursor: default;">&lt;</span>
+                <span class="digi-page-btn" style="opacity: 0.5; cursor: default;" title="Halaman Pertama">&lt;</span>
             @else
-                <a href="{{ $requests->previousPageUrl() }}" class="digi-page-btn">&lt;</a>
+                <a href="{{ $requests->previousPageUrl() }}" class="digi-page-btn" title="Halaman Sebelumnya">&lt;</a>
             @endif
 
             @foreach(range(1, max(1, $requests->lastPage())) as $page)
-                <a href="{{ $requests->url($page) }}" class="digi-page-btn {{ $page == $requests->currentPage() ? 'active' : '' }}">
+                <a href="{{ $requests->url($page) }}" class="digi-page-btn {{ $page == $requests->currentPage() ? 'active' : '' }}" title="Halaman {{ $page }}">
                     {{ $page }}
                 </a>
             @endforeach
 
             @if($requests->hasMorePages())
-                <a href="{{ $requests->nextPageUrl() }}" class="digi-page-btn">&gt;</a>
+                <a href="{{ $requests->nextPageUrl() }}" class="digi-page-btn" title="Halaman Berikutnya">&gt;</a>
             @else
-                <span class="digi-page-btn" style="opacity: 0.5; cursor: default;">&gt;</span>
+                <span class="digi-page-btn" style="opacity: 0.5; cursor: default;" title="Halaman Terakhir">&gt;</span>
             @endif
         </div>
     </div>

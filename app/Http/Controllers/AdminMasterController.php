@@ -153,6 +153,11 @@ class AdminMasterController extends Controller
             'source' => ['nullable', 'in:local,digisim'],
             'external_reference' => ['nullable', 'string', 'max:100'],
             'is_active' => ['nullable', 'boolean'],
+        ], [
+            'nrp.required' => 'NRP karyawan wajib diisi.',
+            'nrp.unique' => 'NRP tersebut sudah terdaftar pada data Employee.',
+            'name.required' => 'Nama lengkap karyawan wajib diisi.',
+            'company.required' => 'Nama perusahaan / site wajib diisi.',
         ]);
 
         $source = $validated['source'] ?? 'local';
@@ -187,6 +192,11 @@ class AdminMasterController extends Controller
             'source' => ['nullable', 'in:local,digisim'],
             'external_reference' => ['nullable', 'string', 'max:100'],
             'is_active' => ['nullable', 'boolean'],
+        ], [
+            'nrp.required' => 'NRP karyawan wajib diisi.',
+            'nrp.unique' => 'NRP tersebut sudah terdaftar pada data Employee.',
+            'name.required' => 'Nama lengkap karyawan wajib diisi.',
+            'company.required' => 'Nama perusahaan / site wajib diisi.',
         ]);
 
         $source = $validated['source'] ?? $emp->source ?? 'local';
@@ -272,6 +282,14 @@ class AdminMasterController extends Controller
             'default_area_id' => ['nullable', 'exists:areas,id'],
             'standard_consumption' => ['nullable', 'numeric', 'min:0.01'],
             'is_active' => ['nullable', 'boolean'],
+        ], [
+            'unit_code.required' => 'Unit Code kendaraan wajib diisi.',
+            'unit_code.unique' => 'Unit Code tersebut sudah terdaftar pada sistem.',
+            'police_no.required' => 'Nomor polisi kendaraan wajib diisi.',
+            'tank_capacity.numeric' => 'Kapasitas tangki harus berupa angka numerik.',
+            'tank_capacity.min' => 'Kapasitas tangki minimal 1 Liter.',
+            'standard_consumption.numeric' => 'Nilai standar konsumsi BBM harus berupa angka.',
+            'standard_consumption.min' => 'Nilai standar konsumsi BBM minimal 0.01.',
         ]);
 
         $veh = Vehicle::create([
@@ -320,6 +338,14 @@ class AdminMasterController extends Controller
             'default_area_id' => ['nullable', 'exists:areas,id'],
             'standard_consumption' => ['nullable', 'numeric', 'min:0.01'],
             'is_active' => ['nullable', 'boolean'],
+        ], [
+            'unit_code.required' => 'Unit Code kendaraan wajib diisi.',
+            'unit_code.unique' => 'Unit Code tersebut sudah terdaftar pada sistem.',
+            'police_no.required' => 'Nomor polisi kendaraan wajib diisi.',
+            'tank_capacity.numeric' => 'Kapasitas tangki harus berupa angka numerik.',
+            'tank_capacity.min' => 'Kapasitas tangki minimal 1 Liter.',
+            'standard_consumption.numeric' => 'Nilai standar konsumsi BBM harus berupa angka.',
+            'standard_consumption.min' => 'Nilai standar konsumsi BBM minimal 0.01.',
         ]);
 
         $payload = [
