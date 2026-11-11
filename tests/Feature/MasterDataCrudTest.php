@@ -1053,4 +1053,97 @@ class MasterDataCrudTest extends TestCase
         $loginResp->assertRedirect(route('dashboard'));
         $this->assertAuthenticatedAs($user);
     }
+
+    public function test_all_master_forms_handle_empty_optional_fields_cleanly(): void
+    {
+        // 1. Vehicle dengan foreign keys & numeric opsional kosong
+        $vehResp = $this->actingAs($this->admin)->post(route('admin.master.vehicle'), [
+            'unit_code' => 'LV-OPT-01',
+            'police_no' => 'DA 9999 OPT',
+            'model' => '',
+            'unit_type' => '',
+            'unit_vendor_id' => '',
+            'default_area_id' => '',
+            'meter_type' => 'km',
+            'tank_capacity' => '',
+        ]);
+        $vehResp->assertRedirect(route('admin.master', ['tab' => 'units']));
+        $veh = Vehicle::where('unit_code', 'LV-OPT-01')->firstOrFail();
+        $this->assertNull($veh->unit_vendor_id);
+        $this->assertNull($veh->default_area_id);
+        $this->assertEquals(80.0, (float)$veh->tank_capacity);
+
+        // Update Vehicle dengan foreign keys & numeric opsional kosong
+        $updateVehResp = $this->actingAs($this->admin)->put(route('admin.master.vehicles.update', $veh->id), [
+            'unit_code' => 'LV-OPT-01',
+            'police_no' => 'DA 9999 OPT UPDATED',
+            'model' => '',
+            'unit_type' => '',
+            'unit_vendor_id' => '',
+            'default_area_id' => '',
+            'meter_type' => 'km',
+            'tank_capacity' => '',
+        ]);
+        $updateVehResp->assertRedirect(route('admin.master', ['tab' => 'units']));
+        $veh->refresh();
+        $this->assertNull($veh->unit_vendor_id);
+        $this->assertNull($veh->default_area_id);
+
+        // 2. Vendor dengan contact_person & phone kosong
+        $venResp = $this->actingAs($this->admin)->post(route('admin.master.vendor'), [
+            'name' => 'PT Vendor BBM Opsional',
+            'code' => '',
+            'contact_person' => '',
+            'phone' => '',
+        ]);
+        $venResp->assertRedirect(route('admin.master', ['tab' => 'vendors']));
+        $vendor = Vendor::where('name', 'PT Vendor BBM Opsional')->firstOrFail();
+        $this->assertNull($vendor->contact_person);
+        $this->assertNull($vendor->phone);
+
+        // 3. Unit Vendor dengan opsional kosong
+        $uvResp = $this->actingAs($this->admin)->post(route('admin.master.unit-vendor'), [
+            'name' => 'PT Rental Opsional',
+            'code' => '',
+            'contact_person' => '',
+            'phone' => '',
+            'email' => '',
+            'address' => '',
+        ]);
+        $uvResp->assertRedirect(route('admin.master', ['tab' => 'unit_vendors']));
+        $uv = UnitVendor::where('name', 'PT Rental Opsional')->firstOrFail();
+        $this->assertNull($uv->contact_person);
+        $this->assertNull($uv->phone);
+        $this->assertNull($uv->email);
+        $this->assertNull($uv->address);
+
+        // 4. Area Approver dengan end_date kosong
+        $area = Area::create(['name' => 'Area Test Approver', 'code' => 'ATA']);
+        $approverUser = User::where('role', 'spv')->first();
+        $aaResp = $this->actingAs($this->admin)->post(route('admin.master.approver'), [
+            'area_id' => $area->id,
+            'user_id' => $approverUser->id,
+            'role_type' => 'spv',
+            'start_date' => now()->toDateString(),
+            'end_date' => '',
+        ]);
+        $aaResp->assertRedirect(route('admin.master', ['tab' => 'approvers']));
+        $aa = AreaApprover::where('area_id', $area->id)->where('user_id', $approverUser->id)->firstOrFail();
+        $this->assertNull($aa->end_date);
+
+        // 5. Employee dengan opsional kosong
+        $empResp = $this->actingAs($this->admin)->post(route('admin.master.employee'), [
+            'nrp' => '80129997',
+            'name' => 'Karyawan Opsional',
+            'position' => '',
+            'department' => '',
+            'company' => 'PT UNITED TRACTORS Tbk - SITE SATUI',
+            'external_reference' => '',
+        ]);
+        $empResp->assertRedirect(route('admin.master', ['tab' => 'employees']));
+        $emp = Employee::where('nrp', '80129997')->firstOrFail();
+        $this->assertSame('Driver / Operator', $emp->position);
+        $this->assertSame('Operation', $emp->department);
+        $this->assertNull($emp->external_reference);
+    }
 }

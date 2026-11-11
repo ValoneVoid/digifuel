@@ -76,8 +76,8 @@ class ProfileController extends Controller
         $user->name = $validated['name'];
         $user->username = $validated['username'];
         $user->email = !empty($validated['email']) ? $validated['email'] : null;
-        $user->phone = $validated['phone'] ?? null;
-        $user->nrp = $validated['nrp'] ?? $user->nrp;
+        $user->phone = !empty($validated['phone']) ? $validated['phone'] : null;
+        $user->nrp = !empty($validated['nrp']) ? $validated['nrp'] : $user->nrp;
         $user->jabatan = !empty($validated['jabatan']) ? $validated['jabatan'] : null;
         $user->company = $validated['company'];
 
@@ -91,7 +91,7 @@ class ProfileController extends Controller
         if ($user->employee) {
             $empUpdate = [
                 'name' => $validated['name'],
-                'position' => $validated['jabatan'],
+                'position' => !empty($validated['jabatan']) ? $validated['jabatan'] : ($user->employee->position ?? ucfirst($user->role)),
                 'company' => $validated['company'],
             ];
             if (!empty($validated['nrp'])) {

@@ -159,12 +159,12 @@ class AdminMasterController extends Controller
         $emp = Employee::create([
             'nrp' => $validated['nrp'],
             'name' => $validated['name'],
-            'position' => $validated['position'] ?? 'Driver / Operator',
-            'department' => $validated['department'] ?? 'Operation',
+            'position' => !empty($validated['position']) ? $validated['position'] : 'Driver / Operator',
+            'department' => !empty($validated['department']) ? $validated['department'] : 'Operation',
             'company' => $validated['company'],
             'source' => $source,
             'external_system' => $source === 'digisim' ? 'DIGISIM' : null,
-            'external_reference' => $validated['external_reference'] ?? null,
+            'external_reference' => !empty($validated['external_reference']) ? $validated['external_reference'] : null,
             'is_active' => $request->has('is_active') ? $request->boolean('is_active') : true,
         ]);
 
@@ -193,13 +193,13 @@ class AdminMasterController extends Controller
         $payload = [
             'nrp' => $validated['nrp'],
             'name' => $validated['name'],
-            'position' => $validated['position'] ?? $emp->position ?? 'Driver / Operator',
-            'department' => $validated['department'] ?? $emp->department ?? 'Operation',
+            'position' => array_key_exists('position', $validated) ? (!empty($validated['position']) ? $validated['position'] : 'Driver / Operator') : $emp->position,
+            'department' => array_key_exists('department', $validated) ? (!empty($validated['department']) ? $validated['department'] : 'Operation') : $emp->department,
             'company' => $validated['company'],
             'source' => $source,
             'external_system' => $source === 'digisim' ? ($emp->external_system ?? 'DIGISIM') : $emp->external_system,
-            'external_reference' => array_key_exists('external_reference', $validated) && $validated['external_reference'] !== null
-                ? $validated['external_reference']
+            'external_reference' => array_key_exists('external_reference', $validated)
+                ? (!empty($validated['external_reference']) ? $validated['external_reference'] : null)
                 : $emp->external_reference,
             'is_active' => $request->has('is_active') ? $request->boolean('is_active') : $emp->is_active,
         ];
@@ -279,10 +279,10 @@ class AdminMasterController extends Controller
             'police_no' => $validated['police_no'],
             'model' => $validated['model'] ?? ($validated['unit_type'] ?? 'Light Vehicle'),
             'unit_type' => $validated['unit_type'] ?? ($validated['model'] ?? 'Light Vehicle'),
-            'unit_vendor_id' => $validated['unit_vendor_id'] ?? null,
+            'unit_vendor_id' => !empty($validated['unit_vendor_id']) ? (int)$validated['unit_vendor_id'] : null,
             'meter_type' => $validated['meter_type'] ?? 'km',
-            'tank_capacity' => $validated['tank_capacity'] ?? 80,
-            'default_area_id' => $validated['default_area_id'] ?? null,
+            'tank_capacity' => !empty($validated['tank_capacity']) ? (float)$validated['tank_capacity'] : 80,
+            'default_area_id' => !empty($validated['default_area_id']) ? (int)$validated['default_area_id'] : null,
             'is_active' => $request->has('is_active') ? $request->boolean('is_active') : true,
         ]);
 
@@ -327,10 +327,10 @@ class AdminMasterController extends Controller
             'police_no' => $validated['police_no'],
             'model' => $validated['model'] ?? ($validated['unit_type'] ?? $veh->model),
             'unit_type' => $validated['unit_type'] ?? ($validated['model'] ?? $veh->unit_type ?? 'Light Vehicle'),
-            'unit_vendor_id' => array_key_exists('unit_vendor_id', $validated) ? $validated['unit_vendor_id'] : $veh->unit_vendor_id,
+            'unit_vendor_id' => array_key_exists('unit_vendor_id', $validated) ? (!empty($validated['unit_vendor_id']) ? (int)$validated['unit_vendor_id'] : null) : $veh->unit_vendor_id,
             'meter_type' => $validated['meter_type'] ?? $veh->meter_type ?? 'km',
-            'tank_capacity' => $validated['tank_capacity'] ?? $veh->tank_capacity ?? 80,
-            'default_area_id' => array_key_exists('default_area_id', $validated) ? $validated['default_area_id'] : $veh->default_area_id,
+            'tank_capacity' => array_key_exists('tank_capacity', $validated) ? (!empty($validated['tank_capacity']) ? (float)$validated['tank_capacity'] : 80) : ($veh->tank_capacity ?? 80),
+            'default_area_id' => array_key_exists('default_area_id', $validated) ? (!empty($validated['default_area_id']) ? (int)$validated['default_area_id'] : null) : $veh->default_area_id,
             'is_active' => $request->has('is_active') ? $request->boolean('is_active') : $veh->is_active,
         ];
 
@@ -530,8 +530,8 @@ class AdminMasterController extends Controller
         $vendor = Vendor::create([
             'name' => $validated['name'],
             'code' => $code,
-            'contact_person' => $validated['contact_person'] ?? null,
-            'phone' => $validated['phone'] ?? null,
+            'contact_person' => !empty($validated['contact_person']) ? $validated['contact_person'] : null,
+            'phone' => !empty($validated['phone']) ? $validated['phone'] : null,
             'is_active' => $request->has('is_active') ? $request->boolean('is_active') : true,
         ]);
 
@@ -574,8 +574,8 @@ class AdminMasterController extends Controller
         $vendor->update([
             'name' => $validated['name'],
             'code' => $code,
-            'contact_person' => array_key_exists('contact_person', $validated) ? $validated['contact_person'] : $vendor->contact_person,
-            'phone' => array_key_exists('phone', $validated) ? $validated['phone'] : $vendor->phone,
+            'contact_person' => array_key_exists('contact_person', $validated) ? (!empty($validated['contact_person']) ? $validated['contact_person'] : null) : $vendor->contact_person,
+            'phone' => array_key_exists('phone', $validated) ? (!empty($validated['phone']) ? $validated['phone'] : null) : $vendor->phone,
             'is_active' => $request->has('is_active') ? $request->boolean('is_active') : $vendor->is_active,
         ]);
 
@@ -675,10 +675,10 @@ class AdminMasterController extends Controller
         $vendor = UnitVendor::create([
             'name' => $validated['name'],
             'code' => $code,
-            'contact_person' => $validated['contact_person'] ?? null,
-            'phone' => $validated['phone'] ?? null,
-            'email' => $validated['email'] ?? null,
-            'address' => $validated['address'] ?? null,
+            'contact_person' => !empty($validated['contact_person']) ? $validated['contact_person'] : null,
+            'phone' => !empty($validated['phone']) ? $validated['phone'] : null,
+            'email' => !empty($validated['email']) ? $validated['email'] : null,
+            'address' => !empty($validated['address']) ? $validated['address'] : null,
             'is_active' => $request->has('is_active') ? $request->boolean('is_active') : true,
         ]);
 
@@ -709,10 +709,10 @@ class AdminMasterController extends Controller
         $payload = [
             'name' => $validated['name'],
             'code' => $code,
-            'contact_person' => $validated['contact_person'] ?? null,
-            'phone' => $validated['phone'] ?? null,
-            'email' => $validated['email'] ?? null,
-            'address' => $validated['address'] ?? null,
+            'contact_person' => array_key_exists('contact_person', $validated) ? (!empty($validated['contact_person']) ? $validated['contact_person'] : null) : $vendor->contact_person,
+            'phone' => array_key_exists('phone', $validated) ? (!empty($validated['phone']) ? $validated['phone'] : null) : $vendor->phone,
+            'email' => array_key_exists('email', $validated) ? (!empty($validated['email']) ? $validated['email'] : null) : $vendor->email,
+            'address' => array_key_exists('address', $validated) ? (!empty($validated['address']) ? $validated['address'] : null) : $vendor->address,
             'is_active' => $request->has('is_active') ? $request->boolean('is_active') : $vendor->is_active,
         ];
 
@@ -840,12 +840,12 @@ class AdminMasterController extends Controller
             'name' => $validated['name'],
             'username' => $validated['username'],
             'email' => !empty($validated['email']) ? $validated['email'] : null,
-            'phone' => $validated['phone'] ?? null,
+            'phone' => !empty($validated['phone']) ? $validated['phone'] : null,
             'role' => $validated['role'],
             'jabatan' => !empty($validated['jabatan']) ? $validated['jabatan'] : null,
-            'nrp' => $validated['nrp'] ?? null,
-            'employee_id' => $validated['employee_id'] ?? null,
-            'vendor_id' => $validated['vendor_id'] ?? null,
+            'nrp' => !empty($validated['nrp']) ? $validated['nrp'] : null,
+            'employee_id' => !empty($validated['employee_id']) ? (int)$validated['employee_id'] : null,
+            'vendor_id' => !empty($validated['vendor_id']) ? (int)$validated['vendor_id'] : null,
             'password' => Hash::make(!empty($validated['password']) ? $validated['password'] : 'password123'),
             'is_active' => $request->has('is_active') ? $request->boolean('is_active') : true,
         ];
@@ -894,12 +894,12 @@ class AdminMasterController extends Controller
             'name' => $validated['name'],
             'username' => $validated['username'],
             'email' => !empty($validated['email']) ? $validated['email'] : null,
-            'phone' => array_key_exists('phone', $validated) ? $validated['phone'] : $targetUser->phone,
+            'phone' => array_key_exists('phone', $validated) ? (!empty($validated['phone']) ? $validated['phone'] : null) : $targetUser->phone,
             'role' => $validated['role'],
             'jabatan' => array_key_exists('jabatan', $validated) ? ($validated['jabatan'] ?: null) : $targetUser->jabatan,
-            'nrp' => array_key_exists('nrp', $validated) ? $validated['nrp'] : $targetUser->nrp,
-            'employee_id' => array_key_exists('employee_id', $validated) ? $validated['employee_id'] : $targetUser->employee_id,
-            'vendor_id' => array_key_exists('vendor_id', $validated) ? $validated['vendor_id'] : $targetUser->vendor_id,
+            'nrp' => array_key_exists('nrp', $validated) ? (!empty($validated['nrp']) ? $validated['nrp'] : null) : $targetUser->nrp,
+            'employee_id' => array_key_exists('employee_id', $validated) ? (!empty($validated['employee_id']) ? (int)$validated['employee_id'] : null) : $targetUser->employee_id,
+            'vendor_id' => array_key_exists('vendor_id', $validated) ? (!empty($validated['vendor_id']) ? (int)$validated['vendor_id'] : null) : $targetUser->vendor_id,
             'is_active' => $request->has('is_active') ? $request->boolean('is_active') : $targetUser->is_active,
         ];
 
@@ -1051,11 +1051,11 @@ class AdminMasterController extends Controller
         $validated = $this->validateAreaApproverPayload($request);
 
         $aa = AreaApprover::create([
-            'area_id' => $validated['area_id'],
-            'user_id' => $validated['user_id'],
+            'area_id' => (int)$validated['area_id'],
+            'user_id' => (int)$validated['user_id'],
             'role_type' => $validated['role_type'],
-            'start_date' => $validated['start_date'] ?? now()->toDateString(),
-            'end_date' => $validated['end_date'] ?? null,
+            'start_date' => !empty($validated['start_date']) ? $validated['start_date'] : now()->toDateString(),
+            'end_date' => !empty($validated['end_date']) ? $validated['end_date'] : null,
             'is_active' => $request->has('is_active') ? $request->boolean('is_active') : true,
         ]);
 
@@ -1072,11 +1072,11 @@ class AdminMasterController extends Controller
         $validated = $this->validateAreaApproverPayload($request, $aa->id);
 
         $aa->update([
-            'area_id' => $validated['area_id'],
-            'user_id' => $validated['user_id'],
+            'area_id' => (int)$validated['area_id'],
+            'user_id' => (int)$validated['user_id'],
             'role_type' => $validated['role_type'],
-            'start_date' => $validated['start_date'] ?? ($aa->start_date ? $aa->start_date->toDateString() : now()->toDateString()),
-            'end_date' => array_key_exists('end_date', $validated) ? $validated['end_date'] : ($aa->end_date ? $aa->end_date->toDateString() : null),
+            'start_date' => !empty($validated['start_date']) ? $validated['start_date'] : ($aa->start_date ? $aa->start_date->toDateString() : now()->toDateString()),
+            'end_date' => array_key_exists('end_date', $validated) ? (!empty($validated['end_date']) ? $validated['end_date'] : null) : ($aa->end_date ? $aa->end_date->toDateString() : null),
             'is_active' => $request->has('is_active') ? $request->boolean('is_active') : $aa->is_active,
         ]);
 
