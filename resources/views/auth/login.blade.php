@@ -42,13 +42,13 @@
             <div class="digi-form-box" style="padding: 20px 22px; margin-bottom: 18px;">
                 <div class="digi-form-group" style="margin-bottom: 16px;">
                     <label class="digi-form-label">Username / Email / NRP <span class="digi-required">*</span></label>
-                    <input type="text" name="login" class="digi-input" placeholder="Masukkan username, email, atau NRP" value="{{ old('login', 'adji') }}" required autofocus>
+                    <input type="text" name="login" class="digi-input" placeholder="Masukkan username, email, atau NRP" value="{{ old('login') }}" autocomplete="username" required autofocus>
                 </div>
 
                 <div class="digi-form-group" style="margin-bottom: 16px;">
                     <label class="digi-form-label">Password <span class="digi-required">*</span></label>
                     <div style="position: relative; display: flex; align-items: center;">
-                        <input type="password" name="password" id="loginPassword" class="digi-input" placeholder="Masukkan password" value="password123" required style="padding-right: 42px;">
+                        <input type="password" name="password" id="loginPassword" class="digi-input" placeholder="Masukkan password" autocomplete="current-password" required style="padding-right: 42px;">
                         <button type="button" onclick="togglePassword()" id="togglePwdBtn" title="Lihat Password" aria-label="Lihat Password" style="position: absolute; right: 10px; background: transparent; border: none; padding: 4px; color: #64748b; cursor: pointer; display: inline-flex; align-items: center; justify-content: center;">
                             <svg id="eyeIconOpen" width="19" height="19" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
                                 <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"></path>
