@@ -405,6 +405,7 @@
             white-space: normal;
             display: -webkit-box;
             -webkit-line-clamp: 2;
+            line-clamp: 2;
             -webkit-box-orient: vertical;
             line-height: 1.35;
         }
@@ -1491,7 +1492,7 @@
                     <div style="display:flex; gap:6px;">
                         <select name="user_id" id="aa_user_id" class="digi-select" required>
                             @foreach(($allUsers ?? $users) as $u)
-                                <option value="{{ $u->id }}">{{ $u->name }} ({{ $u->jabatan }})</option>
+                                <option value="{{ $u->id }}">{{ $u->name }} ({{ $u->jabatan ?: ucfirst($u->role) }})</option>
                             @endforeach
                         </select>
                         <select name="role_type" id="aa_role_type" class="digi-select" style="width: 145px;" required>
@@ -1894,10 +1895,10 @@
                     </div>
                 </div>
                 <div class="digi-form-group">
-                    <label class="digi-form-label">Username & Email <span class="digi-required">*</span></label>
+                    <label class="digi-form-label">Username <span class="digi-required">*</span> & Email</label>
                     <div style="display:flex; gap:6px;">
                         <input type="text" name="username" id="usr_username" class="digi-input" placeholder="Username" required>
-                        <input type="email" name="email" id="usr_email" class="digi-input" placeholder="Email" required>
+                        <input type="email" name="email" id="usr_email" class="digi-input" placeholder="Email (Opsional)">
                     </div>
                 </div>
                 <div class="digi-form-group">
@@ -1907,7 +1908,7 @@
             </div>
             <div class="digi-form-grid-3" style="margin-bottom:0; align-items:flex-end;">
                 <div class="digi-form-group">
-                    <label class="digi-form-label">Role & Jabatan <span class="digi-required">*</span></label>
+                    <label class="digi-form-label">Role <span class="digi-required">*</span> & Jabatan</label>
                     <div style="display:flex; gap:6px;">
                         <select name="role" id="usr_role" class="digi-select" required onchange="onUserRoleChange(this)">
                             <option value="driver">Employee / Driver</option>
@@ -1917,7 +1918,7 @@
                             <option value="fuelman">Fuel Man</option>
                             <option value="admin">Admin</option>
                         </select>
-                        <input type="text" name="jabatan" id="usr_jabatan" class="digi-input" placeholder="Jabatan" required>
+                        <input type="text" name="jabatan" id="usr_jabatan" class="digi-input" placeholder="Jabatan (Opsional)">
                     </div>
                 </div>
                 <div class="digi-form-group">
@@ -2009,7 +2010,7 @@
                             </td>
                             <td>{{ $u->nrp ?? '-' }}</td>
                             <td><span class="digi-badge digi-badge-blue">{{ strtoupper($u->role) }}</span></td>
-                            <td>{{ $u->jabatan }}</td>
+                            <td>{{ $u->jabatan ?: '-' }}</td>
                             <td>{{ $u->vendor?->name ?? 'Internal UT' }}</td>
                             <td>
                                 @forelse($u->areaApprovers as $aa)
@@ -3040,81 +3041,6 @@ function resetBgForm() {
     document.getElementById('bgCancelBtn').style.display = 'none';
     const badge = document.getElementById('bgEditBadge');
     if (badge) badge.style.display = 'none';
-}
-
-function onUserRoleChange(selectElem) {
-    if (!selectElem) return;
-    const role = selectElem.value;
-    const venSelect = document.getElementById('usr_vendor_id');
-    if (venSelect && venSelect.parentElement) {
-        venSelect.parentElement.style.opacity = (role === 'vendor') ? '1' : '0.7';
-    }
-}
-
-// 8. User Form Auto-Fill & Reset
-function editUser(u) {
-    u = resolveItemData(u);
-    if (!u) return;
-    document.getElementById('usr_id').value = u.id;
-    document.getElementById('usr_name').value = u.name || '';
-    document.getElementById('usr_nrp').value = u.nrp || '';
-    document.getElementById('usr_username').value = u.username || '';
-    document.getElementById('usr_email').value = u.email || '';
-    document.getElementById('usr_phone').value = u.phone || '';
-    document.getElementById('usr_role').value = u.role || 'driver';
-    document.getElementById('usr_jabatan').value = u.jabatan || '';
-    document.getElementById('usr_vendor_id').value = u.vendor_id || '';
-    document.getElementById('usr_password').value = '';
-
-    // Reset all area checkboxes
-    document.querySelectorAll('.usr-area-cb').forEach(cb => cb.checked = false);
-
-    // Auto-check assigned areas
-    if (u.area_approvers && Array.isArray(u.area_approvers)) {
-        u.area_approvers.forEach(aa => {
-            const cb = document.getElementById('usr_area_' + aa.area_id);
-            if (cb) cb.checked = true;
-        });
-    }
-
-    onUserRoleChange(document.getElementById('usr_role'));
-    document.getElementById('usrFormTitle').textContent = 'Edit Akun Pengguna: ' + u.name;
-    document.getElementById('usrSubmitBtn').textContent = 'Perbarui Akun Pengguna';
-    document.getElementById('usrCancelBtn').style.display = 'inline-flex';
-    document.getElementById('userForm').scrollIntoView({ behavior: 'smooth', block: 'center' });
-}
-function resetUserForm() {
-    document.getElementById('userForm').reset();
-    document.getElementById('usr_id').value = '';
-    document.getElementById('usr_phone').value = '';
-    document.querySelectorAll('.usr-area-cb').forEach(cb => cb.checked = false);
-    onUserRoleChange(document.getElementById('usr_role'));
-    document.getElementById('usrFormTitle').textContent = 'Langkah 5: Tambah / Kelola Akun Pengguna, Karyawan & Penugasan Area';
-    document.getElementById('usrSubmitBtn').textContent = 'Simpan Akun Pengguna';
-    document.getElementById('usrCancelBtn').style.display = 'none';
-}
-
-// 8B. Background Form Auto-Fill & Reset
-function editBackground(bg) {
-    bg = resolveItemData(bg);
-    if (!bg) return;
-    document.getElementById('bg_id').value = bg.id;
-    document.getElementById('bg_title').value = bg.title || '';
-    document.getElementById('bg_notes').value = bg.notes || '';
-    document.getElementById('bg_set_active').checked = !!bg.is_active;
-    document.getElementById('bg_file_req').style.display = 'none';
-    document.getElementById('bgFormTitle').textContent = 'Edit Background Sistem: ' + bg.title;
-    document.getElementById('bgSubmitBtn').textContent = 'Perbarui Background';
-    document.getElementById('bgCancelBtn').style.display = 'inline-flex';
-    document.getElementById('bgForm').scrollIntoView({ behavior: 'smooth', block: 'center' });
-}
-function resetBgForm() {
-    document.getElementById('bgForm').reset();
-    document.getElementById('bg_id').value = '';
-    document.getElementById('bg_file_req').style.display = 'inline';
-    document.getElementById('bgFormTitle').textContent = 'Upload / Kelola Gambar Background Sistem Sesuai Ketentuan UT';
-    document.getElementById('bgSubmitBtn').textContent = 'Simpan & Terapkan Background';
-    document.getElementById('bgCancelBtn').style.display = 'none';
 }
 
 // 9. Confirmation Modal for Activate / Deactivate Status

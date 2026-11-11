@@ -1006,4 +1006,51 @@ class MasterDataCrudTest extends TestCase
         $uv2 = UnitVendor::where('name', 'PT Unit Rental Seq 2')->firstOrFail();
         $this->assertSame('02', $uv2->code);
     }
+
+    public function test_admin_can_create_and_update_user_without_email_and_jabatan(): void
+    {
+        // 1. Admin membuat user tanpa email dan tanpa jabatan
+        $createResp = $this->actingAs($this->admin)
+            ->post(route('admin.master.user'), [
+                'name' => 'Budi Tanpa Email',
+                'username' => 'budinoemail',
+                'email' => '',
+                'phone' => '081234567888',
+                'role' => 'driver',
+                'jabatan' => '',
+                'password' => 'secret1234',
+            ]);
+
+        $createResp->assertRedirect(route('admin.master', ['tab' => 'users']));
+
+        $user = User::where('username', 'budinoemail')->firstOrFail();
+        $this->assertNull($user->email);
+        $this->assertNull($user->jabatan);
+        $this->assertTrue(Hash::check('secret1234', $user->password));
+
+        // 2. Admin dapat memperbarui user tanpa mengisi email dan jabatan
+        $updateResp = $this->actingAs($this->admin)
+            ->put(route('admin.master.users.update', $user->id), [
+                'name' => 'Budi Tanpa Email Updated',
+                'username' => 'budinoemail',
+                'email' => '',
+                'phone' => '081234567888',
+                'role' => 'driver',
+                'jabatan' => '',
+            ]);
+
+        $updateResp->assertRedirect(route('admin.master', ['tab' => 'users']));
+        $user->refresh();
+        $this->assertSame('Budi Tanpa Email Updated', $user->name);
+        $this->assertNull($user->email);
+        $this->assertNull($user->jabatan);
+
+        // 3. User tanpa email dapat login menggunakan username
+        $loginResp = $this->post(route('login'), [
+            'login' => 'budinoemail',
+            'password' => 'secret1234',
+        ]);
+        $loginResp->assertRedirect(route('dashboard'));
+        $this->assertAuthenticatedAs($user);
+    }
 }

@@ -103,7 +103,7 @@
 
             <!-- User Profile Info Badge -->
             @if($currentUser)
-                <a href="{{ route('profile.index') }}" class="digi-user-profile-badge" title="Buka Profil: {{ $currentUser->name }} ({{ $currentUser->jabatan }})">
+                <a href="{{ route('profile.index') }}" class="digi-user-profile-badge" title="Buka Profil: {{ $currentUser->name }} ({{ $currentUser->jabatan ?: ucfirst($currentUser->role) }})">
                     <span class="digi-user-avatar">
                         @if($currentUser->profile_photo_url)
                             <img src="{{ asset($currentUser->profile_photo_url) }}" alt="{{ $currentUser->name }}" class="digi-user-avatar-img">
@@ -113,7 +113,7 @@
                     </span>
                     <div class="digi-user-info">
                         <span class="digi-user-name">{{ $currentUser->name }}</span>
-                        <span class="digi-user-role">{{ $currentUser->jabatan }}</span>
+                        <span class="digi-user-role">{{ $currentUser->jabatan ?: ucfirst($currentUser->role) }}</span>
                     </div>
                 </a>
             @endif

@@ -51,25 +51,23 @@ class ProfileController extends Controller
                 Rule::unique('users', 'username')->ignore($user->id),
             ],
             'email' => [
-                'required',
+                'nullable',
                 'email',
                 'max:150',
                 Rule::unique('users', 'email')->ignore($user->id),
             ],
             'phone' => ['nullable', 'string', 'max:25', 'regex:/^08[0-9]{8,12}$/'],
             'nrp' => ['nullable', 'string', 'max:50'],
-            'jabatan' => ['required', 'string', 'max:100'],
+            'jabatan' => ['nullable', 'string', 'max:100'],
             'company' => ['required', 'string', 'max:150'],
             'password' => ['nullable', 'string', 'min:6', 'confirmed'],
         ], [
             'name.required' => 'Nama lengkap wajib diisi.',
             'username.required' => 'Username wajib diisi.',
             'username.unique' => 'Username tersebut sudah digunakan oleh akun lain.',
-            'email.required' => 'Alamat email wajib diisi.',
             'email.email' => 'Format alamat email tidak valid.',
             'email.unique' => 'Email tersebut sudah terdaftar pada akun lain.',
             'phone.regex' => 'Nomor HP / WhatsApp harus diawali dengan 08 dan terdiri dari 10-14 digit angka (contoh: 081234567890).',
-            'jabatan.required' => 'Jabatan wajib diisi.',
             'company.required' => 'Nama perusahaan / site wajib diisi.',
             'password.min' => 'Password baru minimal 6 karakter.',
             'password.confirmed' => 'Konfirmasi password baru tidak cocok.',
@@ -77,10 +75,10 @@ class ProfileController extends Controller
 
         $user->name = $validated['name'];
         $user->username = $validated['username'];
-        $user->email = $validated['email'];
+        $user->email = !empty($validated['email']) ? $validated['email'] : null;
         $user->phone = $validated['phone'] ?? null;
         $user->nrp = $validated['nrp'] ?? $user->nrp;
-        $user->jabatan = $validated['jabatan'];
+        $user->jabatan = !empty($validated['jabatan']) ? $validated['jabatan'] : null;
         $user->company = $validated['company'];
 
         if (!empty($validated['password'])) {

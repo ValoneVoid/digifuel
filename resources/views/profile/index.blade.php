@@ -110,7 +110,7 @@
 
         <h2 class="digi-profile-name">{{ $user->name }}</h2>
         <span class="digi-badge digi-badge-blue" style="font-size: 13px; padding: 6px 18px;">
-            {{ $user->jabatan }}
+            {{ $user->jabatan ?: ucfirst($user->role) }}
         </span>
         @if($user->nrp)
             <div style="margin-top: 12px; font-size: 13px; color: #475569; font-weight: 600;">
@@ -195,7 +195,7 @@
                     Jabatan
                 </div>
                 <div class="digi-profile-value">
-                    {{ $user->jabatan }}
+                    {{ $user->jabatan ?: '-' }}
                 </div>
             </div>
 
@@ -241,8 +241,8 @@
                     </div>
 
                     <div>
-                        <label style="display: block; font-size: 12.5px; font-weight: 600; color: #334155; margin-bottom: 6px;">Alamat Email <span style="color:#ef4444;">*</span></label>
-                        <input type="email" name="email" value="{{ old('email', $user->email) }}" class="digi-input" required>
+                        <label style="display: block; font-size: 12.5px; font-weight: 600; color: #334155; margin-bottom: 6px;">Alamat Email <span style="font-weight:400; color:#64748b;">(Opsional)</span></label>
+                        <input type="email" name="email" value="{{ old('email', $user->email) }}" class="digi-input" placeholder="Email (Opsional)">
                     </div>
 
                     <div>
@@ -256,8 +256,8 @@
                     </div>
 
                     <div>
-                        <label style="display: block; font-size: 12.5px; font-weight: 600; color: #334155; margin-bottom: 6px;">Jabatan <span style="color:#ef4444;">*</span></label>
-                        <input type="text" name="jabatan" value="{{ old('jabatan', $user->jabatan) }}" class="digi-input" required>
+                        <label style="display: block; font-size: 12.5px; font-weight: 600; color: #334155; margin-bottom: 6px;">Jabatan <span style="font-weight:400; color:#64748b;">(Opsional)</span></label>
+                        <input type="text" name="jabatan" value="{{ old('jabatan', $user->jabatan) }}" class="digi-input" placeholder="Jabatan (Opsional)">
                     </div>
 
                     <div style="grid-column: 1 / -1;">
