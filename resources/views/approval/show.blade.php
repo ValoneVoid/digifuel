@@ -92,7 +92,7 @@
                         <span class="digi-signature-alert-badge">Wajib</span>
                     </div>
                     <div class="digi-signature-alert-text">
-                        Anda belum memiliki tanda tangan digital aktif. Sesuai kebijakan sistem DigiFuel, seluruh aksi persetujuan (Approval) dan pengajuan BBM mewajibkan tanda tangan digital yang sah.
+                        Anda belum memiliki tanda tangan digital aktif. Sesuai kebijakan sistem FuelLink, seluruh aksi persetujuan (Approval) dan pengajuan BBM mewajibkan tanda tangan digital yang sah.
                     </div>
                 </div>
             </div>
@@ -519,7 +519,7 @@ function requireApproverSignatureNotice(actionName) {
         Swal.fire({
             icon: 'warning',
             title: 'Tanda Tangan Digital Wajib Diisi!',
-            html: `Anda belum memiliki tanda tangan digital aktif di profil.<br><br>Sesuai kebijakan sistem DigiFuel, Anda wajib mengunggah tanda tangan digital terlebih dahulu sebelum dapat <strong>${actionText}</strong>.`,
+            html: `Anda belum memiliki tanda tangan digital aktif di profil.<br><br>Sesuai kebijakan sistem FuelLink, Anda wajib mengunggah tanda tangan digital terlebih dahulu sebelum dapat <strong>${actionText}</strong>.`,
             confirmButtonText: 'Buka Halaman Profil',
             showCancelButton: true,
             cancelButtonText: 'Batal',

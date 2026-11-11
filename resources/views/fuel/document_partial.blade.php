@@ -6,8 +6,9 @@
     @endif
 
     <div class="fuel-doc-header">
-        <div class="fuel-doc-brand">
-            <img src="{{ asset('images/ut_header_logo.png') }}" alt="United Tractors" style="height: 38px; width: auto;">
+        <div class="fuel-doc-brand" style="display: flex; align-items: center; gap: 8px;">
+            <img src="{{ asset('images/fuellink_logo.png') }}" alt="FuelLink" style="height: 44px; width: 44px; border-radius: 8px; object-fit: contain;">
+            <span style="font-weight: 800; font-size: 18px; letter-spacing: -0.3px;"><span style="color: #0284c7;">Fuel</span><span style="color: #16a34a;">Link</span></span>
         </div>
         <div class="fuel-doc-no">
             No : {{ $fuelRequest->request_no }}

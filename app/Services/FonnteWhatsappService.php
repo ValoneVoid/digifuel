@@ -91,7 +91,7 @@ class FonnteWhatsappService
         $liters = number_format((float)$fuelRequest->total_liters, 0, ',', '.');
         $area = $fuelRequest->area ?? '-';
 
-        $message = "*[DigiFuel - Menunggu Approval SPV]*\n\n"
+        $message = "*[FuelLink - Menunggu Approval SPV]*\n\n"
             . "Halo *{$spv->name}*,\n"
             . "Terdapat Pengajuan BBM baru yang memerlukan persetujuan SPV Anda:\n\n"
             . "• *No. Surat:* {$fuelRequest->request_no}\n"
@@ -99,7 +99,7 @@ class FonnteWhatsappService
             . "• *Unit:* {$unitCode}\n"
             . "• *Jumlah BBM:* {$liters} Liter\n"
             . "• *Area:* {$area}\n\n"
-            . "Silakan masuk ke sistem DigiFuel untuk memeriksa dan memberikan persetujuan.\n"
+            . "Silakan masuk ke sistem FuelLink untuk memeriksa dan memberikan persetujuan.\n"
             . "Terima kasih.";
 
         return $this->sendMessage($spv->phone, $message);
@@ -120,7 +120,7 @@ class FonnteWhatsappService
         $driverName = $fuelRequest->user?->name ?? $fuelRequest->driver_name ?? 'Driver';
         $area = $fuelRequest->area ?? '-';
 
-        $message = "*[DigiFuel - Menunggu Approval Dept Head]*\n\n"
+        $message = "*[FuelLink - Menunggu Approval Dept Head]*\n\n"
             . "Halo *{$depthead->name}*,\n"
             . "Pengajuan BBM berikut telah disetujui oleh SPV ({$spvApprover->name}) dan memerlukan persetujuan Dept Head / Manager Anda:\n\n"
             . "• *No. Surat:* {$fuelRequest->request_no}\n"
@@ -128,7 +128,7 @@ class FonnteWhatsappService
             . "• *Unit:* {$unitCode}\n"
             . "• *Jumlah BBM:* {$liters} Liter\n"
             . "• *Area:* {$area}\n\n"
-            . "Silakan masuk ke sistem DigiFuel untuk memeriksa dan memberikan persetujuan.\n"
+            . "Silakan masuk ke sistem FuelLink untuk memeriksa dan memberikan persetujuan.\n"
             . "Terima kasih.";
 
         return $this->sendMessage($depthead->phone, $message);
@@ -173,7 +173,7 @@ class FonnteWhatsappService
         $vendorName = $fuelRequest->vendor_name ?? $fuelRequest->vendorModel?->name ?? 'Vendor BBM';
         $driverName = $fuelRequest->user?->name ?? $fuelRequest->driver_name ?? 'Driver';
 
-        $message = "*[DigiFuel - Siap Pengisian BBM / Approval Vendor]*\n\n"
+        $message = "*[FuelLink - Siap Pengisian BBM / Approval Vendor]*\n\n"
             . "Halo *{$vendorRecipientName}* ({$vendorName}),\n"
             . "Pengajuan BBM berikut telah disetujui oleh Dept Head ({$deptheadApprover->name}) dan siap untuk diproses:\n\n"
             . "• *No. Surat:* {$fuelRequest->request_no}\n"
@@ -181,7 +181,7 @@ class FonnteWhatsappService
             . "• *Unit:* {$unitCode}\n"
             . "• *Jumlah BBM:* {$liters} Liter\n"
             . "• *Area:* " . ($fuelRequest->area ?? '-') . "\n\n"
-            . "Silakan verifikasi surat dan lakukan pengisian BBM sesuai prosedur DigiFuel.\n"
+            . "Silakan verifikasi surat dan lakukan pengisian BBM sesuai prosedur FuelLink.\n"
             . "Terima kasih.";
 
         return $this->sendMessage($targetPhone, $message);

@@ -682,7 +682,7 @@
 <div class="digi-card">
     <div class="digi-table-top" style="margin-bottom: 18px;">
         <div>
-            <h1 class="digi-table-title">Manajemen Master Data & Konfigurasi DigiFuel</h1>
+            <h1 class="digi-table-title">Manajemen Master Data & Konfigurasi FuelLink</h1>
             <p style="font-size: 13.5px; color: #64748b; margin: 4px 0 0 0;">
                 Kelola Data Unit, Employee (DIGISIM Ready), Area, Vendor BBM, Penugasan Approver per Area, Standar Konsumsi BBM, Harga BBM per Vendor, Akun Pengguna, dan Audit Trail.
             </p>
@@ -1582,7 +1582,7 @@
                 <div>
                     <h4 style="margin: 0 0 4px 0; font-size: 14px; font-weight: 700; color: #0f172a;">Tentang Standar Konsumsi BBM</h4>
                     <p style="margin: 0 0 8px 0; font-size: 13px; color: #334155; line-height: 1.5;">
-                        Standar konsumsi BBM merupakan nilai acuan yang digunakan DigiFuel untuk mengevaluasi penggunaan BBM setiap unit. Nilai standar diperoleh dari ketentuan perusahaan dan dimasukkan oleh Admin secara manual. Standar cukup dimasukkan satu kali untuk setiap unit dan hanya perlu diperbarui apabila terdapat perubahan ketentuan perusahaan atau penambahan unit baru.
+                        Standar konsumsi BBM merupakan nilai acuan yang digunakan FuelLink untuk mengevaluasi penggunaan BBM setiap unit. Nilai standar diperoleh dari ketentuan perusahaan dan dimasukkan oleh Admin secara manual. Standar cukup dimasukkan satu kali untuk setiap unit dan hanya perlu diperbarui apabila terdapat perubahan ketentuan perusahaan atau penambahan unit baru.
                     </p>
                     <div style="display: flex; gap: 16px; flex-wrap: wrap; font-size: 12px; color: #64748b; line-height: 1.4;">
                         <span>• <strong>KM/Liter (KM/L):</strong> Standar efisiensi jarak tempuh per liter untuk seluruh unit kendaraan & alat berat operasional.</span>
@@ -2089,7 +2089,7 @@
             <div style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 12px;">
                 <label style="display: inline-flex; align-items: center; gap: 8px; font-size: 13px; font-weight: 600; color: #334155; cursor: pointer;">
                     <input type="checkbox" name="set_active" id="bg_set_active" value="1" checked style="width: 16px; height: 16px;">
-                    <span>Langsung terapkan sebagai Background Aktif di seluruh halaman DigiFuel</span>
+                    <span>Langsung terapkan sebagai Background Aktif di seluruh halaman FuelLink</span>
                 </label>
                 <button type="submit" id="bgSubmitBtn" class="btn-digi btn-digi-blue">
                     Simpan & Terapkan Background
@@ -2307,7 +2307,7 @@
             <div id="deleteStep1Body" class="digi-modal-body">
                 <div style="background: #fff7ed; border: 1px solid #fed7aa; border-radius: 8px; padding: 12px 14px; margin-bottom: 14px; font-size: 13px; color: #9a3412; line-height: 1.5;">
                     <strong>Peringatan Penghapusan Data:</strong><br>
-                    Anda akan menghapus <strong id="deleteEntityCategory">Master Data</strong> berikut dari sistem DigiFuel:
+                    Anda akan menghapus <strong id="deleteEntityCategory">Master Data</strong> berikut dari sistem FuelLink:
                 </div>
                 <div style="background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 8px; padding: 12px 14px; margin-bottom: 12px;">
                     <div style="font-size: 11.5px; color: #64748b; text-transform: uppercase; font-weight: 700;">Target Data yang Akan Dihapus</div>

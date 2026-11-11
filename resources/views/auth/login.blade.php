@@ -3,12 +3,12 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Login - DigiFuel PT United Tractors Tbk Site Satui</title>
+    <title>Login - FuelLink PT United Tractors Tbk Site Satui</title>
     <link rel="stylesheet" href="{{ asset('css/digifuel.css') }}?v={{ file_exists(public_path('css/digifuel.css')) ? filemtime(public_path('css/digifuel.css')) : time() }}">
     @if(file_exists(public_path('css/digifuel.css')))
         <style id="digifuel-core-css">{!! file_get_contents(public_path('css/digifuel.css')) !!}</style>
     @endif
-    <link rel="icon" type="image/svg+xml" href="{{ asset('images/ut_logo_badge.svg') }}">
+    <link rel="icon" type="image/png" href="{{ asset('images/fuellink_logo.png') }}">
     <style>
         body {
             background-image: url('{{ \App\Models\SystemBackground::getActiveImageUrl() }}');
@@ -18,10 +18,10 @@
 <body style="justify-content: center; align-items: center; padding: 20px;">
     <div class="digi-card" style="width: 100%; max-width: 460px; min-height: auto; padding: 38px 36px;">
         <div style="text-align: center; margin-bottom: 24px;">
-            <div style="display: inline-flex; background: #ffffff; padding: 8px 18px; border-radius: 10px; border: 1px solid #e2e8f0; margin-bottom: 14px;">
-                <img src="{{ asset('images/LOGO UT.png') }}" alt="United Tractors" style="height: 38px; width: auto; object-fit: contain;">
+            <div style="display: inline-flex; background: #ffffff; padding: 6px; border-radius: 16px; border: 1px solid #e2e8f0; box-shadow: 0 4px 12px rgba(2, 132, 199, 0.12); margin-bottom: 12px;">
+                <img src="{{ asset('images/fuellink_logo.png') }}" alt="FuelLink" style="height: 76px; width: 76px; border-radius: 12px; object-fit: contain;">
             </div>
-            <h1 class="digi-form-title" style="font-size: 22px; margin-bottom: 4px;">DigiFuel</h1>
+            <h1 class="digi-form-title" style="font-size: 24px; margin-bottom: 4px; font-weight: 800;"><span style="color: #0284c7;">Fuel</span><span style="color: #16a34a;">Link</span></h1>
             <p class="digi-form-subtitle" style="font-weight: 600; color: #334155;">Fuel Request Management System</p>
             <p style="font-size: 12px; color: #64748b; margin-top: 4px;">PT UNITED TRACTORS Tbk - SITE SATUI</p>
         </div>

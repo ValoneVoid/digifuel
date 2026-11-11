@@ -312,9 +312,9 @@
         <tr>
             <td class="header-logo">
                 @if(!empty($logoBase64))
-                    <img src="{{ $logoBase64 }}" alt="United Tractors">
+                    <img src="{{ $logoBase64 }}" alt="FuelLink" style="max-height: 48px; width: auto; border-radius: 6px;">
                 @else
-                    <div style="font-weight:900; font-size:16px; color:#0f172a;">UNITED TRACTORS</div>
+                    <div style="font-weight:900; font-size:16px; color:#0284c7;">FuelLink</div>
                 @endif
             </td>
             <td class="header-title-box">
@@ -550,14 +550,14 @@
 
     <!-- 6. OPERATIONAL NOTICE -->
     <div class="important-box">
-        <strong>PENTING:</strong> Lembar Fuel Request ini merupakan dokumen persetujuan resmi permintaan bahan bakar sebelum realisasi fisik di lapangan. Petugas Fuel Man wajib memverifikasi keaslian nomor pengajuan dan kecocokan unit sebelum pengisian dilakukan. Realisasi pengisian aktual dicatat tersendiri pada Berita Acara / Transaksi Fueling DigiFuel.
+        <strong>PENTING:</strong> Lembar Fuel Request ini merupakan dokumen persetujuan resmi permintaan bahan bakar sebelum realisasi fisik di lapangan. Petugas Fuel Man wajib memverifikasi keaslian nomor pengajuan dan kecocokan unit sebelum pengisian dilakukan. Realisasi pengisian aktual dicatat tersendiri pada Berita Acara / Transaksi Fueling FuelLink.
     </div>
 
     <!-- 7. FOOTER SECTION -->
     <table class="footer-table">
         <tr>
             <td class="footer-left">
-                Dokumen ini dihasilkan secara otomatis oleh <strong>DigiFuel Management System</strong>.<br>
+                Dokumen ini dihasilkan secara otomatis oleh <strong>FuelLink Management System</strong>.<br>
                 PT UNITED TRACTORS Tbk — Site Satui, Kalimantan Selatan.
             </td>
             <td class="footer-right">

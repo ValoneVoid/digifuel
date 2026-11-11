@@ -109,7 +109,7 @@ class AuthController extends Controller
         $request->session()->invalidate();
         $request->session()->regenerateToken();
 
-        return redirect()->route('login')->with('success', 'Anda telah berhasil logout dari sistem DigiFuel.');
+        return redirect()->route('login')->with('success', 'Anda telah berhasil logout dari sistem FuelLink.');
     }
 
     public function readNotification(Request $request, $id)

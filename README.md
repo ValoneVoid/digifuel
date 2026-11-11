@@ -1,4 +1,4 @@
-# DigiFuel — Digital Fuel Management & Evaluation System
+# FuelLink — Digital Fuel Management & Evaluation System
 ### PT United Tractors Tbk — Site Satui
 
 [![Laravel](https://img.shields.io/badge/Laravel-11.x-FF2D20?style=for-the-badge&logo=laravel&logoColor=white)](https://laravel.com)
@@ -12,7 +12,7 @@
 
 ---
 
-**DigiFuel** adalah sistem informasi berbasis web terintegrasi yang dirancang khusus untuk mengelola, menyetujui, mencatat realisasi, serta mengevaluasi konsumsi Bahan Bakar Minyak (BBM) armada operasional dan unit kendaraan di lingkungan **PT United Tractors Tbk Site Satui**.
+**FuelLink** adalah sistem informasi berbasis web terintegrasi yang dirancang khusus untuk mengelola, menyetujui, mencatat realisasi, serta mengevaluasi konsumsi Bahan Bakar Minyak (BBM) armada operasional dan unit kendaraan di lingkungan **PT United Tractors Tbk Site Satui**.
 
 Sistem ini menggantikan proses pengajuan manual berbasis kertas menjadi alur kerja digital yang transparan, akuntabel, terlindungi dari pemborosan biaya, dan dapat diakses baik melalui komputer (Desktop) maupun perangkat seluler (Smartphone / Tablet).
 

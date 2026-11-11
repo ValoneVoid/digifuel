@@ -3,13 +3,13 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>@yield('title', 'Fuel Request') - DigiFuel PT United Tractors Tbk Site Satui</title>
+    <title>@yield('title', 'Fuel Request') - FuelLink PT United Tractors Tbk Site Satui</title>
     <meta name="description" content="Sistem Pengajuan, Persetujuan Digital, dan Evaluasi Konsumsi BBM PT United Tractors Tbk Site Satui">
     <link rel="stylesheet" href="{{ asset('css/digifuel.css') }}?v={{ file_exists(public_path('css/digifuel.css')) ? filemtime(public_path('css/digifuel.css')) : time() }}">
     @if(file_exists(public_path('css/digifuel.css')))
         <style id="digifuel-core-css">{!! file_get_contents(public_path('css/digifuel.css')) !!}</style>
     @endif
-    <link rel="icon" type="image/svg+xml" href="{{ asset('images/ut_logo_badge.svg') }}">
+    <link rel="icon" type="image/png" href="{{ asset('images/fuellink_logo.png') }}">
     <!-- SweetAlert2 Library for Animated Success, Reject & Confirmation Popups -->
     <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
     <!-- Canvas Confetti for Celebration Checkmark Animation -->
@@ -31,8 +31,9 @@
     <!-- NAVBAR -->
     <nav class="digi-navbar">
         <div class="digi-brand-left">
-            <a href="{{ route('dashboard') }}" class="digi-logo-badge" title="United Tractors Satui">
-                <img src="{{ asset('images/ut_logo_badge.svg') }}" alt="United Tractors">
+            <a href="{{ route('dashboard') }}" class="digi-logo-badge" title="FuelLink - PT United Tractors Tbk Site Satui">
+                <img src="{{ asset('images/fuellink_logo.png') }}" alt="FuelLink" style="height: 30px; width: 30px; border-radius: 6px; object-fit: contain;">
+                <span style="font-weight: 800; font-size: 16px; letter-spacing: -0.3px;"><span style="color: #0284c7;">Fuel</span><span style="color: #16a34a;">Link</span></span>
             </a>
             <span class="digi-status-indicator"><span class="digi-status-dot"></span> online</span>
         </div>
@@ -61,7 +62,7 @@
             <!-- Tombol Panduan Penggunaan (Tanda Tanya Ikon Mencolok Dekat Notifikasi) -->
             <a href="{{ route('panduan') }}" 
                class="digi-help-icon-btn {{ request()->routeIs('panduan*') ? 'active' : '' }}" 
-               title="Panduan & Tutorial Penggunaan DigiFuel" 
+               title="Panduan & Tutorial Penggunaan FuelLink" 
                aria-label="Panduan Sistem">
                 <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round">
                     <circle cx="12" cy="12" r="10"></circle>

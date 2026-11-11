@@ -76,11 +76,13 @@ class FuelRequestPdfService
     }
 
     /**
-     * Retrieve United Tractors logo as Base64 Data URI.
+     * Retrieve FuelLink logo as Base64 Data URI.
      */
     public function getLogoBase64(): ?string
     {
-        $logoPath = public_path('images/ut_header_logo.png');
+        $logoPath = file_exists(public_path('images/fuellink_logo.png'))
+            ? public_path('images/fuellink_logo.png')
+            : public_path('images/ut_header_logo.png');
         if (file_exists($logoPath) && is_file($logoPath)) {
             try {
                 $mime = @mime_content_type($logoPath) ?: 'image/png';
@@ -89,7 +91,7 @@ class FuelRequestPdfService
                     return 'data:' . $mime . ';base64,' . base64_encode($content);
                 }
             } catch (\Throwable $e) {
-                Log::warning("Gagal mengonversi logo UT ke base64", ['error' => $e->getMessage()]);
+                Log::warning("Gagal mengonversi logo FuelLink ke base64", ['error' => $e->getMessage()]);
             }
         }
         return null;

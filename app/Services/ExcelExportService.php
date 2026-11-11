@@ -10,7 +10,7 @@ class ExcelExportService
     /**
      * Generate a genuine .xlsx Excel file using PHP's native ZipArchive (OpenXML format)
      */
-    public function downloadXlsx(string $filename, array $headers, array $rows, string $sheetTitle = 'Laporan DigiFuel'): BinaryFileResponse
+    public function downloadXlsx(string $filename, array $headers, array $rows, string $sheetTitle = 'Laporan FuelLink'): BinaryFileResponse
     {
         $tempFile = tempnam(sys_get_temp_dir(), 'digifuel_xlsx_') . '.xlsx';
 

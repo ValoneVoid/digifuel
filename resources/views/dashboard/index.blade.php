@@ -8,7 +8,7 @@
     <div class="digi-table-top" style="margin-bottom: 20px; border-bottom: 1px solid #f1f5f9; padding-bottom: 18px;">
         <div>
             <div style="display: flex; align-items: center; gap: 10px; margin-bottom: 4px;">
-                <h1 class="digi-table-title" style="font-size: 22px;">Dashboard DigiFuel</h1>
+                <h1 class="digi-table-title" style="font-size: 22px;">Dashboard FuelLink</h1>
                 <span class="digi-badge digi-badge-blue">{{ strtoupper($user->jabatan ?? $user->role) }}</span>
             </div>
             <p style="font-size: 13.5px; color: #64748b; margin: 0;">
@@ -66,7 +66,7 @@
                         <span class="digi-signature-alert-badge">Wajib</span>
                     </div>
                     <div class="digi-signature-alert-text">
-                        Anda belum memiliki tanda tangan digital aktif. Sesuai kebijakan sistem DigiFuel, seluruh pengajuan dan persetujuan Fuel Request mewajibkan tanda tangan digital yang sah.
+                        Anda belum memiliki tanda tangan digital aktif. Sesuai kebijakan sistem FuelLink, seluruh pengajuan dan persetujuan Fuel Request mewajibkan tanda tangan digital yang sah.
                     </div>
                 </div>
             </div>

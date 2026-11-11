@@ -1575,7 +1575,7 @@ class AdminMasterController extends Controller
             ];
         }
 
-        $filename = 'Arsip_Audit_Trail_DigiFuel_' . now()->format('Ymd_His') . '.xlsx';
+        $filename = 'Arsip_Audit_Trail_FuelLink_' . now()->format('Ymd_His') . '.xlsx';
         return $excelService->downloadXlsx($filename, $headers, $rows, 'Arsip Audit Trail');
     }
 

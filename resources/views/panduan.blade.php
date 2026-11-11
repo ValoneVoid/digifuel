@@ -215,7 +215,7 @@
             </span>
         </div>
         <h1 style="font-size: 22px; font-weight: 800; margin: 0 0 8px 0; color: #ffffff;">
-            Panduan Penggunaan Sistem DigiFuel
+            Panduan Penggunaan Sistem FuelLink
         </h1>
         <p style="font-size: 13.5px; color: #cbd5e1; margin: 0; max-width: 720px; line-height: 1.6;">
             Panduan praktis langkah demi langkah yang dirancang agar mudah dipahami oleh siapa saja — mulai dari Driver di lapangan, Pengawas (SPV), Pimpinan Departemen, Petugas Vendor BBM, hingga Administrator sistem.
@@ -263,7 +263,7 @@
                 Bagaimana Pengajuan BBM Bekerja dari Awal Sampai Selesai?
             </h2>
             <p style="font-size: 13.5px; color: #64748b; margin: 0 0 16px 0;">
-                Sistem DigiFuel menggantikan kupon kertas manual menjadi alur digital terpadu dalam 5 langkah sekuensial:
+                Sistem FuelLink menggantikan kupon kertas manual menjadi alur digital terpadu dalam 5 langkah sekuensial:
             </p>
 
             <div class="digi-flow-bar">
@@ -297,7 +297,7 @@
             <div class="digi-callout digi-callout-info" style="margin-top: 18px;">
                 <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" style="flex-shrink: 0; margin-top: 1px;"><circle cx="12" cy="12" r="10"></circle><line x1="12" y1="16" x2="12" y2="12"></line><line x1="12" y1="8" x2="12.01" y2="8"></line></svg>
                 <div>
-                    <strong>Pemberitahuan Otomatis:</strong> Setiap kali ada pengajuan yang membutuhkan persetujuan, sistem otomatis mengirim notifikasi ke nomor WhatsApp pejabat terkait melalui gerbang resmi WhatsApp DigiFuel.
+                    <strong>Pemberitahuan Otomatis:</strong> Setiap kali ada pengajuan yang membutuhkan persetujuan, sistem otomatis mengirim notifikasi ke nomor WhatsApp pejabat terkait melalui gerbang resmi WhatsApp FuelLink.
                 </div>
             </div>
         </div>
@@ -495,7 +495,7 @@
                     <p class="digi-step-desc">
                         1. Saat driver tiba di dispenser BBM / Fuel Truck, periksa nomor pengajuan pada HP driver atau lembar cetak PDF.<br>
                         2. Lakukan pengisian solar ke tangki unit.<br>
-                        3. Buka menu <strong>Realisasi Pengisian</strong> di DigiFuel.<br>
+                        3. Buka menu <strong>Realisasi Pengisian</strong> di FuelLink.<br>
                         4. Masukkan data aktual: <strong>Liter Aktual Terisi</strong>, <strong>Jam/KM Odometer Terkini</strong>, dan <strong>Waktu Pengisian Selesai</strong>.<br>
                         5. Klik <strong>"Simpan Realisasi Pengisian"</strong>. Transaksi selesai 100%!
                     </p>
@@ -580,10 +580,10 @@
             <div class="digi-faq-item">
                 <div class="digi-faq-q">
                     <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#0284c7" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"></circle><path d="M9.09 9a3 3 0 0 1 5.83 1c0 2-3 3-3 3"></path><line x1="12" y1="17" x2="12.01" y2="17"></line></svg>
-                    Bagaimana cara membuka DigiFuel dari HP / Smartphone?
+                    Bagaimana cara membuka FuelLink dari HP / Smartphone?
                 </div>
                 <p class="digi-faq-a">
-                    Pastikan HP Anda terhubung ke jaringan Wi-Fi kantor/site yang sama dengan server. Buka aplikasi Google Chrome atau Safari di HP, lalu ketik alamat IP server lokal (contoh: <code>http://10.2.75.153:8000</code>). Tampilan DigiFuel akan otomatis menyesuaikan layar HP Anda dengan nyaman.
+                    Pastikan HP Anda terhubung ke jaringan internet atau Wi-Fi kantor/site. Buka aplikasi Google Chrome atau Safari di HP, lalu akses alamat website resmi FuelLink (atau IP server lokal). Tampilan FuelLink akan otomatis menyesuaikan layar HP Anda dengan nyaman.
                 </p>
             </div>
 

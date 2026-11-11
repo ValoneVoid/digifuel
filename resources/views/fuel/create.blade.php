@@ -24,7 +24,7 @@
                         <span class="digi-signature-alert-badge">Wajib</span>
                     </div>
                     <div class="digi-signature-alert-text">
-                        Sesuai kebijakan sistem DigiFuel, Anda wajib memiliki tanda tangan digital aktif sebelum dapat mengirim formulir Fuel Request.
+                        Sesuai kebijakan sistem FuelLink, Anda wajib memiliki tanda tangan digital aktif sebelum dapat mengirim formulir Fuel Request.
                     </div>
                 </div>
             </div>
@@ -344,7 +344,7 @@ function requireSignatureNotice() {
         Swal.fire({
             icon: 'warning',
             title: 'Tanda Tangan Digital Wajib Diisi!',
-            html: 'Anda belum memiliki tanda tangan digital aktif di profil.<br><br>Sesuai kebijakan sistem DigiFuel, seluruh pengajuan <strong>Fuel Request</strong> mewajibkan tanda tangan pemohon. Silakan unggah tanda tangan digital Anda terlebih dahulu.',
+            html: 'Anda belum memiliki tanda tangan digital aktif di profil.<br><br>Sesuai kebijakan sistem FuelLink, seluruh pengajuan <strong>Fuel Request</strong> mewajibkan tanda tangan pemohon. Silakan unggah tanda tangan digital Anda terlebih dahulu.',
             confirmButtonText: 'Buka Halaman Profil',
             showCancelButton: true,
             cancelButtonText: 'Batal',

@@ -4,7 +4,7 @@
         <meta charset="utf-8">
         <meta name="viewport" content="width=device-width, initial-scale=1">
 
-        <title>{{ config('app.name', 'Digifuel') }}</title>
+        <title>{{ config('app.name', 'FuelLink') }}</title>
 
         <!-- Favicon / Web Icon -->
         <link rel="icon" type="image/png" href="{{ asset('favicon.png') }}">
