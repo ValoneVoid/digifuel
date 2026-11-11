@@ -4,7 +4,10 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Fuel Request - {{ $fuelRequest->request_no }}</title>
-    <link rel="stylesheet" href="{{ asset('css/digifuel.css') }}">
+    <link rel="stylesheet" href="{{ asset('css/digifuel.css') }}?v={{ file_exists(public_path('css/digifuel.css')) ? filemtime(public_path('css/digifuel.css')) : time() }}">
+    @if(file_exists(public_path('css/digifuel.css')))
+        <style id="digifuel-core-css">{!! file_get_contents(public_path('css/digifuel.css')) !!}</style>
+    @endif
     <style>
         body {
             background: #f1f5f9;

@@ -6,6 +6,9 @@
     <title>@yield('title', 'Fuel Request') - DigiFuel PT United Tractors Tbk Site Satui</title>
     <meta name="description" content="Sistem Pengajuan, Persetujuan Digital, dan Evaluasi Konsumsi BBM PT United Tractors Tbk Site Satui">
     <link rel="stylesheet" href="{{ asset('css/digifuel.css') }}?v={{ file_exists(public_path('css/digifuel.css')) ? filemtime(public_path('css/digifuel.css')) : time() }}">
+    @if(file_exists(public_path('css/digifuel.css')))
+        <style id="digifuel-core-css">{!! file_get_contents(public_path('css/digifuel.css')) !!}</style>
+    @endif
     <link rel="icon" type="image/svg+xml" href="{{ asset('images/ut_logo_badge.svg') }}">
     <!-- SweetAlert2 Library for Animated Success, Reject & Confirmation Popups -->
     <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>

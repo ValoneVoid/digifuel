@@ -14,6 +14,7 @@ return Application::configure(basePath: dirname(__DIR__))
         \App\Console\Commands\PurgeAuditLogsCommand::class,
     ])
     ->withMiddleware(function (Middleware $middleware) {
+        $middleware->trustProxies(at: '*');
         $middleware->validateCsrfTokens(except: [
             'logout',
         ]);
