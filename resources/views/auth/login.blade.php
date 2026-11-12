@@ -9,9 +9,22 @@
         <style id="digifuel-core-css">{!! file_get_contents(public_path('css/digifuel.css')) !!}</style>
     @endif
     <link rel="icon" type="image/png" href="{{ asset('images/fuellink_logo.png') }}">
+    @php
+        $bgData = \App\Models\SystemBackground::getActiveBackground();
+        $bgUrl = $bgData['image_url'];
+        $bgOpacity = $bgData['overlay_opacity'];
+    @endphp
     <style>
+        :root {
+            --bg-overlay-opacity: {{ $bgOpacity }};
+            --bg-active-url: url('{{ $bgUrl }}');
+        }
         body {
-            background-image: url('{{ \App\Models\SystemBackground::getActiveImageUrl() }}');
+            background-image: linear-gradient(rgba(0, 0, 0, var(--bg-overlay-opacity)), rgba(0, 0, 0, var(--bg-overlay-opacity))), var(--bg-active-url) !important;
+            background-size: cover !important;
+            background-position: center top !important;
+            background-repeat: no-repeat !important;
+            background-attachment: fixed !important;
         }
     </style>
 </head>

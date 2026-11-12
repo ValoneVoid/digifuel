@@ -105,6 +105,7 @@ Route::middleware(['auth'])->group(function () {
         Route::post('/admin/master/fuel-standard', [AdminMasterController::class, 'storeFuelStandard'])->name('admin.master.standard');
         Route::post('/admin/master/fuel-price', [AdminMasterController::class, 'storeFuelPrice'])->name('admin.master.price');
         Route::post('/admin/master/background', [AdminMasterController::class, 'storeBackground'])->name('admin.master.background');
+        Route::post('/admin/master/background/opacity', [AdminMasterController::class, 'updateBackgroundOpacity'])->name('admin.master.background.opacity');
         Route::post('/admin/master/background/{id}/delete', [AdminMasterController::class, 'deleteBackground'])->name('admin.master.background.delete');
         Route::post('/admin/master/toggle-status', [AdminMasterController::class, 'toggleStatus'])->name('admin.master.toggle');
         Route::patch('/admin/master/toggle-status', [AdminMasterController::class, 'toggleStatus']);

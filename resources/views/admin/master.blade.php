@@ -2057,6 +2057,288 @@
     <!-- TAB 8B: SYSTEM BACKGROUNDS (CRUD BACKGROUND UT)              -->
     <!-- ============================================================ -->
     @if($tab === 'backgrounds')
+        @php
+            $activeBg = \App\Models\SystemBackground::where('is_active', true)->latest('updated_at')->first() ?? \App\Models\SystemBackground::first();
+            $activeOpacityPercent = $activeBg ? (int)round(($activeBg->overlay_opacity ?? 0.65) * 100) : 65;
+        @endphp
+
+        <style>
+            .darkness-control-card {
+                background: #ffffff;
+                border: 1px solid #e2e8f0;
+                border-radius: 16px;
+                padding: 24px 26px;
+                margin-bottom: 24px;
+                box-shadow: 0 10px 25px -5px rgba(15, 23, 42, 0.05), 0 8px 10px -6px rgba(15, 23, 42, 0.03);
+            }
+            .darkness-slider {
+                -webkit-appearance: none;
+                appearance: none;
+                width: 100%;
+                height: 10px;
+                border-radius: 999px;
+                background: linear-gradient(to right, #94a3b8 0%, #475569 50%, #020617 100%);
+                outline: none;
+                cursor: pointer;
+                transition: opacity 0.2s;
+            }
+            .darkness-slider::-webkit-slider-thumb {
+                -webkit-appearance: none;
+                appearance: none;
+                width: 24px;
+                height: 24px;
+                border-radius: 50%;
+                background: #ffffff;
+                border: 3px solid #0284c7;
+                box-shadow: 0 2px 8px rgba(0, 0, 0, 0.25);
+                cursor: grab;
+                transition: transform 0.15s ease, box-shadow 0.15s ease;
+            }
+            .darkness-slider::-webkit-slider-thumb:hover {
+                transform: scale(1.15);
+                box-shadow: 0 0 0 6px rgba(2, 132, 199, 0.2);
+            }
+            .darkness-slider::-webkit-slider-thumb:active {
+                cursor: grabbing;
+                transform: scale(1.05);
+            }
+            .darkness-preset-btn {
+                display: inline-flex;
+                align-items: center;
+                gap: 6px;
+                padding: 7px 14px;
+                border-radius: 20px;
+                border: 1px solid #e2e8f0;
+                background: #f8fafc;
+                color: #475569;
+                font-size: 12.5px;
+                font-weight: 600;
+                cursor: pointer;
+                transition: all 0.2s ease;
+            }
+            .darkness-preset-btn:hover {
+                background: #f1f5f9;
+                border-color: #cbd5e1;
+                color: #0f172a;
+                transform: translateY(-1px);
+            }
+            .darkness-preset-btn.is-active {
+                background: #0284c7;
+                color: #ffffff;
+                border-color: #0284c7;
+                box-shadow: 0 2px 8px rgba(2, 132, 199, 0.35);
+            }
+            .mockup-preview-window {
+                width: 100%;
+                max-width: 310px;
+                border-radius: 12px;
+                overflow: hidden;
+                border: 1px solid #cbd5e1;
+                box-shadow: 0 8px 24px rgba(0, 0, 0, 0.12);
+                background: #0f172a;
+                position: relative;
+            }
+            .mockup-header {
+                background: #1e293b;
+                padding: 8px 12px;
+                display: flex;
+                align-items: center;
+                gap: 6px;
+                border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+            }
+            .mockup-dot {
+                width: 8px;
+                height: 8px;
+                border-radius: 50%;
+            }
+            .mockup-viewport {
+                position: relative;
+                height: 175px;
+                background-size: cover;
+                background-position: center;
+                padding: 14px;
+                display: flex;
+                flex-direction: column;
+                justify-content: center;
+                align-items: center;
+                transition: background-image 0.2s ease;
+            }
+            .mockup-overlay {
+                position: absolute;
+                inset: 0;
+                background-color: #000000;
+                transition: opacity 0.15s ease;
+                pointer-events: none;
+            }
+            .mockup-content {
+                position: relative;
+                z-index: 2;
+                width: 100%;
+                background: rgba(255, 255, 255, 0.95);
+                backdrop-filter: blur(4px);
+                border-radius: 8px;
+                padding: 10px 12px;
+                box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+            }
+            @media (max-width: 900px) {
+                .darkness-main-grid {
+                    grid-template-columns: 1fr !important;
+                }
+            }
+        </style>
+
+        <!-- Professional Darkness & Theme Contrast Controller Card (Aligned with Modern UI/UX) -->
+        <div class="darkness-control-card">
+            <!-- Header with Active Theme Indicator -->
+            <div style="display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 14px; margin-bottom: 20px; padding-bottom: 16px; border-bottom: 1px solid #f1f5f9;">
+                <div style="display: flex; align-items: center; gap: 14px;">
+                    <div style="width: 48px; height: 48px; border-radius: 12px; background: linear-gradient(135deg, #0f172a 0%, #1e293b 100%); display: flex; align-items: center; justify-content: center; color: #38bdf8; box-shadow: 0 4px 12px rgba(15, 23, 42, 0.15);">
+                        <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                            <circle cx="12" cy="12" r="5"/><path d="M12 1v2M12 21v2M4.22 4.22l1.42 1.42M18.36 18.36l1.42 1.42M1 12h2M21 12h2M4.22 19.78l1.42-1.42M18.36 5.64l1.42-1.42"/>
+                        </svg>
+                    </div>
+                    <div>
+                        <div style="display: flex; align-items: center; gap: 8px; flex-wrap: wrap;">
+                            <h3 style="margin: 0; font-size: 17px; font-weight: 800; color: #0f172a; letter-spacing: -0.3px;">
+                                Pengaturan Suasana & Kegelapan Background
+                            </h3>
+                            <span class="digi-badge digi-badge-blue" style="font-size: 11px; font-weight: 700; padding: 2px 8px;">Dark Overlay</span>
+                        </div>
+                        <p style="margin: 3px 0 0 0; font-size: 13px; color: #64748b;">
+                            Sesuaikan intensitas lapisan gelap (*dark overlay*) di atas wallpaper untuk memaksimalkan kenyamanan mata dan keterbacaan teks (standar kontras WCAG 2.1).
+                        </p>
+                    </div>
+                </div>
+                <div style="display: flex; align-items: center; gap: 10px; background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 10px; padding: 6px 14px;">
+                    <img src="{{ asset($activeBg?->image_path ?? 'images/mining_bg.jpg') }}" alt="Active Thumb" style="width: 32px; height: 32px; border-radius: 6px; object-fit: cover; border: 1px solid #cbd5e1;">
+                    <div style="text-align: right;">
+                        <div style="font-size: 10px; font-weight: 700; color: #16a34a; text-transform: uppercase;">Aktif Saat Ini</div>
+                        <div style="font-size: 12.5px; font-weight: 700; color: #1e293b; max-width: 180px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;">
+                            {{ $activeBg?->title ?? 'Default Mining Site' }}
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Main Interactive Section: 2 Columns (Controls + Live Simulator) -->
+            <div class="darkness-main-grid" style="display: grid; grid-template-columns: 1fr 330px; gap: 28px; align-items: start;">
+                <!-- Left: Interactive Controls -->
+                <div>
+                    <!-- Readout Header -->
+                    <div style="display: flex; justify-content: space-between; align-items: flex-end; margin-bottom: 12px; flex-wrap: wrap; gap: 8px;">
+                        <div>
+                            <span style="font-size: 11px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.5px; color: #64748b;">Tingkat Kegelapan Terpilih</span>
+                            <div style="display: flex; align-items: baseline; gap: 10px; margin-top: 2px;">
+                                <span id="quickOpacityValue" style="font-size: 34px; font-weight: 900; color: #0284c7; line-height: 1;">{{ $activeOpacityPercent }}%</span>
+                                <span id="quickOpacityTag" class="digi-badge {{ $activeOpacityPercent >= 60 ? 'digi-badge-blue' : 'digi-badge-gray' }}" style="font-size: 12px; font-weight: 700; padding: 4px 10px;">
+                                    {{ $activeOpacityPercent >= 75 ? '🌑 Sangat Gelap (High Focus)' : ($activeOpacityPercent >= 55 ? '🌙 Gelap Optimal (Direkomendasikan)' : ($activeOpacityPercent >= 35 ? '🌤️ Sedang (Medium)' : '☀️ Terang (Cerah)')) }}
+                                </span>
+                            </div>
+                        </div>
+                        <div style="display: flex; align-items: center; gap: 6px; font-size: 11.5px; color: #059669; font-weight: 600; background: #ecfdf5; border: 1px solid #a7f3d0; padding: 4px 10px; border-radius: 8px;">
+                            <span style="display: inline-block; width: 6px; height: 6px; border-radius: 50%; background: #059669;"></span>
+                            Pratinjau Layar Langsung (Real-time)
+                        </div>
+                    </div>
+
+                    <!-- Custom Range Slider -->
+                    <div style="position: relative; padding: 8px 0 4px 0;">
+                        <input type="range" id="quickOpacitySlider" min="0" max="95" step="5" value="{{ $activeOpacityPercent }}"
+                            class="darkness-slider"
+                            oninput="handleQuickOpacityChange(this.value)">
+
+                        <!-- Scale Marks -->
+                        <div style="display: flex; justify-content: space-between; margin-top: 8px; font-size: 11px; font-weight: 600; color: #94a3b8;">
+                            <span>0% (Asli)</span>
+                            <span>25%</span>
+                            <span>50%</span>
+                            <span style="color: #0284c7; font-weight: 800;">65% ★ Rekomendasi</span>
+                            <span>80%</span>
+                            <span>95% (Pekat)</span>
+                        </div>
+                    </div>
+
+                    <!-- Segmented Presets -->
+                    <div style="margin-top: 18px; padding-top: 16px; border-top: 1px dashed #e2e8f0;">
+                        <div style="font-size: 12px; font-weight: 700; color: #475569; margin-bottom: 10px; display: flex; align-items: center; gap: 6px;">
+                            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 2v4M12 18v4M4.93 4.93l2.83 2.83M16.24 16.24l2.83 2.83M2 12h4M18 12h4M4.93 19.07l2.83-2.83M16.24 7.76l2.83-2.83"/></svg>
+                            Pilihan Preset Cepat (One-Click Presets):
+                        </div>
+                        <div style="display: flex; gap: 8px; flex-wrap: wrap;">
+                            <button type="button" class="darkness-preset-btn {{ $activeOpacityPercent == 30 ? 'is-active' : '' }}" data-val="30" onclick="setPresetOpacity(30)">
+                                <span>☀️</span> 30% Terang
+                            </button>
+                            <button type="button" class="darkness-preset-btn {{ $activeOpacityPercent == 50 ? 'is-active' : '' }}" data-val="50" onclick="setPresetOpacity(50)">
+                                <span>🌤️</span> 50% Seimbang
+                            </button>
+                            <button type="button" class="darkness-preset-btn {{ $activeOpacityPercent == 65 ? 'is-active' : '' }}" data-val="65" onclick="setPresetOpacity(65)">
+                                <span>🌙</span> 65% Gelap Optimal (UT)
+                            </button>
+                            <button type="button" class="darkness-preset-btn {{ $activeOpacityPercent == 80 ? 'is-active' : '' }}" data-val="80" onclick="setPresetOpacity(80)">
+                                <span>🌑</span> 80% Sangat Gelap
+                            </button>
+                        </div>
+                    </div>
+
+                    <!-- Save Action Bar & Feedback -->
+                    <div style="display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 12px; margin-top: 22px; padding-top: 16px; border-top: 1px solid #f1f5f9;">
+                        <div style="display: flex; align-items: center; gap: 8px; font-size: 12px; color: #64748b;">
+                            <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="#0284c7" stroke-width="2"><circle cx="12" cy="12" r="10"/><path d="m9 12 2 2 4-4"/></svg>
+                            <span id="quickOpacityStatusMsg">Perubahan akan langsung diterapkan ke seluruh halaman pengguna.</span>
+                        </div>
+                        <button type="button" id="saveQuickOpacityBtn" class="btn-digi btn-digi-green" style="padding: 10px 22px; font-size: 13.5px; font-weight: 700; display: inline-flex; align-items: center; gap: 8px; box-shadow: 0 4px 12px rgba(22, 163, 74, 0.25);" onclick="saveQuickOpacity()">
+                            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+                                <path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z"></path>
+                                <polyline points="17 21 17 13 7 13 7 21"></polyline>
+                                <polyline points="7 3 7 8 15 8"></polyline>
+                            </svg>
+                            Simpan Tingkat Kegelapan
+                        </button>
+                    </div>
+                </div>
+
+                <!-- Right: Simulator Window Mockup (Visual Context & WCAG Check) -->
+                <div style="background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 12px; padding: 14px; display: flex; flex-direction: column; align-items: center;">
+                    <div style="font-size: 11.5px; font-weight: 700; color: #475569; margin-bottom: 8px; width: 100%; display: flex; justify-content: space-between; align-items: center;">
+                        <span>Simulasi Keterbacaan UI</span>
+                        <span id="simulatorOpacityLabel" style="font-weight: 800; color: #0284c7;">{{ $activeOpacityPercent }}%</span>
+                    </div>
+
+                    <div class="mockup-preview-window">
+                        <div class="mockup-header">
+                            <span class="mockup-dot" style="background: #ef4444;"></span>
+                            <span class="mockup-dot" style="background: #f59e0b;"></span>
+                            <span class="mockup-dot" style="background: #10b981;"></span>
+                            <span style="font-size: 10px; color: #94a3b8; margin-left: 6px; font-weight: 500;">fuellink.site-satui.internal</span>
+                        </div>
+                        <div class="mockup-viewport" id="mockupViewport" style="background-image: url('{{ asset($activeBg?->image_path ?? 'images/mining_bg.jpg') }}');">
+                            <!-- Dynamic dark overlay in simulator -->
+                            <div class="mockup-overlay" id="mockupOverlay" style="opacity: {{ ($activeOpacityPercent / 100) }};"></div>
+                            
+                            <!-- Simulated UI card sitting on top of overlay -->
+                            <div class="mockup-content">
+                                <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 6px;">
+                                    <span style="font-size: 11px; font-weight: 800; color: #0f172a;">Fuel Request LV-01</span>
+                                    <span class="digi-badge digi-badge-green" style="font-size: 9.5px; padding: 2px 6px;">Disetujui</span>
+                                </div>
+                                <div style="font-size: 10px; color: #64748b; line-height: 1.3;">
+                                    Total Liter: <strong>65 Liter</strong> | HM: <strong>1.250</strong>
+                                </div>
+                                <div style="margin-top: 6px; display: flex; justify-content: space-between; align-items: center;">
+                                    <span style="font-size: 9.5px; color: #16a34a; font-weight: 700;">✓ Kontras Terbaca Jelas</span>
+                                    <div style="background: #0284c7; color: #ffffff; font-size: 9.5px; padding: 2px 8px; border-radius: 4px; font-weight: 600;">Lihat</div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div style="font-size: 11px; color: #64748b; text-align: center; margin-top: 10px; line-height: 1.4;">
+                        Miniatur di atas mensimulasikan keterbacaan kartu formulir terhadap tingkat kegelapan latar belakang secara <em>real-time</em>.
+                    </div>
+                </div>
+            </div>
+        </div>
+
         <form id="bgForm" action="{{ route('admin.master.background') }}" method="POST" enctype="multipart/form-data" class="digi-form-box">
             @csrf
             <input type="hidden" name="id" id="bg_id" value="">
@@ -2114,6 +2396,7 @@
                         <th>Pratinjau Gambar</th>
                         <th>Judul Background</th>
                         <th>Keterangan / Ketentuan UT</th>
+                        <th>Tingkat Kegelapan</th>
                         <th>Waktu Diunggah</th>
                         <th>Status</th>
                         <th>Aksi</th>
@@ -2133,6 +2416,14 @@
                                 <div style="font-size: 11px; color: #64748b;"><code>{{ $bg->image_path }}</code></div>
                             </td>
                             <td>{{ $bg->notes ?? '-' }}</td>
+                            <td>
+                                @php
+                                    $bgPct = (int) round(($bg->overlay_opacity ?? 0.65) * 100);
+                                @endphp
+                                <span class="digi-badge {{ $bgPct >= 60 ? 'digi-badge-blue' : 'digi-badge-gray' }}" style="font-size: 12px; font-weight: 700;">
+                                    🌙 {{ $bgPct }}%
+                                </span>
+                            </td>
                             <td>
                                 <div>{{ $bg->created_at?->format('d/m/Y H:i') }}</div>
                                 <div style="font-size: 11px; color: #64748b;">Oleh: {{ $bg->uploader?->name ?? 'Admin Sistem' }}</div>
@@ -3010,7 +3301,109 @@ function resetUserForm() {
     if (badge) badge.style.display = 'none';
 }
 
-// 8B. Background Form Auto-Fill & Reset
+// 8B. Background Form Auto-Fill & Reset & Live Opacity Controller
+function handleQuickOpacityChange(val) {
+    const valNum = parseInt(val, 10);
+    const valEl = document.getElementById('quickOpacityValue');
+    const tagEl = document.getElementById('quickOpacityTag');
+    if (valEl) valEl.textContent = valNum + '%';
+    if (tagEl) {
+        let tagText = '🌤️ Sedang (Medium)';
+        let tagClass = 'digi-badge digi-badge-yellow';
+        if (valNum >= 75) {
+            tagText = '🌑 Sangat Gelap (High Focus)';
+            tagClass = 'digi-badge digi-badge-blue';
+        } else if (valNum >= 55) {
+            tagText = '🌙 Gelap Optimal (Direkomendasikan)';
+            tagClass = 'digi-badge digi-badge-blue';
+        } else if (valNum < 35) {
+            tagText = '☀️ Terang (Cerah)';
+            tagClass = 'digi-badge digi-badge-gray';
+        }
+        tagEl.textContent = tagText;
+        tagEl.className = tagClass;
+    }
+
+    const decimalVal = (valNum / 100).toFixed(2);
+
+    // Update real-time screen background overlay
+    document.documentElement.style.setProperty('--bg-overlay-opacity', decimalVal);
+
+    // Update live simulator mockup window
+    const simOverlay = document.getElementById('mockupOverlay');
+    if (simOverlay) simOverlay.style.opacity = decimalVal;
+    const simLabel = document.getElementById('simulatorOpacityLabel');
+    if (simLabel) simLabel.textContent = valNum + '%';
+
+    // Update active highlight on preset chips
+    document.querySelectorAll('.darkness-preset-btn').forEach(btn => {
+        const btnVal = parseInt(btn.getAttribute('data-val'), 10);
+        btn.classList.toggle('is-active', btnVal === valNum);
+    });
+}
+
+function setPresetOpacity(val) {
+    const slider = document.getElementById('quickOpacitySlider');
+    if (slider) {
+        slider.value = val;
+        handleQuickOpacityChange(val);
+    }
+}
+
+function saveQuickOpacity() {
+    const slider = document.getElementById('quickOpacitySlider');
+    const btn = document.getElementById('saveQuickOpacityBtn');
+    if (!slider || !btn) return;
+
+    const opacityVal = parseInt(slider.value, 10);
+    const originalBtnText = btn.innerHTML;
+    btn.disabled = true;
+    btn.innerHTML = 'Menyimpan...';
+
+    fetch("{{ route('admin.master.background.opacity') }}", {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json',
+            'Accept': 'application/json',
+            'X-CSRF-TOKEN': '{{ csrf_token() }}'
+        },
+        body: JSON.stringify({
+            opacity: opacityVal
+        })
+    })
+    .then(res => res.json())
+    .then(data => {
+        btn.disabled = false;
+        btn.innerHTML = originalBtnText;
+        if (data.success) {
+            if (typeof Swal !== 'undefined') {
+                Swal.fire({
+                    icon: 'success',
+                    title: 'Berhasil Disimpan!',
+                    text: data.message || `Tingkat kegelapan background berhasil diatur ke ${opacityVal}%.`,
+                    timer: 2000,
+                    showConfirmButton: false
+                });
+            } else {
+                alert(data.message || 'Tingkat kegelapan berhasil disimpan.');
+            }
+            const statusMsg = document.getElementById('quickOpacityStatusMsg');
+            if (statusMsg) {
+                statusMsg.textContent = `Tersimpan: ${opacityVal}% pada ${new Date().toLocaleTimeString('id-ID')}`;
+                statusMsg.style.color = '#16a34a';
+            }
+        } else {
+            alert(data.message || 'Gagal menyimpan tingkat kegelapan.');
+        }
+    })
+    .catch(err => {
+        btn.disabled = false;
+        btn.innerHTML = originalBtnText;
+        console.error(err);
+        alert('Terjadi kesalahan jaringan saat menyimpan tingkat kegelapan.');
+    });
+}
+
 function editBackground(bg) {
     bg = resolveItemData(bg);
     if (!bg) return;
@@ -3018,6 +3411,7 @@ function editBackground(bg) {
     document.getElementById('bg_title').value = bg.title || '';
     document.getElementById('bg_notes').value = bg.notes || '';
     document.getElementById('bg_set_active').checked = !!bg.is_active;
+
     document.getElementById('bg_file_req').style.display = 'none';
     document.getElementById('bgFormTitle').textContent = 'Edit Background Sistem: ' + bg.title;
     document.getElementById('bgSubmitBtn').textContent = 'Perbarui Background';
@@ -3035,6 +3429,7 @@ function resetBgForm() {
         form.classList.remove('is-editing');
     }
     document.getElementById('bg_id').value = '';
+
     document.getElementById('bg_file_req').style.display = 'inline';
     document.getElementById('bgFormTitle').textContent = 'Upload / Kelola Gambar Background Sistem Sesuai Ketentuan UT';
     document.getElementById('bgSubmitBtn').textContent = 'Simpan & Terapkan Background';

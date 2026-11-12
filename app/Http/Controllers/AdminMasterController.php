@@ -1223,11 +1223,22 @@ class AdminMasterController extends Controller
 
         $setActive = $request->boolean('set_active', true);
 
+        // Calculate opacity / darkness level (default 0.65 or 65%)
+        $opacity = 0.65;
+        if ($request->has('overlay_opacity')) {
+            $val = (float) $request->input('overlay_opacity');
+            $opacity = $val > 1 ? round($val / 100, 2) : round($val, 2);
+        } elseif ($request->has('opacity_percent')) {
+            $opacity = round((float) $request->input('opacity_percent') / 100, 2);
+        }
+        $opacity = max(0.0, min(0.95, $opacity));
+
         if (!empty($validated['id'])) {
             $bg = SystemBackground::findOrFail($validated['id']);
             $payload = [
                 'title' => $validated['title'],
                 'notes' => $validated['notes'] ?? null,
+                'overlay_opacity' => $opacity,
             ];
             if ($imagePath) {
                 $payload['image_path'] = $imagePath;
@@ -1237,7 +1248,7 @@ class AdminMasterController extends Controller
                 $payload['is_active'] = true;
             }
             $bg->update($payload);
-            $actionMsg = "Memperbarui Background Sistem: {$bg->title}.";
+            $actionMsg = "Memperbarui Background Sistem: {$bg->title} (Tingkat Kegelapan: " . (int)round($opacity * 100) . "%).";
         } else {
             if (!$imagePath) {
                 return redirect()->route('admin.master', ['tab' => 'backgrounds'])
@@ -1250,16 +1261,63 @@ class AdminMasterController extends Controller
                 'title' => $validated['title'],
                 'image_path' => $imagePath,
                 'notes' => $validated['notes'] ?? null,
+                'overlay_opacity' => $opacity,
                 'is_active' => $setActive,
                 'uploaded_by' => $admin->id,
             ]);
-            $actionMsg = "Mengunggah Background Sistem baru: {$bg->title}.";
+            $actionMsg = "Mengunggah Background Sistem baru: {$bg->title} (Tingkat Kegelapan: " . (int)round($opacity * 100) . "%).";
         }
 
         FuelRequestHistory::record(null, $admin->id, 'background_updated', null, 'active', $actionMsg);
 
         return redirect()->route('admin.master', ['tab' => 'backgrounds'])
             ->with('success', "Background '{$bg->title}' berhasil disimpan" . ($bg->is_active ? ' dan diterapkan sebagai background aktif.' : '.'));
+    }
+
+    public function updateBackgroundOpacity(Request $request)
+    {
+        $admin = $this->getActiveUser();
+
+        $request->validate([
+            'id' => 'nullable|exists:system_backgrounds,id',
+            'opacity' => 'required|numeric|min:0|max:100',
+        ]);
+
+        $val = (float) $request->input('opacity');
+        $opacity = $val > 1 ? round($val / 100, 2) : round($val, 2);
+        $opacity = max(0.0, min(0.95, $opacity));
+
+        $id = $request->input('id');
+        $bg = $id ? SystemBackground::find($id) : SystemBackground::where('is_active', true)->first();
+        if (!$bg) {
+            $bg = SystemBackground::first();
+        }
+
+        if ($bg) {
+            $bg->update(['overlay_opacity' => $opacity]);
+            $percent = (int) round($opacity * 100);
+            $actionMsg = "Memperbarui tingkat kegelapan background '{$bg->title}' menjadi {$percent}%.";
+            FuelRequestHistory::record(null, $admin->id, 'background_opacity_updated', null, 'active', $actionMsg);
+
+            if ($request->expectsJson() || $request->ajax()) {
+                return response()->json([
+                    'success' => true,
+                    'message' => "Tingkat kegelapan background berhasil diperbarui menjadi {$percent}%.",
+                    'opacity' => $opacity,
+                    'percent' => $percent,
+                ]);
+            }
+
+            return redirect()->route('admin.master', ['tab' => 'backgrounds'])
+                ->with('success', "Tingkat kegelapan background berhasil diatur menjadi {$percent}%.");
+        }
+
+        if ($request->expectsJson() || $request->ajax()) {
+            return response()->json(['success' => false, 'message' => 'Data background tidak ditemukan.'], 404);
+        }
+
+        return redirect()->route('admin.master', ['tab' => 'backgrounds'])
+            ->with('error', 'Data background tidak ditemukan.');
     }
 
     public function deleteBackground(Request $request, int|string $id)

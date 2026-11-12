@@ -14,9 +14,22 @@
     <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
     <!-- Canvas Confetti for Celebration Checkmark Animation -->
     <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.9.3/dist/confetti.browser.min.js"></script>
+    @php
+        $bgData = \App\Models\SystemBackground::getActiveBackground();
+        $bgUrl = $bgData['image_url'];
+        $bgOpacity = $bgData['overlay_opacity'];
+    @endphp
     <style>
+        :root {
+            --bg-overlay-opacity: {{ $bgOpacity }};
+            --bg-active-url: url('{{ $bgUrl }}');
+        }
         body {
-            background-image: url('{{ \App\Models\SystemBackground::getActiveImageUrl() }}');
+            background-image: linear-gradient(rgba(0, 0, 0, var(--bg-overlay-opacity)), rgba(0, 0, 0, var(--bg-overlay-opacity))), var(--bg-active-url) !important;
+            background-size: cover !important;
+            background-position: center top !important;
+            background-repeat: no-repeat !important;
+            background-attachment: fixed !important;
         }
     </style>
 </head>
