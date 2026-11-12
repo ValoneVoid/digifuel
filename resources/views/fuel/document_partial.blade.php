@@ -119,7 +119,7 @@
                 <div style="height: 90px; display:flex; align-items:center; justify-content:center; color:#94a3b8; font-size:12px;">(Menunggu Approval)</div>
             @endif
             <div class="fuel-doc-sig-line"></div>
-            <span class="fuel-doc-sig-name">{{ $fuelRequest->spv ? $fuelRequest->spv->username : 'aklis' }}</span>
+            <span class="fuel-doc-sig-name">{{ $fuelRequest->spv ? $fuelRequest->spv->name : ($fuelRequest->spv_name ?? 'Supervisor') }}</span>
             <span class="fuel-doc-sig-role">(Spv/Dept. Head)</span>
         </div>
 
@@ -134,7 +134,7 @@
                 <div style="height: 90px; display:flex; align-items:center; justify-content:center; color:#94a3b8; font-size:12px;">(Menunggu Approval)</div>
             @endif
             <div class="fuel-doc-sig-line"></div>
-            <span class="fuel-doc-sig-name">{{ $fuelRequest->depthead ? $fuelRequest->depthead->name : 'Garius' }}</span>
+            <span class="fuel-doc-sig-name">{{ $fuelRequest->depthead ? $fuelRequest->depthead->name : ($fuelRequest->depthead_name ?? ($fuelRequest->manager ? $fuelRequest->manager->name : 'Dept. Head / Manager')) }}</span>
             <span class="fuel-doc-sig-role">(Dept. Head/Manager)</span>
         </div>
 
