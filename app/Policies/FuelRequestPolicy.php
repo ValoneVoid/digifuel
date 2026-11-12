@@ -39,7 +39,7 @@ class FuelRequestPolicy
             return true;
         }
 
-        return $user->isDriver() && (int) $fuelRequest->user_id === (int) $user->id;
+        return ($user->isDriver() || $user->isSpv()) && (int) $fuelRequest->user_id === (int) $user->id;
     }
 
     /**
@@ -51,7 +51,7 @@ class FuelRequestPolicy
             return true;
         }
 
-        return $user->isDriver() && (int) $fuelRequest->user_id === (int) $user->id;
+        return ($user->isDriver() || $user->isSpv()) && (int) $fuelRequest->user_id === (int) $user->id;
     }
 
     /**
@@ -135,7 +135,7 @@ class FuelRequestPolicy
             return true;
         }
 
-        if ($user->isDriver() && (int) $fuelRequest->user_id === (int) $user->id) {
+        if (($user->isDriver() || $user->isSpv()) && (int) $fuelRequest->user_id === (int) $user->id) {
             return in_array($fuelRequest->current_stage, ['draft', 'cancelled'])
                 || ($fuelRequest->status_spv === 'menunggu' && in_array($fuelRequest->current_stage, ['pending_spv', 'submitted']));
         }

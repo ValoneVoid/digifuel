@@ -292,7 +292,7 @@ class DigiFuelWorkflowTest extends TestCase
         $this->actingAs($spv);
         $this->get('/admin/master')->assertStatus(403);
         $this->get('/evaluation')->assertStatus(403);
-        $this->get('/fuel')->assertStatus(403);
+        $this->get('/fuel')->assertStatus(200);
         $this->get('/approval')->assertStatus(200);
         $this->get(route('approval.show', $ownFuelRequest->id))->assertStatus(200);
         $this->post(route('approval.realization', $ownFuelRequest->id), [])->assertStatus(403);
