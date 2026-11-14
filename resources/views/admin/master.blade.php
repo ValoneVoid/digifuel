@@ -1937,7 +1937,19 @@
                 </div>
                 <div class="digi-form-group">
                     <label class="digi-form-label">Password Baru (Default: password123)</label>
-                    <input type="password" name="password" id="usr_password" class="digi-input" placeholder="Kosongkan jika tidak diubah">
+                    <div style="position: relative; display: flex; align-items: center;">
+                        <input type="password" name="password" id="usr_password" class="digi-input" placeholder="Kosongkan jika tidak diubah" style="padding-right: 42px;">
+                        <button type="button" onclick="toggleFormInputPassword('usr_password', this)" id="toggleUsrPwdBtn" title="Lihat Password" aria-label="Lihat Password" style="position: absolute; right: 10px; background: transparent; border: none; padding: 4px; color: #64748b; cursor: pointer; display: inline-flex; align-items: center; justify-content: center;">
+                            <svg class="eye-open" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"></path>
+                                <circle cx="12" cy="12" r="3"></circle>
+                            </svg>
+                            <svg class="eye-closed" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="display: none;">
+                                <path d="M17.94 17.94A10.07 10.07 0 0 1 12 20c-7 0-11-8-11-8a18.45 18.45 0 0 1 5.06-5.94M9.9 4.24A9.12 9.12 0 0 1 12 4c7 0 11 8 11 8a18.5 18.5 0 0 1-2.16 3.19m-6.72-1.07a3 3 0 1 1-4.24-4.24"></path>
+                                <line x1="1" y1="1" x2="23" y2="23"></line>
+                            </svg>
+                        </button>
+                    </div>
                 </div>
             </div>
 
@@ -3324,6 +3336,16 @@ function editUser(u) {
     document.getElementById('usr_jabatan').value = u.jabatan || '';
     document.getElementById('usr_vendor_id').value = u.vendor_id || '';
     document.getElementById('usr_password').value = '';
+    const pwdInput = document.getElementById('usr_password');
+    if (pwdInput) pwdInput.type = 'password';
+    const pwdBtn = document.getElementById('toggleUsrPwdBtn');
+    if (pwdBtn) {
+        const eyeOpen = pwdBtn.querySelector('.eye-open');
+        const eyeClosed = pwdBtn.querySelector('.eye-closed');
+        if (eyeOpen) eyeOpen.style.display = 'inline';
+        if (eyeClosed) eyeClosed.style.display = 'none';
+        pwdBtn.title = 'Lihat Password';
+    }
 
     // Reset all area checkboxes
     document.querySelectorAll('.usr-area-cb').forEach(cb => cb.checked = false);
@@ -3354,6 +3376,16 @@ function resetUserForm() {
     }
     document.getElementById('usr_id').value = '';
     document.getElementById('usr_phone').value = '';
+    const pwdInput = document.getElementById('usr_password');
+    if (pwdInput) pwdInput.type = 'password';
+    const pwdBtn = document.getElementById('toggleUsrPwdBtn');
+    if (pwdBtn) {
+        const eyeOpen = pwdBtn.querySelector('.eye-open');
+        const eyeClosed = pwdBtn.querySelector('.eye-closed');
+        if (eyeOpen) eyeOpen.style.display = 'inline';
+        if (eyeClosed) eyeClosed.style.display = 'none';
+        pwdBtn.title = 'Lihat Password';
+    }
     document.querySelectorAll('.usr-area-cb').forEach(cb => cb.checked = false);
     onUserRoleChange(document.getElementById('usr_role'));
     document.getElementById('usrFormTitle').textContent = 'Langkah 5: Tambah / Kelola Akun Pengguna, Karyawan & Penugasan Area';
@@ -3684,6 +3716,26 @@ function toggleTableUserPassword(userId, btn) {
         textEl.style.fontSize = '12px';
         textEl.style.color = '#334155';
         textEl.setAttribute('data-revealed', '0');
+        if (eyeOpen) eyeOpen.style.display = 'inline';
+        if (eyeClosed) eyeClosed.style.display = 'none';
+        btn.title = 'Lihat Password';
+    }
+}
+
+function toggleFormInputPassword(inputId, btn) {
+    const input = document.getElementById(inputId);
+    if (!input) return;
+
+    const eyeOpen = btn.querySelector('.eye-open');
+    const eyeClosed = btn.querySelector('.eye-closed');
+
+    if (input.type === 'password') {
+        input.type = 'text';
+        if (eyeOpen) eyeOpen.style.display = 'none';
+        if (eyeClosed) eyeClosed.style.display = 'inline';
+        btn.title = 'Sembunyikan Password';
+    } else {
+        input.type = 'password';
         if (eyeOpen) eyeOpen.style.display = 'inline';
         if (eyeClosed) eyeClosed.style.display = 'none';
         btn.title = 'Lihat Password';
