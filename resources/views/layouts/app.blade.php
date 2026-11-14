@@ -167,15 +167,18 @@
         @endif
 
         @if($errors->any())
-            <div class="digi-alert digi-alert-error" style="flex-direction: column; align-items: flex-start; gap: 4px;">
+            <div class="digi-alert digi-alert-error" style="flex-direction: column; align-items: flex-start; gap: 8px; border-left: 4px solid #ef4444; background: #fff5f5; padding: 14px 18px; margin-bottom: 20px;">
                 <div style="display:flex; width:100%; justify-content:space-between; align-items:center;">
-                    <strong style="display:inline-flex; align-items:center; gap:6px;">
-                        <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg>
-                        Periksa kembali data input Anda:
+                    <strong style="display:inline-flex; align-items:center; gap:8px; color: #b91c1c; font-size: 14.5px;">
+                        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"></circle><line x1="12" y1="8" x2="12" y2="12"></line><line x1="12" y1="16" x2="12.01" y2="16"></line></svg>
+                        Periksa kembali data input Anda (Terdapat {{ $errors->count() }} kolom/isian yang perlu diperbaiki):
                     </strong>
-                    <button type="button" onclick="this.parentElement.parentElement.remove()" style="background:none; border:none; cursor:pointer; font-size:16px;">&times;</button>
+                    <button type="button" onclick="this.parentElement.parentElement.remove()" style="background:none; border:none; cursor:pointer; font-size:18px; color: #991b1b; line-height: 1;">&times;</button>
                 </div>
-                <ul style="margin: 4px 0 0 18px; padding: 0; font-size: 13px;">
+                <div style="font-size: 12.5px; color: #7f1d1d; margin-top: -2px;">
+                    Kolom yang bermasalah telah ditandai dengan <strong>bingkai merah</strong> pada formulir di bawah. Silakan periksa keterangan spesifik berikut:
+                </div>
+                <ul style="margin: 4px 0 0 20px; padding: 0; font-size: 13px; color: #991b1b; line-height: 1.6;">
                     @foreach($errors->all() as $err)
                         <li>{{ $err }}</li>
                     @endforeach

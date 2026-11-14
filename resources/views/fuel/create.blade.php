@@ -13,8 +13,25 @@
         </p>
     </div>
 
-    <!-- Warning banner if no signature -->
-    @if(!$user->signature_url)
+    @if($errors->has('signature'))
+        <div class="digi-signature-alert" style="margin-bottom: 20px;">
+            <div class="digi-signature-alert-content">
+                <div class="digi-signature-alert-icon"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M12 20h9"/><path d="M16.5 3.5a2.121 2.121 0 0 1 3 3L7 19l-4 1 1-4L16.5 3.5z"/></svg></div>
+                <div>
+                    <div class="digi-signature-alert-title">
+                        <span>Tanda Tangan Digital Wajib Diisi!</span>
+                        <span class="digi-signature-alert-badge">Wajib</span>
+                    </div>
+                    <div class="digi-signature-alert-text">
+                        {{ $errors->first('signature') }}
+                    </div>
+                </div>
+            </div>
+            <a href="{{ route('profile.index') }}" class="digi-signature-alert-btn">
+                Unggah Tanda Tangan Sekarang &rarr;
+            </a>
+        </div>
+    @elseif(!$user->signature_url)
         <div class="digi-signature-alert">
             <div class="digi-signature-alert-content">
                 <div class="digi-signature-alert-icon"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M12 20h9"/><path d="M16.5 3.5a2.121 2.121 0 0 1 3 3L7 19l-4 1 1-4L16.5 3.5z"/></svg></div>
@@ -31,6 +48,15 @@
             <a href="{{ route('profile.index') }}" class="digi-signature-alert-btn">
                 Unggah Tanda Tangan Sekarang &rarr;
             </a>
+        </div>
+    @endif
+
+    @if($errors->has('user_id') || $errors->has('employee_id'))
+        <div class="digi-alert digi-alert-error" style="margin-bottom: 20px;">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"></circle><line x1="12" y1="8" x2="12" y2="12"></line><line x1="12" y1="16" x2="12.01" y2="16"></line></svg>
+            <div>
+                <strong>Kendala Status Akun:</strong> {{ $errors->first('user_id') ?? $errors->first('employee_id') }}
+            </div>
         </div>
     @endif
 
@@ -69,8 +95,13 @@
             <div class="digi-form-grid-2">
                 <div class="digi-form-group">
                     <label class="digi-form-label">Tanggal & Waktu Pengisian <span class="digi-required">*</span></label>
-                    <input type="datetime-local" name="request_date" id="request_date" class="digi-input" value="{{ old('request_date', now()->format('Y-m-d\TH:i')) }}" required>
-                    @error('request_date') <span style="color:#ef4444; font-size:12px;">{{ $message }}</span> @enderror
+                    <input type="datetime-local" name="request_date" id="request_date" class="digi-input @error('request_date') is-invalid @enderror" value="{{ old('request_date', now()->format('Y-m-d\TH:i')) }}" required>
+                    @error('request_date')
+                        <div class="digi-invalid-feedback">
+                            <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><circle cx="12" cy="12" r="10"></circle><line x1="12" y1="8" x2="12" y2="12"></line><line x1="12" y1="16" x2="12.01" y2="16"></line></svg>
+                            {{ $message }}
+                        </div>
+                    @enderror
                 </div>
                 <div class="digi-form-group">
                     <label class="digi-form-label">Nama Employee (NRP: {{ $user->nrp ?? '-' }} | {{ $user->jabatan ?? 'Driver' }}) <span class="digi-required">*</span></label>
@@ -85,26 +116,37 @@
                         <span>Unit Code (Kode Unit) <span class="digi-required">*</span></span>
                         <input type="text" id="unitSearchInput" placeholder="Cari unit..." onkeyup="filterUnitOptions(this.value)" style="border: 1px solid #cbd5e1; border-radius: 4px; padding: 2px 6px; font-size: 11px; width: 105px; font-weight: 400;">
                     </label>
-                    <select name="unit_code" id="unit_code" class="digi-select" required onchange="handleUnitChange(this)">
+                    <select name="unit_code" id="unit_code" class="digi-select @error('unit_code') is-invalid @enderror" required onchange="handleUnitChange(this)">
                         <option value="">- Pilih Unit Kode -</option>
                         @foreach($vehicles as $veh)
                             <option value="{{ $veh->unit_code }}"
                                 data-police="{{ $veh->police_no }}"
                                 data-type="{{ $veh->model ?? $veh->unit_type }}"
                                 data-meter="{{ strtoupper($veh->meter_type ?? 'km') }}"
+                                data-tank="{{ (float)($veh->tank_capacity ?? 80) }}"
                                 data-default-area="{{ $veh->defaultArea?->name ?? '' }}"
                                 {{ old('unit_code') === $veh->unit_code ? 'selected' : '' }}>
-                                {{ $veh->unit_code }} ({{ $veh->model ?? $veh->unit_type }})
+                                {{ $veh->unit_code }} ({{ $veh->model ?? $veh->unit_type }}) — Tangki: {{ (float)($veh->tank_capacity ?? 80) }}L
                             </option>
                         @endforeach
                     </select>
                     <span id="unitNotFoundMsg" style="display:none; color:#ef4444; font-size:11.5px; margin-top:4px;">Unit Code yang dicari tidak ditemukan.</span>
-                    @error('unit_code') <span style="color:#ef4444; font-size:12px;">{{ $message }}</span> @enderror
+                    @error('unit_code')
+                        <div class="digi-invalid-feedback">
+                            <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><circle cx="12" cy="12" r="10"></circle><line x1="12" y1="8" x2="12" y2="12"></line><line x1="12" y1="16" x2="12.01" y2="16"></line></svg>
+                            {{ $message }}
+                        </div>
+                    @enderror
                 </div>
                 <div class="digi-form-group">
                     <label class="digi-form-label">Police No (No. Polisi) <span class="digi-required">*</span></label>
-                    <input type="text" name="police_no" id="police_no" class="digi-input" placeholder="Terisi otomatis dari Unit Code" value="{{ old('police_no') }}" readonly required>
-                    @error('police_no') <span style="color:#ef4444; font-size:12px;">{{ $message }}</span> @enderror
+                    <input type="text" name="police_no" id="police_no" class="digi-input @error('police_no') is-invalid @enderror" placeholder="Terisi otomatis saat memilih Unit Code" value="{{ old('police_no') }}" readonly required>
+                    @error('police_no')
+                        <div class="digi-invalid-feedback">
+                            <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><circle cx="12" cy="12" r="10"></circle><line x1="12" y1="8" x2="12" y2="12"></line><line x1="12" y1="16" x2="12.01" y2="16"></line></svg>
+                            {{ $message }}
+                        </div>
+                    @enderror
                 </div>
                 <div class="digi-form-group">
                     <label class="digi-form-label">Company (Perusahaan)</label>
@@ -115,14 +157,36 @@
             <!-- Row 3: Total Liter & KM -->
             <div class="digi-form-grid-2">
                 <div class="digi-form-group">
-                    <label class="digi-form-label">Total (Jumlah) Liter <span class="digi-required">*</span></label>
-                    <input type="number" step="0.1" name="total_liters" id="total_liters" class="digi-input" placeholder="Masukkan Total Liter" value="{{ old('total_liters') }}" required min="0.1">
-                    @error('total_liters') <span style="color:#ef4444; font-size:12px;">{{ $message }}</span> @enderror
+                    <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom: 6px;">
+                        <label class="digi-form-label" style="margin-bottom:0;">Total (Jumlah) Liter <span class="digi-required">*</span></label>
+                        <span id="tankCapacityBadge" class="digi-badge digi-badge-blue" style="font-size: 11px; display:none;">
+                            Kapasitas Tangki: <strong id="tankCapacityVal">80</strong> L
+                        </span>
+                    </div>
+                    <input type="number" step="0.1" name="total_liters" id="total_liters" class="digi-input @error('total_liters') is-invalid @enderror" placeholder="Contoh: 45 atau 60" value="{{ old('total_liters') }}" required min="0.1" max="5000" oninput="checkLiterWarning(this.value)">
+                    <div id="literCapacityWarning" class="digi-field-warning" style="display:none;">
+                        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"></path><line x1="12" y1="9" x2="12" y2="13"></line><line x1="12" y1="17" x2="12.01" y2="17"></line></svg>
+                        <span>Perhatian: Jumlah liter yang diminta (<strong id="warnInputLiters">0</strong> L) melebihi kapasitas standar tangki (<strong id="warnTankLiters">0</strong> L). Pastikan angka pengisian sudah benar.</span>
+                    </div>
+                    @error('total_liters')
+                        <div class="digi-invalid-feedback">
+                            <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><circle cx="12" cy="12" r="10"></circle><line x1="12" y1="8" x2="12" y2="12"></line><line x1="12" y1="16" x2="12.01" y2="16"></line></svg>
+                            {{ $message }}
+                        </div>
+                    @enderror
                 </div>
                 <div class="digi-form-group">
-                    <label class="digi-form-label">KM <span class="digi-required">*</span></label>
-                    <input type="number" step="0.1" min="0" name="hm_km" id="hm_km" class="digi-input" placeholder="Masukkan KM" value="{{ old('hm_km', 79) }}" required>
-                    @error('hm_km') <span style="color:#ef4444; font-size:12px;">{{ $message }}</span> @enderror
+                    <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom: 6px;">
+                        <label class="digi-form-label" id="hm_km_label" style="margin-bottom:0;">KM / HM Odometer <span class="digi-required">*</span></label>
+                        <span id="meterTypeBadge" class="digi-badge digi-badge-gray" style="font-size: 11px;">KM</span>
+                    </div>
+                    <input type="number" step="0.1" min="0" name="hm_km" id="hm_km" class="digi-input @error('hm_km') is-invalid @enderror" placeholder="Masukkan angka odometer terkini" value="{{ old('hm_km', 79) }}" required>
+                    @error('hm_km')
+                        <div class="digi-invalid-feedback">
+                            <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><circle cx="12" cy="12" r="10"></circle><line x1="12" y1="8" x2="12" y2="12"></line><line x1="12" y1="16" x2="12.01" y2="16"></line></svg>
+                            {{ $message }}
+                        </div>
+                    @enderror
                 </div>
             </div>
 
@@ -132,8 +196,8 @@
                 <span class="digi-approval-badge">Approval</span>
 
                 <div class="digi-form-group" style="margin-bottom: 16px;">
-                    <label class="digi-form-label">Pilih Area <span class="digi-required">*</span></label>
-                    <select name="area" id="area_select" class="digi-select" required onchange="handleAreaChange(this.value)">
+                    <label class="digi-form-label">Pilih Area Operasional <span class="digi-required">*</span></label>
+                    <select name="area" id="area_select" class="digi-select @error('area') is-invalid @enderror" required onchange="handleAreaChange(this.value)">
                         <option value="">- Pilih Area Operasional -</option>
                         @foreach($areas as $area)
                             <option value="{{ $area->name }}" {{ old('area', 'SDU (Sungai Danau)') === $area->name ? 'selected' : '' }}>
@@ -141,11 +205,17 @@
                             </option>
                         @endforeach
                     </select>
+                    @error('area')
+                        <div class="digi-invalid-feedback">
+                            <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><circle cx="12" cy="12" r="10"></circle><line x1="12" y1="8" x2="12" y2="12"></line><line x1="12" y1="16" x2="12.01" y2="16"></line></svg>
+                            {{ $message }}
+                        </div>
+                    @enderror
                 </div>
 
                 <div class="digi-form-group" style="margin-bottom: 16px;">
                     <label class="digi-form-label">Pilih Approval SPV (Acknowledge) <span class="digi-required">*</span></label>
-                    <select name="spv_id" id="spv_select" class="digi-select" required>
+                    <select name="spv_id" id="spv_select" class="digi-select @error('spv_id') is-invalid @enderror" required>
                         <option value="">- Pilih Approval SPV -</option>
                         @foreach($spvs as $spv)
                             <option value="{{ $spv->id }}" {{ old('spv_id', $spvs->first()?->id) == $spv->id ? 'selected' : '' }}>
@@ -153,11 +223,18 @@
                             </option>
                         @endforeach
                     </select>
+                    <span id="spvEmptyMsg" style="display:none; color:#b45309; font-size:12px; margin-top:4px;">⚠️ Tidak ada Approver SPV yang aktif pada area ini. Silakan hubungi Admin.</span>
+                    @error('spv_id')
+                        <div class="digi-invalid-feedback">
+                            <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><circle cx="12" cy="12" r="10"></circle><line x1="12" y1="8" x2="12" y2="12"></line><line x1="12" y1="16" x2="12.01" y2="16"></line></svg>
+                            {{ $message }}
+                        </div>
+                    @enderror
                 </div>
 
                 <div class="digi-form-group" style="margin-bottom: 16px;">
                     <label class="digi-form-label">Pilih Approval Dept Head (Approve) <span class="digi-required">*</span></label>
-                    <select name="depthead_id" id="depthead_select" class="digi-select" required>
+                    <select name="depthead_id" id="depthead_select" class="digi-select @error('depthead_id') is-invalid @enderror" required>
                         <option value="">- Pilih Approval Dept Head -</option>
                         @foreach($deptheads as $dh)
                             <option value="{{ $dh->id }}" {{ old('depthead_id', $deptheads->first()?->id) == $dh->id ? 'selected' : '' }}>
@@ -165,11 +242,18 @@
                             </option>
                         @endforeach
                     </select>
+                    <span id="dhEmptyMsg" style="display:none; color:#b45309; font-size:12px; margin-top:4px;">⚠️ Tidak ada Approver Dept Head yang aktif pada area ini. Silakan hubungi Admin.</span>
+                    @error('depthead_id')
+                        <div class="digi-invalid-feedback">
+                            <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><circle cx="12" cy="12" r="10"></circle><line x1="12" y1="8" x2="12" y2="12"></line><line x1="12" y1="16" x2="12.01" y2="16"></line></svg>
+                            {{ $message }}
+                        </div>
+                    @enderror
                 </div>
 
                 <div class="digi-form-group" style="margin-bottom: 16px;">
                     <label class="digi-form-label">Pilih Perusahaan Vendor BBM <span class="digi-required">*</span></label>
-                    <select name="vendor_name" id="vendor_select" class="digi-select" required>
+                    <select name="vendor_name" id="vendor_select" class="digi-select @error('vendor_name') is-invalid @enderror" required>
                         <option value="">- Pilih Perusahaan Vendor BBM -</option>
                         @foreach($vendors as $ven)
                             <option value="{{ $ven->name }}" {{ old('vendor_name', 'Cv. Sudan Mandiri') === $ven->name ? 'selected' : '' }}>
@@ -177,11 +261,23 @@
                             </option>
                         @endforeach
                     </select>
+                    @error('vendor_name')
+                        <div class="digi-invalid-feedback">
+                            <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><circle cx="12" cy="12" r="10"></circle><line x1="12" y1="8" x2="12" y2="12"></line><line x1="12" y1="16" x2="12.01" y2="16"></line></svg>
+                            {{ $message }}
+                        </div>
+                    @enderror
                 </div>
 
                 <div class="digi-form-group" style="margin-bottom: 20px;">
                     <label class="digi-form-label">Catatan Tambahan (Opsional)</label>
-                    <input type="text" name="notes" id="notes_input" class="digi-input" placeholder="Catatan operasional pengisian (jika diperlukan)" value="{{ old('notes') }}">
+                    <input type="text" name="notes" id="notes_input" class="digi-input @error('notes') is-invalid @enderror" placeholder="Catatan operasional pengisian (jika diperlukan)" value="{{ old('notes') }}">
+                    @error('notes')
+                        <div class="digi-invalid-feedback">
+                            <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><circle cx="12" cy="12" r="10"></circle><line x1="12" y1="8" x2="12" y2="12"></line><line x1="12" y1="16" x2="12.01" y2="16"></line></svg>
+                            {{ $message }}
+                        </div>
+                    @enderror
                 </div>
             </div>
 
@@ -236,11 +332,41 @@ const areaApproverMap = @json($areaApproverMap ?? []);
 function handleUnitChange(select) {
     const selectedOption = select.options[select.selectedIndex];
     const policeInput = document.getElementById('police_no');
+    const tankBadge = document.getElementById('tankCapacityBadge');
+    const tankVal = document.getElementById('tankCapacityVal');
+    const meterBadge = document.getElementById('meterTypeBadge');
+    const hmKmLabel = document.getElementById('hm_km_label');
+
     if (selectedOption && selectedOption.dataset.police) {
         policeInput.value = selectedOption.dataset.police;
+        policeInput.classList.remove('is-invalid');
     } else {
         policeInput.value = '';
     }
+
+    if (select.value) {
+        select.classList.remove('is-invalid');
+    }
+
+    // Update Meter Type Badge
+    if (selectedOption && selectedOption.dataset.meter) {
+        const meter = selectedOption.dataset.meter;
+        if (meterBadge) meterBadge.textContent = meter;
+        if (hmKmLabel) hmKmLabel.innerHTML = `${meter} Odometer <span class="digi-required">*</span>`;
+    }
+
+    // Update Tank Capacity Badge
+    if (selectedOption && selectedOption.dataset.tank) {
+        const tank = parseFloat(selectedOption.dataset.tank);
+        if (tankBadge && tankVal) {
+            tankVal.textContent = tank;
+            tankBadge.style.display = 'inline-block';
+        }
+    } else {
+        if (tankBadge) tankBadge.style.display = 'none';
+    }
+
+    checkLiterWarning(document.getElementById('total_liters').value);
 
     // Auto-select Default Area if assigned to the Unit
     if (selectedOption && selectedOption.dataset.defaultArea) {
@@ -254,6 +380,29 @@ function handleUnitChange(select) {
                 }
             }
         }
+    }
+}
+
+function checkLiterWarning(val) {
+    const inputLiters = parseFloat(val);
+    const unitSel = document.getElementById('unit_code');
+    const opt = unitSel ? unitSel.options[unitSel.selectedIndex] : null;
+    const warnBox = document.getElementById('literCapacityWarning');
+    const warnInput = document.getElementById('warnInputLiters');
+    const warnTank = document.getElementById('warnTankLiters');
+
+    if (!opt || !opt.dataset.tank || isNaN(inputLiters) || inputLiters <= 0) {
+        if (warnBox) warnBox.style.display = 'none';
+        return;
+    }
+
+    const tankCapacity = parseFloat(opt.dataset.tank);
+    if (inputLiters > tankCapacity && tankCapacity > 0) {
+        if (warnInput) warnInput.textContent = inputLiters;
+        if (warnTank) warnTank.textContent = tankCapacity;
+        if (warnBox) warnBox.style.display = 'flex';
+    } else {
+        if (warnBox) warnBox.style.display = 'none';
     }
 }
 
@@ -300,6 +449,9 @@ function populateSelect(selectId, items, valueKey, labelKey, placeholder) {
 }
 
 function handleAreaChange(areaName) {
+    const areaSel = document.getElementById('area_select');
+    if (areaSel && areaSel.value) areaSel.classList.remove('is-invalid');
+
     if (!areaName) return;
 
     // Immediate update from preloaded map
@@ -308,6 +460,12 @@ function handleAreaChange(areaName) {
         populateSelect('spv_select', data.spvs, 'id', 'label', '- Pilih Approval SPV -');
         populateSelect('depthead_select', data.deptheads, 'id', 'label', '- Pilih Approval Dept Head -');
         populateSelect('vendor_select', data.vendors, 'name', 'name', '- Pilih Perusahaan Vendor BBM -');
+
+        const spvMsg = document.getElementById('spvEmptyMsg');
+        if (spvMsg) spvMsg.style.display = (!data.spvs || data.spvs.length === 0) ? 'block' : 'none';
+
+        const dhMsg = document.getElementById('dhEmptyMsg');
+        if (dhMsg) dhMsg.style.display = (!data.deptheads || data.deptheads.length === 0) ? 'block' : 'none';
     }
 
     // Also synchronize dynamically via Fetch API
@@ -318,6 +476,12 @@ function handleAreaChange(areaName) {
                 populateSelect('spv_select', data.spvs, 'id', 'label', '- Pilih Approval SPV -');
                 populateSelect('depthead_select', data.deptheads, 'id', 'label', '- Pilih Approval Dept Head -');
                 populateSelect('vendor_select', data.vendors, 'name', 'name', '- Pilih Perusahaan Vendor BBM -');
+
+                const spvMsg = document.getElementById('spvEmptyMsg');
+                if (spvMsg) spvMsg.style.display = (!data.spvs || data.spvs.length === 0) ? 'block' : 'none';
+
+                const dhMsg = document.getElementById('dhEmptyMsg');
+                if (dhMsg) dhMsg.style.display = (!data.deptheads || data.deptheads.length === 0) ? 'block' : 'none';
             }
         })
         .catch(() => {});
@@ -393,6 +557,27 @@ function confirmSubmitForm() {
 }
 
 document.addEventListener('DOMContentLoaded', function() {
+    // Initial trigger for tank capacity and meter type if unit already selected (e.g. on validation reload)
+    const unitSelect = document.getElementById('unit_code');
+    if (unitSelect && unitSelect.value) {
+        handleUnitChange(unitSelect);
+    }
+
+    // Auto-scroll to first invalid element if any
+    const firstInvalid = document.querySelector('.is-invalid');
+    if (firstInvalid) {
+        setTimeout(() => {
+            firstInvalid.scrollIntoView({ behavior: 'smooth', block: 'center' });
+            if (typeof firstInvalid.focus === 'function') firstInvalid.focus();
+        }, 150);
+    }
+
+    // Remove is-invalid state when user modifies input
+    document.querySelectorAll('.digi-input, .digi-select').forEach(input => {
+        input.addEventListener('input', () => input.classList.remove('is-invalid'));
+        input.addEventListener('change', () => input.classList.remove('is-invalid'));
+    });
+
     const form = document.getElementById('fuelRequestForm');
     if (form) {
         form.addEventListener('submit', function(e) {
@@ -400,6 +585,49 @@ document.addEventListener('DOMContentLoaded', function() {
             if (action === 'submit' && !userHasSignature) {
                 e.preventDefault();
                 requireSignatureNotice();
+                return false;
+            }
+
+            // Client-side visual check on submit to immediately show red outlines on any empty required fields
+            let hasClientError = false;
+            let firstErrEl = null;
+
+            const requiredFields = [
+                { id: 'request_date', name: 'Tanggal & Waktu' },
+                { id: 'unit_code', name: 'Unit Code' },
+                { id: 'police_no', name: 'Nomor Polisi' },
+                { id: 'total_liters', name: 'Total Liter' },
+                { id: 'hm_km', name: 'KM / HM' },
+                { id: 'area_select', name: 'Area Operasional' },
+                { id: 'spv_select', name: 'Approval SPV' },
+                { id: 'depthead_select', name: 'Approval Dept Head' },
+                { id: 'vendor_select', name: 'Vendor BBM' },
+            ];
+
+            requiredFields.forEach(field => {
+                const el = document.getElementById(field.id);
+                if (el && (!el.value || el.value.trim() === '')) {
+                    el.classList.add('is-invalid');
+                    hasClientError = true;
+                    if (!firstErrEl) firstErrEl = el;
+                }
+            });
+
+            if (hasClientError) {
+                e.preventDefault();
+                if (firstErrEl) {
+                    firstErrEl.scrollIntoView({ behavior: 'smooth', block: 'center' });
+                    firstErrEl.focus();
+                }
+                if (typeof Swal !== 'undefined') {
+                    Swal.fire({
+                        icon: 'warning',
+                        title: 'Kolom Wajib Belum Lengkap',
+                        text: 'Silakan lengkapi seluruh kolom yang bergaris merah sebelum mengirimkan formulir.',
+                        confirmButtonText: 'Periksa Formulir',
+                        confirmButtonColor: '#f59e0b',
+                    });
+                }
                 return false;
             }
         });
