@@ -299,27 +299,36 @@
 
 <!-- MODAL PRATINJAU RINGKASAN SEBELUM KIRIM -->
 <div id="previewModal" class="digi-modal-backdrop" style="display: none;">
-    <div class="digi-modal" style="max-width: 540px;">
+    <div class="digi-modal digi-modal-lg">
         <div class="digi-modal-header">
-            <h3 class="digi-modal-title">Pratinjau Pengajuan Fuel Request</h3>
+            <div style="display: flex; align-items: center; gap: 8px;">
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#0284c7" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"></path><circle cx="12" cy="12" r="3"></circle></svg>
+                <h3 class="digi-modal-title">Pratinjau Pengajuan Fuel Request</h3>
+            </div>
             <button type="button" class="digi-modal-close" onclick="closePreviewModal()">&times;</button>
         </div>
         <div class="digi-modal-body" style="font-size: 13.5px;">
-            <p style="margin: 0 0 12px 0; color: #475569;">Periksa kembali ringkasan data pengajuan Anda sebelum dikirim ke alur persetujuan berjenjang:</p>
-            <table style="width: 100%; border-collapse: collapse;">
-                <tr><td style="padding: 6px 0; color:#64748b; width: 170px;">Employee</td><td style="font-weight:600;">: {{ $user->name }} ({{ $user->nrp ?? '-' }})</td></tr>
-                <tr><td style="padding: 6px 0; color:#64748b;">Perusahaan</td><td style="font-weight:600;">: PT UNITED TRACTORS Tbk - SITE SATUI</td></tr>
-                <tr><td style="padding: 6px 0; color:#64748b;">Unit Code & No. Polisi</td><td style="font-weight:600;" id="prev_unit">: -</td></tr>
-                <tr><td style="padding: 6px 0; color:#64748b;">KM & Jumlah BBM</td><td style="font-weight:600;" id="prev_liters">: -</td></tr>
-                <tr><td style="padding: 6px 0; color:#64748b;">Area Operasional</td><td style="font-weight:600;" id="prev_area">: -</td></tr>
-                <tr><td style="padding: 6px 0; color:#64748b;">Tahap 1 (SPV)</td><td style="font-weight:600;" id="prev_spv">: -</td></tr>
-                <tr><td style="padding: 6px 0; color:#64748b;">Tahap 2 (Dept Head)</td><td style="font-weight:600;" id="prev_depthead">: -</td></tr>
-                <tr><td style="padding: 6px 0; color:#64748b;">Tahap 3 (Perusahaan BBM)</td><td style="font-weight:600;" id="prev_vendor">: -</td></tr>
-            </table>
+            <p style="margin: 0 0 14px 0; color: #475569;">Periksa kembali ringkasan data permohonan bahan bakar Anda sebelum diajukan ke alur persetujuan:</p>
+            
+            <div style="background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 10px; overflow: hidden;">
+                <table style="width: 100%; border-collapse: collapse; font-size: 13px;">
+                    <tr style="border-bottom: 1px solid #f1f5f9;"><td style="padding: 9px 14px; color:#64748b; width: 180px;">Employee (Pemohon)</td><td style="padding: 9px 14px; font-weight:700; color: #0f172a;">: {{ $user->name }} ({{ $user->nrp ?? '-' }})</td></tr>
+                    <tr style="border-bottom: 1px solid #f1f5f9;"><td style="padding: 9px 14px; color:#64748b;">Perusahaan</td><td style="padding: 9px 14px; font-weight:600; color: #334155;">: PT UNITED TRACTORS Tbk - SITE SATUI</td></tr>
+                    <tr style="border-bottom: 1px solid #f1f5f9;"><td style="padding: 9px 14px; color:#64748b;">Unit Code & No. Polisi</td><td style="padding: 9px 14px; font-weight:700; color: #0284c7;" id="prev_unit">: -</td></tr>
+                    <tr style="border-bottom: 1px solid #f1f5f9;"><td style="padding: 9px 14px; color:#64748b;">Odometer & Jumlah BBM</td><td style="padding: 9px 14px; font-weight:700; color: #166534;" id="prev_liters">: -</td></tr>
+                    <tr style="border-bottom: 1px solid #f1f5f9;"><td style="padding: 9px 14px; color:#64748b;">Area Operasional</td><td style="padding: 9px 14px; font-weight:600; color: #334155;" id="prev_area">: -</td></tr>
+                    <tr style="border-bottom: 1px solid #f1f5f9;"><td style="padding: 9px 14px; color:#64748b;">Verifikasi SPV (Tahap 2)</td><td style="padding: 9px 14px; font-weight:600; color: #334155;" id="prev_spv">: -</td></tr>
+                    <tr style="border-bottom: 1px solid #f1f5f9;"><td style="padding: 9px 14px; color:#64748b;">Approval Dept Head (Tahap 3)</td><td style="padding: 9px 14px; font-weight:600; color: #334155;" id="prev_depthead">: -</td></tr>
+                    <tr><td style="padding: 9px 14px; color:#64748b;">Penyedia BBM (Tahap 4)</td><td style="padding: 9px 14px; font-weight:700; color: #15803d;" id="prev_vendor">: -</td></tr>
+                </table>
+            </div>
         </div>
         <div class="digi-modal-footer">
             <button type="button" class="btn-digi btn-digi-gray" onclick="closePreviewModal()">Periksa Kembali</button>
-            <button type="button" class="btn-digi btn-digi-blue" onclick="confirmSubmitForm()">Ajukan Fuel Request</button>
+            <button type="button" class="btn-digi btn-digi-blue" style="font-weight: 700;" onclick="confirmSubmitForm()">
+                <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" style="margin-right: 6px;"><line x1="22" y1="2" x2="11" y2="13"></line><polygon points="22 2 15 22 11 13 2 9 22 2"></polygon></svg>
+                Ajukan Fuel Request
+            </button>
         </div>
     </div>
 </div>

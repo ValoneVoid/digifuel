@@ -59,7 +59,9 @@
             <span class="digi-badge digi-badge-yellow">Menunggu SPV: {{ $stats['pending_spv'] }}</span>
             <span class="digi-badge digi-badge-yellow">Menunggu DeptHead: {{ $stats['pending_depthead'] }}</span>
             <span class="digi-badge digi-badge-yellow">Menunggu Vendor: {{ $stats['pending_vendor'] }}</span>
-            <span class="digi-badge digi-badge-blue">Siap Diisi BBM: {{ $stats['ready_fueling'] }}</span>
+            @if(($stats['ready_fueling'] ?? 0) > 0)
+                <span class="digi-badge digi-badge-blue">Siap Diisi BBM: {{ $stats['ready_fueling'] }}</span>
+            @endif
             <span class="digi-badge digi-badge-green">Disetujui / Selesai: {{ $stats['approved_total'] }}</span>
             @if($stats['rejected_total'] > 0)
                 <span class="digi-badge digi-badge-red">Ditolak: {{ $stats['rejected_total'] }}</span>
