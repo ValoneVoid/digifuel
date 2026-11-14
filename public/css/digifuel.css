@@ -21,7 +21,7 @@
 
 body {
   margin: 0;
-  padding: 0;
+  padding: 84px 0 0 0;
   font-family: 'Inter', 'Segoe UI', -apple-system, BlinkMacSystemFont, Roboto, sans-serif;
   color: var(--ut-text);
   background-image: url('/images/mining_bg.jpg');
@@ -39,10 +39,17 @@ body {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  padding: 16px 48px;
-  background: transparent;
-  position: relative;
-  z-index: 50;
+  padding: 12px 48px;
+  background: rgba(226, 236, 252, 0.92);
+  backdrop-filter: blur(14px);
+  -webkit-backdrop-filter: blur(14px);
+  border-bottom: 1px solid rgba(191, 211, 245, 0.9);
+  box-shadow: 0 4px 18px rgba(15, 23, 42, 0.08);
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  z-index: 999;
 }
 
 .digi-brand-left {
@@ -56,7 +63,7 @@ body {
   background: #ffffff;
   padding: 4px 14px;
   border-radius: 8px;
-  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.15);
+  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.12);
   display: flex;
   align-items: center;
   gap: 10px;
@@ -75,10 +82,27 @@ body {
   align-items: center;
   gap: 6px;
   flex-wrap: nowrap;
+  position: relative;
+}
+
+.digi-nav-pill {
+  position: absolute;
+  top: 0;
+  left: 0;
+  background: #ffffff;
+  border-radius: 8px;
+  box-shadow: 0 2px 8px rgba(15, 23, 42, 0.08), inset 0 0 0 1px rgba(255, 255, 255, 0.95);
+  pointer-events: none;
+  z-index: 0;
+  opacity: 0;
+  transition: transform 0.3s cubic-bezier(0.22, 1, 0.36, 1),
+              width 0.3s cubic-bezier(0.22, 1, 0.36, 1),
+              height 0.3s cubic-bezier(0.22, 1, 0.36, 1),
+              opacity 0.15s ease;
 }
 
 .digi-nav-link {
-  color: #0f172a;
+  color: #1e293b;
   font-weight: 600;
   font-size: 14px;
   text-decoration: none;
@@ -88,21 +112,26 @@ body {
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  transition: all 0.2s ease;
-  text-shadow: 0 1px 2px rgba(255, 255, 255, 0.75);
+  position: relative;
+  z-index: 1;
+  transition: color 0.2s ease, background 0.2s ease;
 }
 
 .digi-nav-link:hover {
   background: rgba(255, 255, 255, 0.55);
-  color: #000000;
+  color: #0f172a;
 }
 
 .digi-nav-link.active {
-  background: rgba(255, 255, 255, 0.92);
-  backdrop-filter: blur(8px);
-  color: #000000;
+  background: #ffffff;
+  color: #0f172a;
   font-weight: 700;
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08), inset 0 0 0 1px rgba(255, 255, 255, 0.9);
+  box-shadow: 0 2px 8px rgba(15, 23, 42, 0.08), inset 0 0 0 1px rgba(255, 255, 255, 0.95);
+}
+
+.digi-nav-links.has-pill .digi-nav-link.active {
+  background: transparent;
+  box-shadow: none;
 }
 
 .digi-nav-right {
@@ -1469,6 +1498,10 @@ div[style*="overflow-x: auto"]::-webkit-scrollbar-thumb:hover {
 }
 
 @media screen and (max-width: 900px) {
+  body {
+    padding-top: 108px;
+  }
+
   .digi-navbar {
     padding: 10px 14px;
     display: flex;
@@ -1476,12 +1509,15 @@ div[style*="overflow-x: auto"]::-webkit-scrollbar-thumb:hover {
     align-items: center;
     justify-content: space-between;
     gap: 8px;
-    background: rgba(255, 255, 255, 0.45);
+    background: rgba(226, 236, 252, 0.92);
     backdrop-filter: blur(14px);
     -webkit-backdrop-filter: blur(14px);
-    border-bottom: 1px solid rgba(255, 255, 255, 0.4);
-    position: relative;
-    z-index: 50;
+    border-bottom: 1px solid rgba(191, 211, 245, 0.9);
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    z-index: 999;
   }
 
   .digi-brand-left {
@@ -1525,6 +1561,12 @@ div[style*="overflow-x: auto"]::-webkit-scrollbar-thumb:hover {
     display: none;
   }
 
+  .digi-nav-pill {
+    background: #0284c7;
+    border-radius: 20px;
+    box-shadow: 0 2px 8px rgba(2, 132, 199, 0.35);
+  }
+
   .digi-nav-link {
     flex-shrink: 0;
     font-size: 13px;
@@ -1540,6 +1582,13 @@ div[style*="overflow-x: auto"]::-webkit-scrollbar-thumb:hover {
     color: #ffffff;
     box-shadow: 0 2px 8px rgba(2, 132, 199, 0.35);
     text-shadow: none;
+  }
+
+  .digi-nav-links.has-pill .digi-nav-link.active {
+    background: transparent;
+    border-color: transparent;
+    box-shadow: none;
+    color: #ffffff;
   }
 
   .digi-user-profile-badge {

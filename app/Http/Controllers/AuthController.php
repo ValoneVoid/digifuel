@@ -22,6 +22,74 @@ class AuthController extends Controller
         return view('auth.login');
     }
 
+    public function showForgotPassword()
+    {
+        if (Auth::check()) {
+            return redirect()->route('dashboard');
+        }
+
+        return view('auth.forgot-password');
+    }
+
+    public function submitForgotPassword(Request $request)
+    {
+        $request->validate([
+            'login' => 'required|string|max:100',
+            'note' => 'nullable|string|max:255',
+        ], [
+            'login.required' => 'Username, Email, atau NRP wajib diisi.',
+        ]);
+
+        $throttleKey = 'forgot-pwd|' . $request->ip();
+        if (RateLimiter::tooManyAttempts($throttleKey, 3)) {
+            $seconds = RateLimiter::availableIn($throttleKey);
+            return back()
+                ->withInput($request->only('login', 'note'))
+                ->withErrors(['login' => "Terlalu banyak pengajuan. Silakan coba lagi dalam {$seconds} detik."]);
+        }
+        RateLimiter::hit($throttleKey, 300);
+
+        $loginInput = trim($request->input('login'));
+        $note = trim((string) $request->input('note', ''));
+
+        $user = User::where('username', $loginInput)
+            ->orWhere('email', $loginInput)
+            ->orWhere('nrp', $loginInput)
+            ->first();
+
+        if (!$user) {
+            return back()
+                ->withInput($request->only('login', 'note'))
+                ->withErrors(['login' => 'Akun dengan Username, Email, atau NRP tersebut tidak ditemukan.']);
+        }
+
+        $admins = User::where('is_active', true)
+            ->where(function ($q) {
+                $q->where('role', 'admin')
+                    ->orWhereHas('roles', fn ($r) => $r->where('name', 'admin'));
+            })
+            ->get();
+
+        $detail = "Pengguna {$user->name} (NRP: " . ($user->nrp ?: '-') . ", Username: {$user->username}) mengajukan reset password.";
+        if ($note !== '') {
+            $detail .= " Catatan: {$note}";
+        }
+
+        foreach ($admins as $admin) {
+            UserNotification::notify(
+                $admin->id,
+                null,
+                'Permintaan Reset Password',
+                $detail,
+                'warning'
+            );
+        }
+
+        return redirect()
+            ->route('login')
+            ->with('success', 'Pengajuan reset password berhasil dikirim ke Administrator. Silakan hubungi Admin atau tunggu password baru Anda.');
+    }
+
     public function login(Request $request)
     {
         $request->validate([
@@ -128,6 +196,10 @@ class AuthController extends Controller
                 return redirect()->route('history.index');
             }
             return redirect()->route('approval.show', $notif->fuel_request_id);
+        }
+
+        if ($user->isAdmin() && $notif->type === 'warning') {
+            return redirect()->route('admin.master');
         }
 
         return redirect()->back();

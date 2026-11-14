@@ -21,6 +21,7 @@ use App\Models\FuelRequestHistory;
 use App\Services\ExcelExportService;
 use Carbon\Carbon;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\Crypt;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Schema;
 
@@ -76,6 +77,7 @@ class AdminMasterController extends Controller
         $user = $this->getActiveUser();
         $tab = $request->get('tab', 'areas');
         $perPage = max(5, min(100, (int) $request->input('per_page', 10)));
+        $search = trim((string) $request->input('search', ''));
 
         $allVehicles = Vehicle::where('is_active', true)->orderBy('unit_code')->get();
         $allAreas = Area::where('is_active', true)->orderBy('name')->get();
@@ -84,24 +86,137 @@ class AdminMasterController extends Controller
         $allUsers = User::where('is_active', true)->orderBy('name')->get();
         $roles = Role::all();
 
-        $employees = Employee::orderBy('name')->paginate($perPage)->withQueryString();
-        $vehicles = Vehicle::with(['defaultArea', 'activeFuelStandard', 'unitVendor'])->orderBy('unit_code')->paginate($perPage)->withQueryString();
-        $areas = Area::orderBy('name')->paginate($perPage)->withQueryString();
-        $unitVendors = UnitVendor::withCount('vehicles')->orderBy('name')->paginate($perPage)->withQueryString();
-        $vendors = Vendor::with('activeFuelPrice')->orderBy('name')->paginate($perPage)->withQueryString();
-        $users = User::with(['employee', 'vendor', 'areaApprovers.area'])->orderBy('name')->paginate($perPage)->withQueryString();
-        $areaApprovers = AreaApprover::with(['area', 'user'])->orderBy('area_id')->paginate($perPage)->withQueryString();
-        $fuelStandards = FuelStandard::with('vehicle')->orderBy('vehicle_id')->orderBy('effective_start', 'desc')->paginate($perPage)->withQueryString();
-        $fuelPrices = FuelPrice::with('vendor')->orderBy('effective_start', 'desc')->paginate($perPage)->withQueryString();
-        $backgrounds = Schema::hasTable('system_backgrounds')
-            ? SystemBackground::with('uploader')->orderBy('is_active', 'desc')->orderBy('id', 'desc')->paginate($perPage)->withQueryString()
-            : new \Illuminate\Pagination\LengthAwarePaginator(collect(), 0, $perPage);
-        $auditLogs = FuelRequestHistory::with(['user', 'fuelRequest'])->latest('created_at')->paginate($perPage)->withQueryString();
+        $employeesQuery = Employee::orderBy('name');
+        if ($tab === 'employees' && $search !== '') {
+            $employeesQuery->where(function ($q) use ($search) {
+                $q->where('nrp', 'like', "%{$search}%")
+                  ->orWhere('name', 'like', "%{$search}%")
+                  ->orWhere('position', 'like', "%{$search}%")
+                  ->orWhere('department', 'like', "%{$search}%")
+                  ->orWhere('company', 'like', "%{$search}%");
+            });
+        }
+        $employees = $employeesQuery->paginate($perPage)->withQueryString();
+
+        $vehiclesQuery = Vehicle::with(['defaultArea', 'activeFuelStandard', 'unitVendor'])->orderBy('unit_code');
+        if ($tab === 'vehicles' && $search !== '') {
+            $vehiclesQuery->where(function ($q) use ($search) {
+                $q->where('unit_code', 'like', "%{$search}%")
+                  ->orWhere('plate_number', 'like', "%{$search}%")
+                  ->orWhere('model', 'like', "%{$search}%")
+                  ->orWhere('vehicle_type', 'like', "%{$search}%")
+                  ->orWhereHas('unitVendor', fn($uv) => $uv->where('name', 'like', "%{$search}%"))
+                  ->orWhereHas('defaultArea', fn($a) => $a->where('name', 'like', "%{$search}%"));
+            });
+        }
+        $vehicles = $vehiclesQuery->paginate($perPage)->withQueryString();
+
+        $areasQuery = Area::orderBy('name');
+        if ($tab === 'areas' && $search !== '') {
+            $areasQuery->where(function ($q) use ($search) {
+                $q->where('name', 'like', "%{$search}%")
+                  ->orWhere('code', 'like', "%{$search}%");
+            });
+        }
+        $areas = $areasQuery->paginate($perPage)->withQueryString();
+
+        $unitVendorsQuery = UnitVendor::withCount('vehicles')->orderBy('name');
+        if ($tab === 'unit_vendors' && $search !== '') {
+            $unitVendorsQuery->where(function ($q) use ($search) {
+                $q->where('code', 'like', "%{$search}%")
+                  ->orWhere('name', 'like', "%{$search}%")
+                  ->orWhere('pic_name', 'like', "%{$search}%")
+                  ->orWhere('phone', 'like', "%{$search}%");
+            });
+        }
+        $unitVendors = $unitVendorsQuery->paginate($perPage)->withQueryString();
+
+        $vendorsQuery = Vendor::with('activeFuelPrice')->orderBy('name');
+        if ($tab === 'vendors' && $search !== '') {
+            $vendorsQuery->where(function ($q) use ($search) {
+                $q->where('code', 'like', "%{$search}%")
+                  ->orWhere('name', 'like', "%{$search}%")
+                  ->orWhere('pic_name', 'like', "%{$search}%")
+                  ->orWhere('phone', 'like', "%{$search}%");
+            });
+        }
+        $vendors = $vendorsQuery->paginate($perPage)->withQueryString();
+
+        $usersQuery = User::with(['employee', 'vendor', 'areaApprovers.area'])->orderBy('name');
+        if ($tab === 'users' && $search !== '') {
+            $usersQuery->where(function ($q) use ($search) {
+                $q->where('name', 'like', "%{$search}%")
+                  ->orWhere('username', 'like', "%{$search}%")
+                  ->orWhere('email', 'like', "%{$search}%")
+                  ->orWhere('phone', 'like', "%{$search}%")
+                  ->orWhere('nrp', 'like', "%{$search}%")
+                  ->orWhere('role', 'like', "%{$search}%")
+                  ->orWhere('jabatan', 'like', "%{$search}%")
+                  ->orWhereHas('vendor', fn($v) => $v->where('name', 'like', "%{$search}%"))
+                  ->orWhereHas('areaApprovers.area', fn($a) => $a->where('name', 'like', "%{$search}%"));
+            });
+        }
+        $users = $usersQuery->paginate($perPage)->withQueryString();
+
+        $areaApproversQuery = AreaApprover::with(['area', 'user'])->orderBy('area_id');
+        if ($tab === 'approvers' && $search !== '') {
+            $areaApproversQuery->where(function ($q) use ($search) {
+                $q->where('role_type', 'like', "%{$search}%")
+                  ->orWhereHas('area', fn($a) => $a->where('name', 'like', "%{$search}%"))
+                  ->orWhereHas('user', fn($u) => $u->where('name', 'like', "%{$search}%")->orWhere('username', 'like', "%{$search}%"));
+            });
+        }
+        $areaApprovers = $areaApproversQuery->paginate($perPage)->withQueryString();
+
+        $fuelStandardsQuery = FuelStandard::with('vehicle')->orderBy('vehicle_id')->orderBy('effective_start', 'desc');
+        if ($tab === 'standards' && $search !== '') {
+            $fuelStandardsQuery->where(function ($q) use ($search) {
+                $q->where('notes', 'like', "%{$search}%")
+                  ->orWhereHas('vehicle', fn($v) => $v->where('unit_code', 'like', "%{$search}%")->orWhere('vehicle_type', 'like', "%{$search}%"));
+            });
+        }
+        $fuelStandards = $fuelStandardsQuery->paginate($perPage)->withQueryString();
+
+        $fuelPricesQuery = FuelPrice::with('vendor')->orderBy('effective_start', 'desc');
+        if ($tab === 'prices' && $search !== '') {
+            $fuelPricesQuery->where(function ($q) use ($search) {
+                $q->where('fuel_type', 'like', "%{$search}%")
+                  ->orWhereHas('vendor', fn($v) => $v->where('name', 'like', "%{$search}%"));
+            });
+        }
+        $fuelPrices = $fuelPricesQuery->paginate($perPage)->withQueryString();
+
+        if (Schema::hasTable('system_backgrounds')) {
+            $backgroundsQuery = SystemBackground::with('uploader')->orderBy('is_active', 'desc')->orderBy('id', 'desc');
+            if ($tab === 'backgrounds' && $search !== '') {
+                $backgroundsQuery->where(function ($q) use ($search) {
+                    $q->where('title', 'like', "%{$search}%")
+                      ->orWhere('description', 'like', "%{$search}%")
+                      ->orWhereHas('uploader', fn($u) => $u->where('name', 'like', "%{$search}%"));
+                });
+            }
+            $backgrounds = $backgroundsQuery->paginate($perPage)->withQueryString();
+        } else {
+            $backgrounds = new \Illuminate\Pagination\LengthAwarePaginator(collect(), 0, $perPage);
+        }
+
+        $auditLogsQuery = FuelRequestHistory::with(['user', 'fuelRequest'])->latest('created_at');
+        if ($tab === 'audit' && $search !== '') {
+            $auditLogsQuery->where(function ($q) use ($search) {
+                $q->where('action', 'like', "%{$search}%")
+                  ->orWhere('description', 'like', "%{$search}%")
+                  ->orWhere('status_to', 'like', "%{$search}%")
+                  ->orWhereHas('user', fn($u) => $u->where('name', 'like', "%{$search}%"))
+                  ->orWhereHas('fuelRequest', fn($fr) => $fr->where('request_number', 'like', "%{$search}%"));
+            });
+        }
+        $auditLogs = $auditLogsQuery->paginate($perPage)->withQueryString();
 
         return view('admin.master', compact(
             'user',
             'tab',
             'perPage',
+            'search',
             'employees',
             'vehicles',
             'areas',
@@ -862,6 +977,7 @@ class AdminMasterController extends Controller
             'phone.regex' => 'Nomor HP / WhatsApp harus diawali dengan 08 dan terdiri dari 10-14 digit angka (contoh: 081234567890).',
         ]);
 
+        $plainPassword = !empty($validated['password']) ? $validated['password'] : 'password123';
         $payload = [
             'name' => $validated['name'],
             'username' => $validated['username'],
@@ -872,7 +988,8 @@ class AdminMasterController extends Controller
             'nrp' => !empty($validated['nrp']) ? $validated['nrp'] : null,
             'employee_id' => !empty($validated['employee_id']) ? (int)$validated['employee_id'] : null,
             'vendor_id' => !empty($validated['vendor_id']) ? (int)$validated['vendor_id'] : null,
-            'password' => Hash::make(!empty($validated['password']) ? $validated['password'] : 'password123'),
+            'password' => Hash::make($plainPassword),
+            'encrypted_password' => Crypt::encryptString($plainPassword),
             'is_active' => $request->has('is_active') ? $request->boolean('is_active') : true,
         ];
 
@@ -932,6 +1049,7 @@ class AdminMasterController extends Controller
         // Password hanya di-hash dan diperbarui jika diisi oleh Admin; jika kosong, password lama tetap utuh
         if ($request->filled('password')) {
             $payload['password'] = Hash::make($validated['password']);
+            $payload['encrypted_password'] = Crypt::encryptString($validated['password']);
         }
 
         $targetUser->update($payload);

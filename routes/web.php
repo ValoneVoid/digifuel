@@ -14,6 +14,8 @@ use App\Http\Controllers\FuelRequestPdfController;
 // Public Authentication Routes
 Route::get('/login', [AuthController::class, 'showLogin'])->name('login');
 Route::post('/login', [AuthController::class, 'login'])->name('login.submit');
+Route::get('/forgot-password', [AuthController::class, 'showForgotPassword'])->name('password.request');
+Route::post('/forgot-password', [AuthController::class, 'submitForgotPassword'])->name('password.request.submit');
 Route::match(['get', 'post'], '/logout', [AuthController::class, 'logout'])->name('logout');
 
 // Protected Application Routes (Requires Authentication)

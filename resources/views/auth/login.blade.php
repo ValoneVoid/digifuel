@@ -62,7 +62,10 @@
                 </div>
 
                 <div class="digi-form-group" style="margin-bottom: 16px;">
-                    <label class="digi-form-label">Password <span class="digi-required">*</span></label>
+                    <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 6px;">
+                        <label class="digi-form-label" style="margin-bottom: 0;">Password <span class="digi-required">*</span></label>
+                        <a href="{{ route('password.request') }}" style="font-size: 12px; font-weight: 600; color: #0284c7; text-decoration: none;">Lupa Password?</a>
+                    </div>
                     <div style="position: relative; display: flex; align-items: center;">
                         <input type="password" name="password" id="loginPassword" class="digi-input" placeholder="Masukkan password" autocomplete="current-password" required style="padding-right: 42px;">
                         <button type="button" onclick="togglePassword()" id="togglePwdBtn" title="Lihat Password" aria-label="Lihat Password" style="position: absolute; right: 10px; background: transparent; border: none; padding: 4px; color: #64748b; cursor: pointer; display: inline-flex; align-items: center; justify-content: center;">

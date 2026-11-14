@@ -7,6 +7,7 @@ use App\Models\User;
 use App\Models\UserSignature;
 use App\Models\FuelRequestHistory;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\Crypt;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Validation\Rule;
 
@@ -83,6 +84,7 @@ class ProfileController extends Controller
 
         if (!empty($validated['password'])) {
             $user->password = Hash::make($validated['password']);
+            $user->encrypted_password = Crypt::encryptString($validated['password']);
         }
 
         $user->save();

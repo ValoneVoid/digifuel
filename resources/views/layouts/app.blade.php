@@ -52,6 +52,7 @@
         </div>
 
         <div class="digi-nav-links">
+            <span class="digi-nav-pill" aria-hidden="true"></span>
             <a href="{{ route('dashboard') }}" class="digi-nav-link {{ request()->routeIs('dashboard') ? 'active' : '' }}">Dashboard</a>
             @if($isAdmin)
                 <a href="{{ route('fuel.create') }}" class="digi-nav-link {{ request()->routeIs('fuel.create') ? 'active' : '' }}">Form Request</a>
@@ -520,6 +521,68 @@
             }
         });
     }
+    </script>
+    <script>
+    document.addEventListener('DOMContentLoaded', function() {
+        const navGroup = document.querySelector('.digi-nav-links');
+        const navPill = navGroup ? navGroup.querySelector('.digi-nav-pill') : null;
+        const navItems = navGroup ? Array.from(navGroup.querySelectorAll('.digi-nav-link')) : [];
+
+        if (!navGroup || !navPill || navItems.length === 0) return;
+
+        function movePill(target, animate = true) {
+            if (!target) return;
+            if (!animate) {
+                navPill.style.transition = 'none';
+            }
+            navPill.style.width = target.offsetWidth + 'px';
+            navPill.style.height = target.offsetHeight + 'px';
+            navPill.style.transform = `translate3d(${target.offsetLeft}px, ${target.offsetTop}px, 0)`;
+            navPill.style.opacity = '1';
+
+            if (!animate) {
+                navPill.offsetHeight; // force reflow
+                navPill.style.transition = '';
+            }
+        }
+
+        const activeItem = navGroup.querySelector('.digi-nav-link.active');
+        if (activeItem) {
+            navGroup.classList.add('has-pill');
+            movePill(activeItem, false);
+            if (navGroup.scrollWidth > navGroup.clientWidth) {
+                activeItem.scrollIntoView({ behavior: 'auto', inline: 'center', block: 'nearest' });
+            }
+        }
+
+        window.addEventListener('resize', function() {
+            const current = navGroup.querySelector('.digi-nav-link.active');
+            if (current) {
+                movePill(current, false);
+            }
+        });
+
+        navItems.forEach(function(item) {
+            item.addEventListener('click', function(e) {
+                if (e.ctrlKey || e.metaKey || e.shiftKey || e.altKey || e.button !== 0) return;
+
+                const targetUrl = new URL(item.href, window.location.origin);
+                const isSameUrl = targetUrl.pathname === window.location.pathname && targetUrl.search === window.location.search;
+
+                navGroup.classList.add('has-pill');
+                navItems.forEach(el => el.classList.remove('active'));
+                item.classList.add('active');
+                movePill(item, true);
+
+                if (!isSameUrl) {
+                    e.preventDefault();
+                    setTimeout(function() {
+                        window.location.href = item.href;
+                    }, 220);
+                }
+            });
+        });
+    });
     </script>
     @yield('scripts')
 </body>

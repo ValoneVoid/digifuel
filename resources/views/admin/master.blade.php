@@ -910,7 +910,7 @@
         </form>
 
         <div class="digi-table-filter-bar">
-            <input type="text" class="digi-table-search-input" placeholder="Cari kode unit, nomor polisi, model, rental, area..." onkeyup="filterMasterTable(this)">
+            <input type="text" class="digi-table-search-input" value="{{ $search ?? '' }}" onkeydown="if(event.key==='Enter'){event.preventDefault(); submitMasterSearch(this);}" placeholder="Cari kode unit, nomor polisi, model, rental, area..." onkeyup="filterMasterTable(this)">
             <div style="font-size: 12.5px; color: #64748b;">
                 Total: <strong>{{ method_exists($vehicles, 'total') ? $vehicles->total() : count($vehicles) }} unit</strong>
             </div>
@@ -931,7 +931,7 @@
                         <th>Kapasitas Tangki</th>
                         <th>Standar BBM</th>
                         <th>Status</th>
-                        <th>Aksi</th>
+                        <th style="width: 72px; text-align: center;">Aksi</th>
                     </tr>
                 </thead>
                 <tbody>
@@ -1049,7 +1049,7 @@
         </form>
 
         <div class="digi-table-filter-bar">
-            <input type="text" class="digi-table-search-input" placeholder="Cari kode perusahaan, nama rental, PIC, telepon..." onkeyup="filterMasterTable(this)">
+            <input type="text" class="digi-table-search-input" value="{{ $search ?? '' }}" onkeydown="if(event.key==='Enter'){event.preventDefault(); submitMasterSearch(this);}" placeholder="Cari kode perusahaan, nama rental, PIC, telepon..." onkeyup="filterMasterTable(this)">
             <div style="font-size: 12.5px; color: #64748b;">
                 Total: <strong>{{ method_exists($unitVendors, 'total') ? $unitVendors->total() : count($unitVendors) }} perusahaan</strong>
             </div>
@@ -1068,7 +1068,7 @@
                         <th>Telepon</th>
                         <th>Total Unit Terdaftar</th>
                         <th>Status</th>
-                        <th>Aksi</th>
+                        <th style="width: 72px; text-align: center;">Aksi</th>
                     </tr>
                 </thead>
                 <tbody>
@@ -1175,7 +1175,7 @@
         </form>
 
         <div class="digi-table-filter-bar">
-            <input type="text" class="digi-table-search-input" placeholder="Cari NRP, nama employee, jabatan, perusahaan..." onkeyup="filterMasterTable(this)">
+            <input type="text" class="digi-table-search-input" value="{{ $search ?? '' }}" onkeydown="if(event.key==='Enter'){event.preventDefault(); submitMasterSearch(this);}" placeholder="Cari NRP, nama employee, jabatan, perusahaan..." onkeyup="filterMasterTable(this)">
             <div style="font-size: 12.5px; color: #64748b;">
                 Total: <strong>{{ method_exists($employees, 'total') ? $employees->total() : count($employees) }} employee</strong>
             </div>
@@ -1195,7 +1195,7 @@
                         <th>Sumber Integrasi</th>
                         <th>Referensi Eksternal</th>
                         <th>Status</th>
-                        <th>Aksi</th>
+                        <th style="width: 72px; text-align: center;">Aksi</th>
                     </tr>
                 </thead>
                 <tbody>
@@ -1274,7 +1274,7 @@
         </form>
 
         <div class="digi-table-filter-bar">
-            <input type="text" class="digi-table-search-input" placeholder="Cari kode area, nama area operasional..." onkeyup="filterMasterTable(this)">
+            <input type="text" class="digi-table-search-input" value="{{ $search ?? '' }}" onkeydown="if(event.key==='Enter'){event.preventDefault(); submitMasterSearch(this);}" placeholder="Cari kode area, nama area operasional..." onkeyup="filterMasterTable(this)">
             <div style="font-size: 12.5px; color: #64748b;">
                 Total: <strong>{{ method_exists($areas, 'total') ? $areas->total() : count($areas) }} area</strong>
             </div>
@@ -1290,7 +1290,7 @@
                         <th>Kode Area</th>
                         <th>Nama Area Operasional</th>
                         <th>Status</th>
-                        <th>Aksi</th>
+                        <th style="width: 72px; text-align: center;">Aksi</th>
                     </tr>
                 </thead>
                 <tbody>
@@ -1381,7 +1381,7 @@
         </form>
 
         <div class="digi-table-filter-bar">
-            <input type="text" class="digi-table-search-input" placeholder="Cari kode perusahaan, nama vendor bbm, PIC, telepon..." onkeyup="filterMasterTable(this)">
+            <input type="text" class="digi-table-search-input" value="{{ $search ?? '' }}" onkeydown="if(event.key==='Enter'){event.preventDefault(); submitMasterSearch(this);}" placeholder="Cari kode perusahaan, nama vendor bbm, PIC, telepon..." onkeyup="filterMasterTable(this)">
             <div style="font-size: 12.5px; color: #64748b;">
                 Total: <strong>{{ method_exists($vendors, 'total') ? $vendors->total() : count($vendors) }} perusahaan</strong>
             </div>
@@ -1400,7 +1400,7 @@
                         <th>Telepon</th>
                         <th>Harga Solar Aktif</th>
                         <th>Status</th>
-                        <th>Aksi</th>
+                        <th style="width: 72px; text-align: center;">Aksi</th>
                     </tr>
                 </thead>
                 <tbody>
@@ -1510,7 +1510,7 @@
         </form>
 
         <div class="digi-table-filter-bar">
-            <input type="text" class="digi-table-search-input" placeholder="Cari area operasional, nama approver, tanggung jawab..." onkeyup="filterMasterTable(this)">
+            <input type="text" class="digi-table-search-input" value="{{ $search ?? '' }}" onkeydown="if(event.key==='Enter'){event.preventDefault(); submitMasterSearch(this);}" placeholder="Cari area operasional, nama approver, tanggung jawab..." onkeyup="filterMasterTable(this)">
             <div style="font-size: 12.5px; color: #64748b;">
                 Total: <strong>{{ method_exists($areaApprovers, 'total') ? $areaApprovers->total() : count($areaApprovers) }} penugasan</strong>
             </div>
@@ -1528,7 +1528,7 @@
                         <th>Tanggung Jawab</th>
                         <th>Mulai Penugasan</th>
                         <th>Status</th>
-                        <th>Aksi</th>
+                        <th style="width: 72px; text-align: center;">Aksi</th>
                     </tr>
                 </thead>
                 <tbody>
@@ -1677,7 +1677,7 @@
         </form>
 
         <div class="digi-table-filter-bar">
-            <input type="text" class="digi-table-search-input" placeholder="Cari unit code, jenis unit, standar..." onkeyup="filterMasterTable(this)">
+            <input type="text" class="digi-table-search-input" value="{{ $search ?? '' }}" onkeydown="if(event.key==='Enter'){event.preventDefault(); submitMasterSearch(this);}" placeholder="Cari unit code, jenis unit, standar..." onkeyup="filterMasterTable(this)">
             <div style="font-size: 12.5px; color: #64748b;">
                 Total: <strong>{{ method_exists($fuelStandards, 'total') ? $fuelStandards->total() : count($fuelStandards) }} standar</strong>
             </div>
@@ -1695,7 +1695,7 @@
                         <th>Jenis Unit</th>
                         <th style="text-align: right;">Standar Konsumsi</th>
                         <th>Status</th>
-                        <th>Aksi</th>
+                        <th style="width: 72px; text-align: center;">Aksi</th>
                     </tr>
                 </thead>
                 <tbody>
@@ -1795,7 +1795,7 @@
         </form>
 
         <div class="digi-table-filter-bar">
-            <input type="text" class="digi-table-search-input" placeholder="Cari vendor BBM, jenis BBM, harga..." onkeyup="filterMasterTable(this)">
+            <input type="text" class="digi-table-search-input" value="{{ $search ?? '' }}" onkeydown="if(event.key==='Enter'){event.preventDefault(); submitMasterSearch(this);}" placeholder="Cari vendor BBM, jenis BBM, harga..." onkeyup="filterMasterTable(this)">
             <div style="font-size: 12.5px; color: #64748b;">
                 Total: <strong>{{ method_exists($fuelPrices, 'total') ? $fuelPrices->total() : count($fuelPrices) }} riwayat harga</strong>
             </div>
@@ -1814,7 +1814,7 @@
                         <th>Mulai Berlaku</th>
                         <th>Akhir Berlaku</th>
                         <th>Status</th>
-                        <th>Aksi</th>
+                        <th style="width: 72px; text-align: center;">Aksi</th>
                     </tr>
                 </thead>
                 <tbody>
@@ -1970,7 +1970,7 @@
         </form>
 
         <div class="digi-table-filter-bar">
-            <input type="text" class="digi-table-search-input" placeholder="Cari pengguna, username, whatsapp, NRP, role, area..." onkeyup="filterMasterTable(this)">
+            <input type="text" class="digi-table-search-input" value="{{ $search ?? '' }}" onkeydown="if(event.key==='Enter'){event.preventDefault(); submitMasterSearch(this);}" placeholder="Cari pengguna, username, whatsapp, NRP, role, area..." onkeyup="filterMasterTable(this)">
             <div style="font-size: 12.5px; color: #64748b;">
                 Total: <strong>{{ method_exists($users, 'total') ? $users->total() : count($users) }} pengguna</strong>
             </div>
@@ -1985,6 +1985,7 @@
                         <th style="width: 50px;">No</th>
                         <th>Nama Pengguna</th>
                         <th>Username</th>
+                        <th>Password</th>
                         <th>No. WhatsApp</th>
                         <th>NRP</th>
                         <th>Role Sistem</th>
@@ -1992,7 +1993,7 @@
                         <th>Perusahaan Terkait</th>
                         <th>Penugasan Area</th>
                         <th>Status</th>
-                        <th>Aksi</th>
+                        <th style="width: 72px; text-align: center;">Aksi</th>
                     </tr>
                 </thead>
                 <tbody>
@@ -2001,6 +2002,22 @@
                             <td>{{ $users->firstItem() ? ($users->firstItem() + $idx) : ($idx + 1) }}</td>
                             <td style="font-weight:700; color: #0284c7;">{{ $u->name }}</td>
                             <td style="font-weight:600;">{{ $u->username }}</td>
+                            <td>
+                                @php $decryptedPwd = $u->decrypted_password; @endphp
+                                <div style="display: inline-flex; align-items: center; gap: 6px; background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 8px; padding: 4px 8px;">
+                                    <span id="pwd-text-{{ $u->id }}" data-revealed="0" data-pwd="{{ $decryptedPwd ?? '' }}" data-empty="{{ $decryptedPwd === null ? '1' : '0' }}" style="font-family: monospace; font-size: 12px; font-weight: 600; color: #334155; letter-spacing: 1px;">••••••••</span>
+                                    <button type="button" onclick="toggleTableUserPassword({{ $u->id }}, this)" title="Lihat Password" aria-label="Lihat Password" style="background: transparent; border: none; padding: 2px; color: #64748b; cursor: pointer; display: inline-flex; align-items: center; justify-content: center;">
+                                        <svg class="eye-open" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                            <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"></path>
+                                            <circle cx="12" cy="12" r="3"></circle>
+                                        </svg>
+                                        <svg class="eye-closed" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="display: none;">
+                                            <path d="M17.94 17.94A10.07 10.07 0 0 1 12 20c-7 0-11-8-11-8a18.45 18.45 0 0 1 5.06-5.94M9.9 4.24A9.12 9.12 0 0 1 12 4c7 0 11 8 11 8a18.5 18.5 0 0 1-2.16 3.19m-6.72-1.07a3 3 0 1 1-4.24-4.24"></path>
+                                            <line x1="1" y1="1" x2="23" y2="23"></line>
+                                        </svg>
+                                    </button>
+                                </div>
+                            </td>
                             <td>
                                 @if($u->phone)
                                     <span style="font-family: monospace; font-weight: 600; color: #0369a1;">{{ $u->phone }}</span>
@@ -2024,24 +2041,41 @@
                                     <span class="dot"></span>{{ $u->is_active ? 'Aktif' : 'Nonaktif' }}
                                 </span>
                             </td>
-                            <td>
-                                <div style="display: flex; gap: 6px; align-items: center;">
-                                    <button type="button" class="btn-digi btn-digi-yellow" style="padding: 5px 12px; font-size: 12px;"
-                                        data-item="{{ json_encode($u) }}" onclick="editUser(this)">
-                                        Edit
+                            <td style="text-align: center;">
+                                <div class="digi-action-menu-wrap" style="display: inline-block; position: relative;">
+                                    <button type="button" class="digi-action-dots-btn" onclick="toggleUserActionMenu(this, event)" title="Menu Aksi" aria-label="Menu Aksi"
+                                        style="width: 34px; height: 34px; border-radius: 8px; border: 1px solid #cbd5e1; background: #ffffff; color: #334155; display: inline-flex; align-items: center; justify-content: center; cursor: pointer; transition: all 0.15s ease;">
+                                        <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor">
+                                            <circle cx="12" cy="5" r="2"></circle>
+                                            <circle cx="12" cy="12" r="2"></circle>
+                                            <circle cx="12" cy="19" r="2"></circle>
+                                        </svg>
                                     </button>
-                                    <button type="button" class="btn-digi {{ $u->is_active ? 'btn-digi-red' : 'btn-digi-green' }}" style="padding: 5px 12px; font-size: 12px;"
-                                        data-type="user" data-id="{{ $u->id }}" data-tab="users" data-name="{{ $u->name . ' (' . $u->username . ')' }}" data-active="{{ $u->is_active ? '1' : '0' }}"
-                                        onclick="openToggleModalFromBtn(this)">
-                                        {{ $u->is_active ? 'Nonaktifkan' : 'Aktifkan' }}
-                                    </button>
-                                    @if((int)$u->id !== (int)$user->id)
-                                        <button type="button" class="btn-digi btn-digi-gray" style="padding: 5px 12px; font-size: 12px; background: #fee2e2; color: #b91c1c; border: 1px solid #fecaca;"
-                                            data-action="{{ route('admin.master.users.destroy', $u->id) }}" data-entity="Akun Pengguna" data-name="{{ $u->name . ' (' . $u->username . ')' }}"
-                                            onclick="openDeleteModalFromBtn(this)">
-                                            Hapus
+                                    <div class="digi-action-dropdown" style="display: none; position: fixed; min-width: 165px; background: #ffffff; border: 1px solid #e2e8f0; border-radius: 10px; box-shadow: 0 10px 25px rgba(15, 23, 42, 0.14); padding: 6px; z-index: 9999; text-align: left;">
+                                        <button type="button" class="digi-action-item"
+                                            data-item="{{ json_encode($u) }}" onclick="closeAllUserActionMenus(); editUser(this)"
+                                            style="width: 100%; display: flex; align-items: center; gap: 8px; padding: 8px 10px; border: none; background: transparent; border-radius: 7px; font-size: 13px; font-weight: 600; color: #b45309; cursor: pointer; text-align: left;">
+                                            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"></path><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"></path></svg>
+                                            <span>Edit</span>
                                         </button>
-                                    @endif
+                                        <button type="button" class="digi-action-item"
+                                            data-type="user" data-id="{{ $u->id }}" data-tab="users" data-name="{{ $u->name . ' (' . $u->username . ')' }}" data-active="{{ $u->is_active ? '1' : '0' }}"
+                                            onclick="closeAllUserActionMenus(); openToggleModalFromBtn(this)"
+                                            style="width: 100%; display: flex; align-items: center; gap: 8px; padding: 8px 10px; border: none; background: transparent; border-radius: 7px; font-size: 13px; font-weight: 600; color: {{ $u->is_active ? '#dc2626' : '#16a34a' }}; cursor: pointer; text-align: left;">
+                                            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M18.36 6.64a9 9 0 1 1-12.73 0"></path><line x1="12" y1="2" x2="12" y2="12"></line></svg>
+                                            <span>{{ $u->is_active ? 'Nonaktifkan' : 'Aktifkan' }}</span>
+                                        </button>
+                                        @if((int)$u->id !== (int)$user->id)
+                                            <div style="height: 1px; background: #f1f5f9; margin: 4px 0;"></div>
+                                            <button type="button" class="digi-action-item"
+                                                data-action="{{ route('admin.master.users.destroy', $u->id) }}" data-entity="Akun Pengguna" data-name="{{ $u->name . ' (' . $u->username . ')' }}"
+                                                onclick="closeAllUserActionMenus(); openDeleteModalFromBtn(this)"
+                                                style="width: 100%; display: flex; align-items: center; gap: 8px; padding: 8px 10px; border: none; background: transparent; border-radius: 7px; font-size: 13px; font-weight: 600; color: #b91c1c; cursor: pointer; text-align: left;">
+                                                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="3 6 5 6 21 6"></polyline><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path></svg>
+                                                <span>Hapus</span>
+                                            </button>
+                                        @endif
+                                    </div>
                                 </div>
                             </td>
                         </tr>
@@ -2380,7 +2414,7 @@
         </form>
 
         <div class="digi-table-filter-bar">
-            <input type="text" class="digi-table-search-input" placeholder="Cari judul background, ketentuan, pengunggah..." onkeyup="filterMasterTable(this)">
+            <input type="text" class="digi-table-search-input" value="{{ $search ?? '' }}" onkeydown="if(event.key==='Enter'){event.preventDefault(); submitMasterSearch(this);}" placeholder="Cari judul background, ketentuan, pengunggah..." onkeyup="filterMasterTable(this)">
             <div style="font-size: 12.5px; color: #64748b;">
                 Total: <strong>{{ method_exists($backgrounds, 'total') ? $backgrounds->total() : count($backgrounds) }} background</strong>
             </div>
@@ -2399,7 +2433,7 @@
                         <th>Tingkat Kegelapan</th>
                         <th>Waktu Diunggah</th>
                         <th>Status</th>
-                        <th>Aksi</th>
+                        <th style="width: 72px; text-align: center;">Aksi</th>
                     </tr>
                 </thead>
                 <tbody>
@@ -2504,7 +2538,7 @@
         </div>
 
         <div class="digi-table-filter-bar">
-            <input type="text" class="digi-table-search-input" placeholder="Cari log aktivitas, pengguna, aksi, nomor pengajuan, status..." onkeyup="filterMasterTable(this)">
+            <input type="text" class="digi-table-search-input" value="{{ $search ?? '' }}" onkeydown="if(event.key==='Enter'){event.preventDefault(); submitMasterSearch(this);}" placeholder="Cari log aktivitas, pengguna, aksi, nomor pengajuan, status..." onkeyup="filterMasterTable(this)">
             <div style="font-size: 12.5px; color: #64748b;">
                 Total: <strong>{{ method_exists($auditLogs, 'total') ? $auditLogs->total() : count($auditLogs) }} log tercatat</strong>
             </div>
@@ -2822,7 +2856,29 @@ function updateMasterTabsArrows() {
     }
 }
 
-// Instant Client-side Table Filter Search
+// Server-side + Instant Table Filter Search (Preserves 10/25/50/100 per_page)
+let masterSearchTimer = null;
+
+function submitMasterSearch(input) {
+    if (!input) return;
+    const val = (input.value || '').trim();
+    const url = new URL(window.location.href);
+    const currentSearch = (url.searchParams.get('search') || '').trim();
+    if (val === currentSearch) return;
+
+    if (val !== '') {
+        url.searchParams.set('search', val);
+    } else {
+        url.searchParams.delete('search');
+    }
+    url.searchParams.set('page', '1');
+
+    sessionStorage.setItem('digi_master_page_scroll_y', window.scrollY);
+    sessionStorage.setItem('digi_master_tab_switched', '1');
+    sessionStorage.setItem('digi_master_search_focus', '1');
+    window.location.href = url.toString();
+}
+
 function filterMasterTable(input) {
     if (!input) return;
     const filter = (input.value || '').toLowerCase().trim();
@@ -2844,13 +2900,19 @@ function filterMasterTable(input) {
         const root = input.closest('.digi-card') || document;
         table = root.querySelector('.digi-table tbody');
     }
-    if (!table) return;
-    const rows = table.querySelectorAll('tr');
-    rows.forEach(row => {
-        if (row.querySelector('td[colspan]')) return;
-        const text = row.textContent.toLowerCase();
-        row.style.display = text.includes(filter) ? '' : 'none';
-    });
+    if (table) {
+        const rows = table.querySelectorAll('tr');
+        rows.forEach(row => {
+            if (row.querySelector('td[colspan]')) return;
+            const text = row.textContent.toLowerCase();
+            row.style.display = text.includes(filter) ? '' : 'none';
+        });
+    }
+
+    clearTimeout(masterSearchTimer);
+    masterSearchTimer = setTimeout(function() {
+        submitMasterSearch(input);
+    }, 450);
 }
 
 // Helper: Resolve data item from HTML button (data-item attribute) or direct JS object
@@ -3579,6 +3641,126 @@ document.addEventListener('DOMContentLoaded', function() {
             window.scrollTo({ top: parseInt(savedY, 10), behavior: 'instant' });
         }
     }
+
+    if (sessionStorage.getItem('digi_master_search_focus') === '1') {
+        sessionStorage.removeItem('digi_master_search_focus');
+        const searchInput = document.querySelector('.digi-table-search-input');
+        if (searchInput) {
+            searchInput.focus();
+            const len = searchInput.value.length;
+            searchInput.setSelectionRange(len, len);
+        }
+    }
+});
+
+function toggleTableUserPassword(userId, btn) {
+    const textEl = document.getElementById('pwd-text-' + userId);
+    if (!textEl) return;
+
+    const eyeOpen = btn.querySelector('.eye-open');
+    const eyeClosed = btn.querySelector('.eye-closed');
+    const isRevealed = textEl.getAttribute('data-revealed') === '1';
+
+    if (!isRevealed) {
+        const isEmpty = textEl.getAttribute('data-empty') === '1';
+        if (isEmpty) {
+            textEl.textContent = 'Belum tercatat (Reset via Edit)';
+            textEl.style.letterSpacing = 'normal';
+            textEl.style.fontSize = '11px';
+            textEl.style.color = '#b45309';
+        } else {
+            textEl.textContent = textEl.getAttribute('data-pwd') || '-';
+            textEl.style.letterSpacing = 'normal';
+            textEl.style.fontSize = '12.5px';
+            textEl.style.color = '#0f172a';
+        }
+        textEl.setAttribute('data-revealed', '1');
+        if (eyeOpen) eyeOpen.style.display = 'none';
+        if (eyeClosed) eyeClosed.style.display = 'inline';
+        btn.title = 'Sembunyikan Password';
+    } else {
+        textEl.textContent = '••••••••';
+        textEl.style.letterSpacing = '1px';
+        textEl.style.fontSize = '12px';
+        textEl.style.color = '#334155';
+        textEl.setAttribute('data-revealed', '0');
+        if (eyeOpen) eyeOpen.style.display = 'inline';
+        if (eyeClosed) eyeClosed.style.display = 'none';
+        btn.title = 'Lihat Password';
+    }
+}
+
+function closeAllUserActionMenus() {
+    document.querySelectorAll('.digi-action-dropdown').forEach(menu => {
+        menu.style.display = 'none';
+    });
+}
+
+function toggleUserActionMenu(btn, event) {
+    event.stopPropagation();
+    const wrap = btn.closest('.digi-action-menu-wrap');
+    const menu = wrap ? wrap.querySelector('.digi-action-dropdown') : null;
+    if (!menu) return;
+
+    const isOpen = menu.style.display === 'block';
+    closeAllUserActionMenus();
+
+    if (!isOpen) {
+        menu.style.display = 'block';
+        const btnRect = btn.getBoundingClientRect();
+        const menuRect = menu.getBoundingClientRect();
+
+        let top = btnRect.bottom + 6;
+        if (top + menuRect.height > window.innerHeight - 12) {
+            top = btnRect.top - menuRect.height - 6;
+        }
+        let left = btnRect.right - menuRect.width;
+        if (left + menuRect.width > window.innerWidth - 12) {
+            left = window.innerWidth - menuRect.width - 12;
+        }
+        if (left < 12) {
+            left = 12;
+        }
+
+        menu.style.top = top + 'px';
+        menu.style.left = left + 'px';
+    }
+}
+
+document.addEventListener('click', function(e) {
+    if (!e.target.closest('.digi-action-menu-wrap')) {
+        closeAllUserActionMenus();
+    }
+});
+
+window.addEventListener('scroll', closeAllUserActionMenus, { passive: true });
+window.addEventListener('resize', closeAllUserActionMenus, { passive: true });
+document.querySelectorAll('.digi-table-responsive').forEach(el => {
+    el.addEventListener('scroll', closeAllUserActionMenus, { passive: true });
 });
 </script>
+<style>
+.digi-action-dots-btn:hover {
+    background: #f1f5f9 !important;
+    border-color: #94a3b8 !important;
+    color: #0f172a !important;
+}
+.digi-action-item:hover {
+    background: #f1f5f9 !important;
+}
+@media screen and (max-width: 900px) {
+    .digi-action-dots-btn {
+        width: 38px !important;
+        height: 38px !important;
+    }
+    .digi-action-dropdown {
+        min-width: 185px !important;
+        padding: 8px !important;
+    }
+    .digi-action-item {
+        padding: 10px 12px !important;
+        font-size: 13.5px !important;
+    }
+}
+</style>
 @endsection
