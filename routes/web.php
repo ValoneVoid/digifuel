@@ -81,9 +81,9 @@ Route::middleware(['auth'])->group(function () {
         Route::post('/approval/{id}/update-liters', [ApprovalController::class, 'updateLiters'])->name('approval.updateLiters');
     });
 
-    // Realisasi Pengisian BBM (Fuel Man & Admin)
+    // Realisasi Pengisian BBM (Vendor, Fuel Man & Admin)
     Route::post('/approval/{id}/realization', [ApprovalController::class, 'recordRealization'])
-        ->middleware(['role:fuelman,admin'])
+        ->middleware(['role:vendor,fuelman,admin'])
         ->name('approval.realization');
 
     // Evaluasi Konsumsi BBM & Laporan Kerugian (Admin)

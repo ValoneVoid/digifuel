@@ -119,16 +119,23 @@ class DigiFuelWorkflowTest extends TestCase
         $this->assertEquals('disetujui', $fuelRequest->status_depthead);
         $this->assertEquals('pending_vendor', $fuelRequest->current_stage);
 
-        // 6. Stage 3: Vendor Approves (Final approval before fueling)
+        // 6. Stage 3 (Langkah 4): Vendor Approves and records fueling realization in 1 step
         $this->actingAs($vendor);
-        $this->post(route('approval.approve', $fuelRequest->id), ['note' => 'Stok BBM tersedia']);
+        $this->post(route('approval.approve', $fuelRequest->id), [
+            'note' => 'Stok BBM tersedia',
+            'actual_liters' => 45.0,
+            'meter_at_fueling' => 106010,
+            'fueled_at' => '2026-05-20 10:00:00',
+        ]);
         $fuelRequest->refresh();
         $this->assertEquals('disetujui', $fuelRequest->status_vendor);
-        $this->assertEquals('approved', $fuelRequest->current_stage);
+        $this->assertEquals('completed', $fuelRequest->current_stage);
         $this->assertTrue($fuelRequest->isVendorApproved());
+        $this->assertEquals(45.0, (float)$fuelRequest->actual_liters);
+        $this->assertEquals(1, $fuelRequest->transactions()->count());
 
-        // 7. Stage 4: Fuel Man records actual fueling realization
-        $this->actingAs($fuelman);
+        // 7. Vendor can also update / refine realization details if needed
+        $this->actingAs($vendor);
         $this->post(route('approval.realization', $fuelRequest->id), [
             'actual_liters' => 44.5,
             'meter_at_fueling' => 106010,
@@ -638,7 +645,6 @@ class DigiFuelWorkflowTest extends TestCase
             'hm_km' => 'HM / KM pengajuan wajib diisi.',
             'area' => 'Area operasional wajib dipilih.',
             'spv_id' => 'Approver SPV wajib dipilih.',
-            'fuelman_id' => 'Petugas Fuel Man wajib dipilih.',
             'depthead_id' => 'Approver Dept Head / Manager wajib dipilih.',
             'vendor_name' => 'Vendor pengisian BBM wajib dipilih.',
         ]);

@@ -27,7 +27,7 @@ class StoreFuelRequest extends FormRequest
             'hm_km' => ['required', 'numeric', 'min:0'],
             'area' => ['required', 'string'],
             'spv_id' => ['required', 'exists:users,id'],
-            'fuelman_id' => ['required', 'exists:users,id'],
+            'fuelman_id' => ['nullable', 'exists:users,id'],
             'depthead_id' => ['required', 'exists:users,id'],
             'vendor_name' => ['required', 'string'],
             'notes' => ['nullable', 'string', 'max:1000'],

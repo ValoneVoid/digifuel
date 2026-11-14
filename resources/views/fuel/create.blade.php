@@ -156,18 +156,6 @@
                 </div>
 
                 <div class="digi-form-group" style="margin-bottom: 16px;">
-                    <label class="digi-form-label">Pilih Approval Fuel Man <span class="digi-required">*</span></label>
-                    <select name="fuelman_id" id="fuelman_select" class="digi-select" required>
-                        <option value="">- Pilih Approval Fuel Man -</option>
-                        @foreach($fuelmen as $fm)
-                            <option value="{{ $fm->id }}" {{ old('fuelman_id', $fuelmen->first()?->id) == $fm->id ? 'selected' : '' }}>
-                                Approval By {{ $fm->name }} ({{ $fm->username }})
-                            </option>
-                        @endforeach
-                    </select>
-                </div>
-
-                <div class="digi-form-group" style="margin-bottom: 16px;">
                     <label class="digi-form-label">Pilih Approval Dept Head (Approve) <span class="digi-required">*</span></label>
                     <select name="depthead_id" id="depthead_select" class="digi-select" required>
                         <option value="">- Pilih Approval Dept Head -</option>
@@ -180,9 +168,9 @@
                 </div>
 
                 <div class="digi-form-group" style="margin-bottom: 16px;">
-                    <label class="digi-form-label">Perusahaan BBM <span class="digi-required">*</span></label>
+                    <label class="digi-form-label">Pilih Perusahaan Vendor BBM <span class="digi-required">*</span></label>
                     <select name="vendor_name" id="vendor_select" class="digi-select" required>
-                        <option value="">- Pilih Perusahaan Pengisian -</option>
+                        <option value="">- Pilih Perusahaan Vendor BBM -</option>
                         @foreach($vendors as $ven)
                             <option value="{{ $ven->name }}" {{ old('vendor_name', 'Cv. Sudan Mandiri') === $ven->name ? 'selected' : '' }}>
                                 {{ $ven->name }}
@@ -318,9 +306,8 @@ function handleAreaChange(areaName) {
     if (areaApproverMap[areaName]) {
         const data = areaApproverMap[areaName];
         populateSelect('spv_select', data.spvs, 'id', 'label', '- Pilih Approval SPV -');
-        populateSelect('fuelman_select', data.fuelmen, 'id', 'label', '- Pilih Approval Fuel Man -');
         populateSelect('depthead_select', data.deptheads, 'id', 'label', '- Pilih Approval Dept Head -');
-        populateSelect('vendor_select', data.vendors, 'name', 'name', '- Pilih Perusahaan Pengisian -');
+        populateSelect('vendor_select', data.vendors, 'name', 'name', '- Pilih Perusahaan Vendor BBM -');
     }
 
     // Also synchronize dynamically via Fetch API
@@ -329,9 +316,8 @@ function handleAreaChange(areaName) {
         .then(data => {
             if (data && data.spvs) {
                 populateSelect('spv_select', data.spvs, 'id', 'label', '- Pilih Approval SPV -');
-                populateSelect('fuelman_select', data.fuelmen, 'id', 'label', '- Pilih Approval Fuel Man -');
                 populateSelect('depthead_select', data.deptheads, 'id', 'label', '- Pilih Approval Dept Head -');
-                populateSelect('vendor_select', data.vendors, 'name', 'name', '- Pilih Perusahaan Pengisian -');
+                populateSelect('vendor_select', data.vendors, 'name', 'name', '- Pilih Perusahaan Vendor BBM -');
             }
         })
         .catch(() => {});

@@ -215,17 +215,10 @@
                     </span>
                 </div>
                 <div style="background: #fff; border: 1px solid #e2e8f0; border-radius: 8px; padding: 10px;">
-                    <div style="font-weight: 700; color: #334155;">4. Persetujuan Vendor</div>
+                    <div style="font-weight: 700; color: #334155;">4. Persetujuan & Realisasi Vendor</div>
                     <div style="color: #64748b; margin: 2px 0;">{{ $latestMyRequest->vendor_name }}</div>
-                    <span class="digi-badge {{ $vendorDone ? 'digi-badge-green' : ($latestMyRequest->status_fuelman === 'ditolak' ? 'digi-badge-red' : ($latestMyRequest->status_fuelman === 'menunggu' ? 'digi-badge-yellow' : 'digi-badge-gray')) }}">
-                        {{ $vendorDone ? 'Disetujui' : ($latestMyRequest->status_fuelman === 'menunggu' ? 'Menunggu' : 'Belum Aktif') }}
-                    </span>
-                </div>
-                <div style="background: #fff; border: 1px solid #e2e8f0; border-radius: 8px; padding: 10px;">
-                    <div style="font-weight: 700; color: #334155;">5. Realisasi BBM</div>
-                    <div style="color: #64748b; margin: 2px 0;">Fuel Man</div>
-                    <span class="digi-badge {{ $fuelingDone ? 'digi-badge-green' : ($vendorDone ? 'digi-badge-blue' : 'digi-badge-gray') }}">
-                        {{ $fuelingDone ? 'Selesai Isi' : ($vendorDone ? 'Siap Diisi' : 'Menunggu') }}
+                    <span class="digi-badge {{ ($vendorDone || $fuelingDone) ? 'digi-badge-green' : ($latestMyRequest->status_fuelman === 'ditolak' || $latestMyRequest->status_vendor === 'ditolak' ? 'digi-badge-red' : ($dhDone ? 'digi-badge-yellow' : 'digi-badge-gray')) }}">
+                        {{ ($vendorDone || $fuelingDone) ? 'Selesai' : ($dhDone ? 'Menunggu Vendor' : 'Menunggu Tahap 3') }}
                     </span>
                 </div>
             </div>

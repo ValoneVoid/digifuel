@@ -226,7 +226,7 @@
     <div class="digi-guide-nav-pills" id="guideTabsNav">
         <button type="button" class="digi-guide-pill is-active" onclick="switchGuideTab('alur', this)">
             <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.3" stroke-linecap="round" stroke-linejoin="round"><polyline points="22 12 18 12 15 21 9 3 6 12 2 12"></polyline></svg>
-            <span>Alur Cepat (5 Tahap)</span>
+            <span>Alur Cepat (4 Tahap)</span>
         </button>
         <button type="button" class="digi-guide-pill" onclick="switchGuideTab('driver', this)">
             <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.3" stroke-linecap="round" stroke-linejoin="round"><rect x="1" y="3" width="15" height="13"></rect><polygon points="16 8 20 8 23 11 23 16 16 16 16 8"></polygon><circle cx="5.5" cy="18.5" r="2.5"></circle><circle cx="18.5" cy="18.5" r="2.5"></circle></svg>
@@ -242,7 +242,7 @@
         </button>
         <button type="button" class="digi-guide-pill" onclick="switchGuideTab('vendor', this)">
             <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.3" stroke-linecap="round" stroke-linejoin="round"><path d="M3 2v6h6V2H3z"></path><path d="M14 2v6h7V2h-7z"></path><path d="M14 13h7v9h-7z"></path><path d="M3 13h6v9H3z"></path></svg>
-            <span>Vendor & Fuelman</span>
+            <span>Vendor BBM</span>
         </button>
         <button type="button" class="digi-guide-pill" onclick="switchGuideTab('admin', this)">
             <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.3" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"></circle><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z"></path></svg>
@@ -263,7 +263,7 @@
                 Bagaimana Pengajuan BBM Bekerja dari Awal Sampai Selesai?
             </h2>
             <p style="font-size: 13.5px; color: #64748b; margin: 0 0 16px 0;">
-                Sistem FuelLink menggantikan kupon kertas manual menjadi alur digital terpadu dalam 5 langkah sekuensial:
+                Sistem FuelLink menggantikan kupon kertas manual menjadi alur digital terpadu dalam 4 langkah sekuensial:
             </p>
 
             <div class="digi-flow-bar">
@@ -274,23 +274,18 @@
                 </div>
                 <div class="digi-flow-box">
                     <div class="digi-flow-step-num">Langkah 2</div>
-                    <div class="digi-flow-step-name">Approval Tahap 1</div>
+                    <div class="digi-flow-step-name">Verifikasi SPV</div>
                     <div class="digi-flow-step-actor">Oleh: Supervisor (SPV)</div>
                 </div>
                 <div class="digi-flow-box">
                     <div class="digi-flow-step-num">Langkah 3</div>
-                    <div class="digi-flow-step-name">Approval Tahap 2</div>
+                    <div class="digi-flow-step-name">Approval Dept Head</div>
                     <div class="digi-flow-step-actor">Oleh: Dept Head / Manager</div>
                 </div>
-                <div class="digi-flow-box">
-                    <div class="digi-flow-step-num">Langkah 4</div>
-                    <div class="digi-flow-step-name">Approval Vendor</div>
-                    <div class="digi-flow-step-actor">Oleh: PIC Vendor Solar</div>
-                </div>
                 <div class="digi-flow-box is-highlight">
-                    <div class="digi-flow-step-num">Langkah 5</div>
-                    <div class="digi-flow-step-name">Realisasi Pengisian</div>
-                    <div class="digi-flow-step-actor">Oleh: Fuelman (Dispenser)</div>
+                    <div class="digi-flow-step-num">Langkah 4</div>
+                    <div class="digi-flow-step-name">Persetujuan & Realisasi</div>
+                    <div class="digi-flow-step-actor">Oleh: Petugas Vendor BBM</div>
                 </div>
             </div>
 
@@ -467,37 +462,35 @@
     </div>
 
     <!-- ============================================================== -->
-    <!-- PANEL 5: PANDUAN VENDOR & FUELMAN                               -->
+    <!-- PANEL 5: PANDUAN VENDOR BBM                                     -->
     <!-- ============================================================== -->
     <div id="guide-panel-vendor" class="digi-guide-panel" style="display: none;">
         <div class="digi-guide-card">
             <h2 style="font-size: 16px; font-weight: 800; color: #0f172a; margin: 0 0 14px 0;">
-                Validasi Vendor & Realisasi Pengisian oleh Fuelman
+                Persetujuan & Realisasi Pengisian oleh Petugas Vendor BBM (Tahap 4)
             </h2>
 
             <div class="digi-guide-step-row">
-                <span class="digi-step-badge">A</span>
+                <span class="digi-step-badge">1</span>
                 <div class="digi-step-content">
-                    <h3 class="digi-step-title">Untuk Perwakilan Vendor BBM (Persetujuan Kuota)</h3>
+                    <h3 class="digi-step-title">Pemeriksaan & Konfirmasi Pengajuan</h3>
                     <p class="digi-step-desc">
-                        1. Login menggunakan akun vendor (misal: <em>CV. Sudan Mandiri</em>).<br>
-                        2. Buka menu <strong>Pengajuan</strong>.<br>
-                        3. Periksa ketersediaan stok BBM di storage/fuel truck.<br>
-                        4. Klik <strong>"Approve Vendor"</strong>. Kupon resmi dinyatakan aktif dan siap diisi oleh Fuelman di dispenser.
+                        1. Login menggunakan akun vendor (misal: <em>CV. Adya Mandiri</em>).<br>
+                        2. Buka menu <strong>Persetujuan BBM</strong> untuk melihat antrean pengisian yang telah disetujui SPV & Dept Head.<br>
+                        3. Periksa nomor pengajuan pada smartphone Driver atau lembar cetak PDF Surat Permintaan Bahan Bakar.
                     </p>
                 </div>
             </div>
 
             <div class="digi-guide-step-row">
-                <span class="digi-step-badge">B</span>
+                <span class="digi-step-badge">2</span>
                 <div class="digi-step-content">
-                    <h3 class="digi-step-title">Untuk Petugas Fuelman (Pengisian Fisik Solar)</h3>
+                    <h3 class="digi-step-title">Pengisian Fisik & Pencatatan Realisasi (1 Kali Proses)</h3>
                     <p class="digi-step-desc">
-                        1. Saat driver tiba di dispenser BBM / Fuel Truck, periksa nomor pengajuan pada HP driver atau lembar cetak PDF.<br>
-                        2. Lakukan pengisian solar ke tangki unit.<br>
-                        3. Buka menu <strong>Realisasi Pengisian</strong> di FuelLink.<br>
-                        4. Masukkan data aktual: <strong>Liter Aktual Terisi</strong>, <strong>Jam/KM Odometer Terkini</strong>, dan <strong>Waktu Pengisian Selesai</strong>.<br>
-                        5. Klik <strong>"Simpan Realisasi Pengisian"</strong>. Transaksi selesai 100%!
+                        1. Lakukan pengisian solar ke tangki unit melalui dispenser BBM / fuel truck.<br>
+                        2. Pada detail pengajuan di FuelLink, klik tombol <strong>"Setuju (Tahap 4: Vendor BBM)"</strong>.<br>
+                        3. Isi data dispenser fisik: <strong>Liter Aktual Terisi</strong>, <strong>KM / HM Odometer</strong>, dan <strong>Waktu Pengisian Selesai</strong>.<br>
+                        4. Klik <strong>"Setujui & Selesaikan Pengisian"</strong>. Persetujuan vendor dan realisasi pengisian langsung tercatat selesai sekaligus tanpa perlu akun terpisah!
                     </p>
                 </div>
             </div>

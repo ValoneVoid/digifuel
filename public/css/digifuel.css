@@ -1475,7 +1475,7 @@ div[style*="overflow-x: auto"]::-webkit-scrollbar-thumb:hover {
 /* Mobile Stepper / Progress Tracking (Horizontally swipeable on Android) */
 .digi-stepper-scroll {
   display: grid;
-  grid-template-columns: repeat(5, 1fr);
+  grid-template-columns: repeat(4, 1fr);
   gap: 8px;
 }
 

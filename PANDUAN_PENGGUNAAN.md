@@ -1,31 +1,30 @@
 # 📖 Panduan Penggunaan Sistem FuelLink
 ### PT United Tractors Tbk — Site Satui
-*Panduan Praktis Pengoperasian Sistem untuk Seluruh Peran (Driver, Pengawas SPV, Dept Head/Manager, Vendor BBM, Fuelman, dan Administrator)*
+*Panduan Praktis Pengoperasian Sistem untuk Seluruh Peran (Driver, Pengawas SPV, Dept Head/Manager, Petugas Vendor BBM, dan Administrator)*
 
 ---
 
 ## 📌 Daftar Isi
-1. [Sekilas Tentang DigiFuel](#-sekilas-tentang-digifuel)
-2. [Alur 5 Langkah Pengisian BBM](#-alur-5-langkah-pengisian-bbm)
+1. [Sekilas Tentang FuelLink](#-sekilas-tentang-fuellink)
+2. [Alur 4 Langkah Pengisian BBM](#-alur-4-langkah-pengisian-bbm)
 3. [Panduan Berdasarkan Peran](#-panduan-berdasarkan-peran)
    - [A. Driver / Operator Lapangan](#a-driver--operator-lapangan)
    - [B. Supervisor (SPV) / Pengawas](#b-supervisor-spv--pengawas)
    - [C. Dept Head / Manager](#c-dept-head--manager)
-   - [D. Vendor Penyedia BBM](#d-vendor-penyedia-bbm)
-   - [E. Fuelman (Petugas Dispenser)](#e-fuelman-petugas-dispenser)
-   - [F. Administrator Sistem](#f-administrator-sistem)
+   - [D. Vendor Penyedia BBM (Persetujuan & Realisasi)](#d-vendor-penyedia-bbm-persetujuan--realisasi)
+   - [E. Administrator Sistem](#e-administrator-sistem)
 4. [Tanya Jawab Umum (FAQ & Troubleshooting)](#-tanya-jawab-umum-faq--troubleshooting)
    - [Apakah Audit Trail Terhapus Tiap Bulan?](#apakah-audit-trail-terhapus-tiap-bulan)
-   - [Cara Akses DigiFuel dari HP / Smartphone](#cara-akses-digifuel-dari-hp--smartphone)
+   - [Cara Akses FuelLink dari HP / Smartphone](#cara-akses-fuellink-dari-hp--smartphone)
    - [Bagaimana Jika Ada Salah Ketik Jumlah Liter?](#bagaimana-jika-ada-salah-ketik-jumlah-liter)
 
 ---
 
-## 🌟 Sekilas Tentang DigiFuel
+## 🌟 Sekilas Tentang FuelLink
 
-**DigiFuel** adalah sistem digital terpadu yang dirancang untuk menggantikan kupon bensin/solar kertas manual di PT United Tractors Tbk Site Satui.
+**FuelLink** adalah sistem digital terpadu yang dirancang untuk menggantikan kupon bensin/solar kertas manual di PT United Tractors Tbk Site Satui.
 
-Dengan DigiFuel:
+Dengan FuelLink:
 - Pengajuan permohonan BBM dilakukan lewat aplikasi (bisa via HP atau komputer).
 - Persetujuan berjenjang berjalan otomatis disertai notifikasi WhatsApp resmi.
 - Tidak ada lagi risiko kupon kertas hilang, rusak, atau tercecer.
@@ -33,18 +32,18 @@ Dengan DigiFuel:
 
 ---
 
-## 🔄 Alur 5 Langkah Pengisian BBM
+## 🔄 Alur 4 Langkah Pengisian BBM
 
 ```text
-[1. DRIVER]            [2. SPV]              [3. DEPT HEAD]         [4. VENDOR]           [5. FUELMAN]
-Membuat Permohonan ──▶ Memeriksa & Setuju ──▶ Persetujuan Akhir ──▶ Konfirmasi Kuota ──▶ Mengisi Tangki Fisik
-(Isi KM & Liter)       (Bisa Sesuaikan Liter) (Tanda Tangan PDF)    (Kupon BBM Aktif)     (Input Liter Aktual)
+[1. DRIVER]            [2. SPV]              [3. DEPT HEAD]         [4. VENDOR BBM]
+Membuat Permohonan ──▶ Memeriksa & Setuju ──▶ Persetujuan Akhir ──▶ Persetujuan & Realisasi Fisik
+(Isi KM & Liter)       (Bisa Sesuaikan Liter) (Tanda Tangan PDF)    (Input Liter Aktual Dispenser)
 ```
 
 ### Arti Warna Status Pengajuan:
 - 🟡 **Kuning (Draft / Menunggu)**: Baru diajukan, sedang menunggu giliran persetujuan pejabat terkait.
 - 🔵 **Biru (Disetujui Berjenjang)**: Sedang dalam proses persetujuan SPV atau Dept Head.
-- 🟢 **Hijau (Siap Diisi / Selesai)**: Kupon solar sudah aktif dan telah selesai diisi oleh Fuelman.
+- 🟢 **Hijau (Siap Diisi / Selesai)**: Transaksi pengisian telah selesai divalidasi dan dicatat oleh Vendor BBM.
 - 🔴 **Merah (Ditolak / Dibatalkan)**: Pengajuan ditolak oleh penilai dengan alasan yang tercantum pada catatan.
 
 ---
@@ -67,7 +66,7 @@ Membuat Permohonan ──▶ Memeriksa & Setuju ──▶ Persetujuan Akhir ─�
    - Pengajuan Anda akan otomatis masuk ke antrean Supervisor (SPV) Anda.
 4. **Pantau Status & Ambil BBM**:
    - Buka menu **History** untuk memantau status.
-   - Setelah status berubah menjadi **Approved by Vendor**, Anda dapat menuju fuel truck / dispenser BBM dan menunjukkan nomor pengajuan atau lembar cetak PDF ke petugas Fuelman.
+   - Setelah status disetujui Dept Head, Anda dapat menuju fuel truck / dispenser BBM dan menunjukkan nomor pengajuan atau lembar cetak PDF ke petugas Vendor BBM.
 
 ---
 
@@ -94,34 +93,26 @@ Membuat Permohonan ──▶ Memeriksa & Setuju ──▶ Persetujuan Akhir ─�
 1. Buka menu **Pengajuan** (tiket yang berstatus *Pending Stage 2*).
 2. Periksa ringkasan permohonan yang telah divalidasi oleh SPV.
 3. Klik tombol hijau **"Approve Manager"**.
-4. Tanda tangan digital resmi Anda akan otomatis tersemat ke dokumen bukti pengajuan, dan notifikasi otomatis diteruskan ke pihak vendor penyedia solar.
+4. Tanda tangan digital resmi Anda akan otomatis tersemat ke dokumen bukti pengajuan, dan tiket pengajuan siap direalisasikan oleh Vendor BBM.
 
 ---
 
-### D. Vendor Penyedia BBM
-*Tugas: Memvalidasi ketersediaan stok bahan bakar dan menerbitkan kuota kupon digital.*
+### D. Vendor Penyedia BBM (Persetujuan & Realisasi)
+*Tugas: Memvalidasi ketersediaan stok, melakukan pengisian solar fisik, dan mendokumentasikan liter aktual dispenser dalam satu langkah mudah.*
 
-1. Login menggunakan akun resmi perwakilan vendor (misal: `CV. Sudan Mandiri`).
-2. Buka menu **Pengajuan** (tiket yang berstatus *Pending Stage 3*).
-3. Periksa kesiapan suplai solar di storage / fuel truck.
-4. Klik **"Approve Vendor"**. Kupon pengisian BBM dinyatakan resmi aktif dan siap disalurkan ke dispenser.
-
----
-
-### E. Fuelman (Petugas Dispenser)
-*Tugas: Mengisikan solar ke tangki unit dan mendokumentasikan liter aktual fisik.*
-
-1. Saat driver tiba di titik pengisian, minta nomor tiket pengajuan (misal: `REQ-202611-001`) atau scan barcode kupon.
-2. Lakukan pengisian fisik solar industri ke tangki kendaraan.
-3. Buka menu **Realisasi Pengisian** di DigiFuel:
-   - Masukkan **Liter Aktual Terisi** sesuai angka dispenser.
+1. Login menggunakan akun resmi perwakilan vendor (misal: `CV. Adya Mandiri`).
+2. Buka menu **Pengajuan** (tiket yang berstatus antrean Vendor).
+3. Saat driver tiba di dispenser BBM / fuel truck, lakukan pengisian fisik solar ke tangki unit.
+4. Klik tombol hijau **"Setuju (Tahap 4: Vendor BBM)"**:
+   - Sistem akan menampilkan formulir pengisian dispenser.
+   - Masukkan **Liter Aktual Terisi** sesuai display meter dispenser.
    - Masukkan **Angka KM/HM Odometer** unit terkini.
-   - Catat **Waktu Pengisian Selesai**.
-4. Klik **"Simpan Realisasi Pengisian"**. Status pengajuan otomatis berubah menjadi **Completed** (Selesai).
+   - Masukkan **Waktu Pengisian Selesai**.
+5. Klik **"Setujui & Selesaikan Pengisian"**. Status pengajuan otomatis berubah menjadi **Completed** (Selesai 100%) dan tanda tangan Vendor langsung tercatat pada dokumen resmi!
 
 ---
 
-### F. Administrator Sistem
+### E. Administrator Sistem
 *Tugas: Mengelola konfigurasi master data, hak akses, audit trail, dan kebersihan sistem.*
 
 1. **Navigasi Cepat Master Data (Tombol Burger Bar ☰)**:

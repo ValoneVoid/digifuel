@@ -8,7 +8,7 @@
         <div>
             <h1 class="digi-table-title">Daftar Pengajuan Bahan Bakar</h1>
             <p style="font-size: 13.5px; color: #64748b; margin: 4px 0 0 0;">
-                Alur berjenjang: <strong>Employee → SPV/Dept Head → Dept Head/Manager → Vendor → Realisasi Fuel Man</strong>
+                Alur berjenjang: <strong>Employee → SPV/Dept Head → Dept Head/Manager → Persetujuan & Realisasi Vendor</strong>
                 @if($user && $user->isVendor() && $user->vendor)
                     | Vendor Aktif: <strong>{{ $user->vendor->name }}</strong>
                 @endif

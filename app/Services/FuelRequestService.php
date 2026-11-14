@@ -12,6 +12,7 @@ use App\Models\User;
 use App\Models\UserNotification;
 use App\Models\Vehicle;
 use App\Models\Vendor;
+use Carbon\Carbon;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Validation\ValidationException;
 
@@ -310,9 +311,9 @@ class FuelRequestService
      * Stage 2: Dept Head/Manager (pending_manager -> pending_vendor)
      * Stage 3: Vendor (pending_vendor -> approved [Ready for Fueling])
      */
-    public function approve(FuelRequest $fuelRequest, User $user, ?string $note = null, ?float $adjustedLiters = null): array
+    public function approve(FuelRequest $fuelRequest, User $user, ?string $note = null, ?float $adjustedLiters = null, ?array $realizationData = null): array
     {
-        return DB::transaction(function () use ($fuelRequest, $user, $note, $adjustedLiters) {
+        return DB::transaction(function () use ($fuelRequest, $user, $note, $adjustedLiters, $realizationData) {
             $locked = FuelRequest::lockForUpdate()->findOrFail($fuelRequest->id);
 
             if (in_array($locked->overall_status, ['ditolak', 'cancelled']) || in_array($locked->current_stage, ['rejected', 'cancelled', 'completed'])) {
@@ -476,7 +477,7 @@ class FuelRequestService
                 ];
             }
 
-            // STAGE 3: Vendor (Final approval before fueling - must have SPV and Manager approved first!)
+            // STAGE 3: Vendor (Persetujuan & Realisasi Pengisian BBM Terpadu - Tahap 4 Alur Baru)
             if (
                 $locked->status_spv === 'disetujui'
                 && $locked->status_depthead === 'disetujui'
@@ -489,17 +490,49 @@ class FuelRequestService
                 }
 
                 $fromStage = $locked->current_stage;
+                $requestedLiters = (float) $locked->total_liters;
+                $actualLiters = isset($realizationData['actual_liters']) ? (float)$realizationData['actual_liters'] : $requestedLiters;
+                $varianceLiters = round($actualLiters - $requestedLiters, 2);
+                $meterAtFueling = isset($realizationData['meter_at_fueling']) ? (float)$realizationData['meter_at_fueling'] : (float)$locked->hm_km;
+                $fueledAt = !empty($realizationData['fueled_at']) ? Carbon::parse($realizationData['fueled_at']) : now();
+                $realizationNote = !empty($realizationData['notes']) ? $realizationData['notes'] : ($note ?: 'Disetujui dan pengisian BBM selesai oleh Vendor.');
+
+                // Buat transaksi fisik BBM di fuel_transactions
+                $trxNo = sprintf('TRX-%s-%03d', $fueledAt->format('Ymd'), FuelTransaction::count() + 1);
+                while (FuelTransaction::where('transaction_no', $trxNo)->exists()) {
+                    $trxNo = sprintf('TRX-%s-%04d', $fueledAt->format('Ymd'), rand(1000, 9999));
+                }
+
+                $transaction = FuelTransaction::create([
+                    'transaction_no' => $trxNo,
+                    'fuel_request_id' => $locked->id,
+                    'fuelman_id' => $user->id,
+                    'requested_liters' => $requestedLiters,
+                    'actual_liters' => $actualLiters,
+                    'variance_liters' => $varianceLiters,
+                    'meter_at_fueling' => $meterAtFueling,
+                    'fueled_at' => $fueledAt,
+                    'fuelman_signature' => $sig ?: 'images/sig_fuelman.png',
+                    'notes' => $realizationNote,
+                ]);
+
                 $locked->update([
                     'status_vendor' => 'disetujui',
                     'vendor_action_at' => now(),
-                    'vendor_note' => $note ?: 'Disetujui oleh Vendor - Siap Pengisian BBM.',
+                    'vendor_note' => $realizationNote,
                     'vendor_signature' => $sig ?: 'images/sig_fuelman.png',
+                    'vendor_user_id' => $user->id,
                     'status_fuelman' => 'disetujui',
                     'fuelman_action_at' => now(),
-                    'fuelman_note' => $note ?: 'Disetujui Vendor - Siap Pengisian.',
+                    'fuelman_note' => $realizationNote,
                     'fuelman_signature' => $sig ?: 'images/sig_fuelman.png',
+                    'fuelman_id' => $user->id,
+                    'fuelman_name' => $user->name,
+                    'actual_liters' => $actualLiters,
+                    'actual_hm_km' => $meterAtFueling,
+                    'fueled_at' => $fueledAt,
                     'overall_status' => 'disetujui',
-                    'current_stage' => 'approved', // Approved - Ready for Fueling
+                    'current_stage' => 'completed',
                 ]);
 
                 FuelRequestApproval::create([
@@ -507,41 +540,35 @@ class FuelRequestService
                     'approver_id' => $user->id,
                     'stage' => 'vendor',
                     'status' => 'approved',
-                    'note' => $note ?: 'Disetujui oleh Vendor - Siap Pengisian BBM.',
+                    'note' => $realizationNote,
                     'signature_path' => $sig ?: 'images/sig_fuelman.png',
                     'action_at' => now(),
                 ]);
 
+                $diffText = $varianceLiters == 0
+                    ? 'sesuai jumlah disetujui'
+                    : ($varianceLiters > 0 ? "+{$varianceLiters} L dari yang disetujui" : "{$varianceLiters} L dari yang disetujui");
+
                 FuelRequestHistory::record(
                     $locked->id,
                     $user->id,
-                    'approved_vendor',
+                    'completed',
                     $fromStage,
-                    'approved',
-                    "Disetujui oleh Vendor ({$user->name} - {$locked->vendor_name}). Status: Approved - Ready for Fueling. Surat Fuel Request siap dicetak & siap diisi oleh Fuel Man." . ($note ? " Catatan: {$note}" : '')
+                    'completed',
+                    "Disetujui & realisasi pengisian BBM selesai dicatat oleh Vendor ({$user->name} - {$locked->vendor_name}): {$actualLiters} L ({$diffText}), HM/KM: {$meterAtFueling}, No. Transaksi: {$trxNo}."
                 );
 
                 UserNotification::notify(
                     $locked->user_id,
                     $locked->id,
-                    "Fuel Request Disetujui: {$locked->request_no}",
-                    "Pengajuan {$locked->request_no} telah memperoleh persetujuan Vendor. Surat Fuel Request kini dapat dicetak.",
+                    "Pengisian BBM Selesai: {$locked->request_no}",
+                    "Pengajuan {$locked->request_no} telah disetujui dan pengisian BBM selesai direalisasikan ({$actualLiters} Liter).",
                     'success'
                 );
 
-                if ($locked->fuelman_id) {
-                    UserNotification::notify(
-                        $locked->fuelman_id,
-                        $locked->id,
-                        "Siap Pengisian BBM: {$locked->request_no}",
-                        "Pengajuan {$locked->request_no} ({$locked->unit_code} - {$locked->total_liters} L) siap dilakukan pengisian BBM aktual.",
-                        'info'
-                    );
-                }
-
                 return [
                     'ok' => true,
-                    'message' => "Pengajuan {$locked->request_no} telah disetujui oleh Vendor! Status kini Approved - Ready for Fueling dan surat Fuel Request siap dicetak.",
+                    'message' => "Pengajuan {$locked->request_no} berhasil disetujui dan pengisian BBM selesai direalisasikan ({$actualLiters} Liter)! Status transaksi: Selesai.",
                 ];
             }
 
@@ -647,15 +674,15 @@ class FuelRequestService
         return DB::transaction(function () use ($fuelRequest, $user, $data) {
             $locked = FuelRequest::lockForUpdate()->findOrFail($fuelRequest->id);
 
-            if (!$locked->isVendorApproved()) {
+            if (!$locked->isVendorApproved() && $locked->status_depthead !== 'disetujui') {
                 throw ValidationException::withMessages([
-                    'status' => 'Pengisian BBM tidak dapat dicatat sebelum pengajuan memperoleh persetujuan Vendor.',
+                    'status' => 'Pengisian BBM tidak dapat dicatat sebelum pengajuan memperoleh persetujuan Dept Head / Vendor.',
                 ]);
             }
 
             if (!$user->hasActiveSignature()) {
                 throw ValidationException::withMessages([
-                    'signature' => 'Gagal mencatat pengisian BBM: Petugas Fuel Man wajib mengunggah tanda tangan digital di menu Profil terlebih dahulu.',
+                    'signature' => 'Gagal mencatat pengisian BBM: Anda wajib mengunggah tanda tangan digital di menu Profil terlebih dahulu.',
                 ]);
             }
 
@@ -665,25 +692,38 @@ class FuelRequestService
             $meterAtFueling = (float)$data['meter_at_fueling'];
             $fueledAt = $data['fueled_at'] ?? now();
 
-            $trxNo = sprintf('TRX-%s-%03d', date('Ymd', strtotime($fueledAt)), FuelTransaction::count() + 1);
-            while (FuelTransaction::where('transaction_no', $trxNo)->exists()) {
-                $trxNo = sprintf('TRX-%s-%04d', date('Ymd', strtotime($fueledAt)), rand(1000, 9999));
-            }
-
             $signature = $user->signature_url ?? $locked->fuelman_signature ?? 'images/sig_fuelman.png';
 
-            $transaction = FuelTransaction::create([
-                'transaction_no' => $trxNo,
-                'fuel_request_id' => $locked->id,
-                'fuelman_id' => $user->id,
-                'requested_liters' => $requestedLiters,
-                'actual_liters' => $actualLiters,
-                'variance_liters' => $varianceLiters,
-                'meter_at_fueling' => $meterAtFueling,
-                'fueled_at' => $fueledAt,
-                'fuelman_signature' => $signature,
-                'notes' => $data['notes'] ?? null,
-            ]);
+            $transaction = $locked->transactions()->latest('id')->first();
+            if ($transaction) {
+                $trxNo = $transaction->transaction_no;
+                $transaction->update([
+                    'actual_liters' => $actualLiters,
+                    'variance_liters' => $varianceLiters,
+                    'meter_at_fueling' => $meterAtFueling,
+                    'fueled_at' => $fueledAt,
+                    'fuelman_signature' => $signature,
+                    'notes' => $data['notes'] ?? $transaction->notes,
+                ]);
+            } else {
+                $trxNo = sprintf('TRX-%s-%03d', date('Ymd', strtotime($fueledAt)), FuelTransaction::count() + 1);
+                while (FuelTransaction::where('transaction_no', $trxNo)->exists()) {
+                    $trxNo = sprintf('TRX-%s-%04d', date('Ymd', strtotime($fueledAt)), rand(1000, 9999));
+                }
+
+                $transaction = FuelTransaction::create([
+                    'transaction_no' => $trxNo,
+                    'fuel_request_id' => $locked->id,
+                    'fuelman_id' => $user->id,
+                    'requested_liters' => $requestedLiters,
+                    'actual_liters' => $actualLiters,
+                    'variance_liters' => $varianceLiters,
+                    'meter_at_fueling' => $meterAtFueling,
+                    'fueled_at' => $fueledAt,
+                    'fuelman_signature' => $signature,
+                    'notes' => $data['notes'] ?? null,
+                ]);
+            }
 
             $fromStage = $locked->current_stage;
             $locked->update([

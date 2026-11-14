@@ -143,7 +143,34 @@ class ApprovalController extends Controller
             $adjustedLiters = (float) $request->input('total_liters');
         }
 
-        $result = $service->approve($fuelRequest, $user, $request->input('note'), $adjustedLiters);
+        // Tangkap data realisasi pengisian BBM fisik dari pihak Vendor (Tahap 4)
+        $realizationData = null;
+        if (($user->isVendor() || $user->isFuelman() || $user->isAdmin()) && $fuelRequest->status_spv === 'disetujui' && $fuelRequest->status_depthead === 'disetujui') {
+            if ($request->filled('actual_liters') || $request->filled('meter_at_fueling')) {
+                $request->validate([
+                    'actual_liters' => ['required', 'numeric', 'gt:0', 'max:5000'],
+                    'meter_at_fueling' => ['required', 'numeric', 'min:0'],
+                    'fueled_at' => ['nullable', 'date'],
+                    'notes' => ['nullable', 'string', 'max:1000'],
+                ], [
+                    'actual_liters.required' => 'Jumlah liter aktual wajib diisi.',
+                    'actual_liters.numeric' => 'Jumlah liter aktual harus berupa angka.',
+                    'actual_liters.gt' => 'Jumlah liter aktual harus lebih besar dari 0.',
+                    'meter_at_fueling.required' => 'KM/HM odometer saat pengisian wajib diisi.',
+                    'meter_at_fueling.numeric' => 'KM/HM odometer harus berupa angka.',
+                    'meter_at_fueling.min' => 'KM/HM odometer tidak boleh negatif.',
+                ]);
+
+                $realizationData = [
+                    'actual_liters' => (float)$request->input('actual_liters'),
+                    'meter_at_fueling' => (float)$request->input('meter_at_fueling'),
+                    'fueled_at' => $request->input('fueled_at') ?: now(),
+                    'notes' => $request->input('notes') ?? $request->input('note'),
+                ];
+            }
+        }
+
+        $result = $service->approve($fuelRequest, $user, $request->input('note'), $adjustedLiters, $realizationData);
 
         if (!$result['ok']) {
             return redirect()->back()->with('error', $result['message']);
@@ -205,12 +232,12 @@ class ApprovalController extends Controller
         $user = $this->getActiveUser();
         $fuelRequest = FuelRequest::findOrFail($id);
 
-        if (!$user->isFuelman() && !$user->isAdmin()) {
-            return redirect()->back()->with('error', 'Hanya petugas Fuel Man atau Admin yang dapat mencatat realisasi pengisian BBM.');
+        if (!$user->isVendor() && !$user->isFuelman() && !$user->isAdmin()) {
+            return redirect()->back()->with('error', 'Hanya pihak Vendor atau Admin yang dapat mencatat realisasi pengisian BBM.');
         }
 
         if (!$user->hasActiveSignature()) {
-            return redirect()->back()->with('error', 'Gagal mencatat realisasi pengisian BBM: Petugas Fuel Man wajib mengunggah tanda tangan digital di menu Profil terlebih dahulu.');
+            return redirect()->back()->with('error', 'Gagal mencatat realisasi pengisian BBM: Anda wajib mengunggah tanda tangan digital di menu Profil terlebih dahulu.');
         }
 
         $validated = $request->validate([

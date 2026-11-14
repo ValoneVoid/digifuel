@@ -113,7 +113,7 @@ class FuelRequestPolicy
      */
     public function recordRealization(User $user, FuelRequest $fuelRequest): bool
     {
-        return ($user->isFuelman() || $user->isAdmin()) && $fuelRequest->isVendorApproved();
+        return ($user->isVendor() || $user->isFuelman() || $user->isAdmin()) && ($fuelRequest->status_depthead === 'disetujui' || $fuelRequest->isVendorApproved());
     }
 
     /**
