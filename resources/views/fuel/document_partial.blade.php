@@ -98,11 +98,13 @@
         <!-- 1. Request by (Employee / Driver) -->
         <div class="fuel-doc-sig-box">
             <span class="fuel-doc-sig-title">Diajukan oleh,</span>
-            @if($fuelRequest->driver_signature)
-                <img src="{{ asset($fuelRequest->driver_signature) }}" alt="Driver Signature" class="fuel-doc-sig-img">
-            @else
-                <div style="height: 90px; display:flex; align-items:center; justify-content:center; color:#94a3b8; font-size:12px;">(Tanda Tangan)</div>
-            @endif
+            <div class="fuel-doc-sig-slot">
+                @if($fuelRequest->driver_signature)
+                    <img src="{{ asset($fuelRequest->driver_signature) }}" alt="Driver Signature" class="fuel-doc-sig-img">
+                @else
+                    <span style="color:#94a3b8; font-size:12px;">(Tanda Tangan)</span>
+                @endif
+            </div>
             <div class="fuel-doc-sig-line"></div>
             <span class="fuel-doc-sig-name">{{ $fuelRequest->driver_name }}</span>
             <span class="fuel-doc-sig-role">(Employee)</span>
@@ -111,15 +113,17 @@
         <!-- 2. Acknowledge by (SPV) -->
         <div class="fuel-doc-sig-box">
             <span class="fuel-doc-sig-title">Mengetahui (SPV),</span>
-            @if($fuelRequest->spv_signature && $fuelRequest->status_spv === 'disetujui')
-                <img src="{{ asset($fuelRequest->spv_signature) }}" alt="SPV Signature" class="fuel-doc-sig-img">
-            @elseif($fuelRequest->isSpvBypassed())
-                <div style="height: 90px; display:flex; align-items:center; justify-content:center; color:#94a3b8; font-size:14px; font-weight:700; letter-spacing:1px;">N/A</div>
-            @elseif($fuelRequest->status_spv === 'ditolak')
-                <div style="height: 90px; display:flex; align-items:center; justify-content:center; color:#ef4444; font-size:12px; font-weight:700;">[ DITOLAK ]</div>
-            @else
-                <div style="height: 90px; display:flex; align-items:center; justify-content:center; color:#94a3b8; font-size:12px;">(Menunggu Approval)</div>
-            @endif
+            <div class="fuel-doc-sig-slot">
+                @if($fuelRequest->spv_signature && $fuelRequest->status_spv === 'disetujui')
+                    <img src="{{ asset($fuelRequest->spv_signature) }}" alt="SPV Signature" class="fuel-doc-sig-img">
+                @elseif($fuelRequest->isSpvBypassed())
+                    <span style="color:#94a3b8; font-size:14px; font-weight:700; letter-spacing:1px;">N/A</span>
+                @elseif($fuelRequest->status_spv === 'ditolak')
+                    <span style="color:#ef4444; font-size:12px; font-weight:700;">[ DITOLAK ]</span>
+                @else
+                    <span style="color:#94a3b8; font-size:12px;">(Menunggu Approval)</span>
+                @endif
+            </div>
             <div class="fuel-doc-sig-line"></div>
             <span class="fuel-doc-sig-name">{{ $fuelRequest->isSpvBypassed() ? '—' : ($fuelRequest->spv ? $fuelRequest->spv->name : ($fuelRequest->spv_name ?? 'Supervisor')) }}</span>
             <span class="fuel-doc-sig-role">(Spv / Foreman)</span>
@@ -128,13 +132,15 @@
         <!-- 3. Approve by (Dept Head) -->
         <div class="fuel-doc-sig-box">
             <span class="fuel-doc-sig-title">Disetujui (Dept Head),</span>
-            @if($fuelRequest->depthead_signature && $fuelRequest->status_depthead === 'disetujui')
-                <img src="{{ asset($fuelRequest->depthead_signature) }}" alt="Dept Head Signature" class="fuel-doc-sig-img">
-            @elseif($fuelRequest->status_depthead === 'ditolak')
-                <div style="height: 90px; display:flex; align-items:center; justify-content:center; color:#ef4444; font-size:12px; font-weight:700;">[ DITOLAK ]</div>
-            @else
-                <div style="height: 90px; display:flex; align-items:center; justify-content:center; color:#94a3b8; font-size:12px;">(Menunggu Approval)</div>
-            @endif
+            <div class="fuel-doc-sig-slot">
+                @if($fuelRequest->depthead_signature && $fuelRequest->status_depthead === 'disetujui')
+                    <img src="{{ asset($fuelRequest->depthead_signature) }}" alt="Dept Head Signature" class="fuel-doc-sig-img">
+                @elseif($fuelRequest->status_depthead === 'ditolak')
+                    <span style="color:#ef4444; font-size:12px; font-weight:700;">[ DITOLAK ]</span>
+                @else
+                    <span style="color:#94a3b8; font-size:12px;">(Menunggu Approval)</span>
+                @endif
+            </div>
             <div class="fuel-doc-sig-line"></div>
             <span class="fuel-doc-sig-name">{{ $fuelRequest->depthead ? $fuelRequest->depthead->name : ($fuelRequest->depthead_name ?? ($fuelRequest->manager ? $fuelRequest->manager->name : 'Dept. Head / Manager')) }}</span>
             <span class="fuel-doc-sig-role">(Dept. Head/Manager)</span>
@@ -143,13 +149,15 @@
         <!-- 4. Fuel Man (Vendor) -->
         <div class="fuel-doc-sig-box">
             <span class="fuel-doc-sig-title">Fuel Man,</span>
-            @if(($fuelRequest->fuelman_signature || $fuelRequest->vendor_signature) && ($fuelRequest->status_fuelman === 'disetujui' || $fuelRequest->status_vendor === 'disetujui'))
-                <img src="{{ asset($fuelRequest->vendor_signature ?? $fuelRequest->fuelman_signature) }}" alt="Vendor / Fuel Man Signature" class="fuel-doc-sig-img">
-            @elseif($fuelRequest->status_fuelman === 'ditolak' || $fuelRequest->status_vendor === 'ditolak')
-                <div style="height: 90px; display:flex; align-items:center; justify-content:center; color:#ef4444; font-size:12px; font-weight:700;">[ DITOLAK ]</div>
-            @else
-                <div style="height: 90px; display:flex; align-items:center; justify-content:center; color:#94a3b8; font-size:12px;">(Menunggu Approval)</div>
-            @endif
+            <div class="fuel-doc-sig-slot">
+                @if(($fuelRequest->fuelman_signature || $fuelRequest->vendor_signature) && ($fuelRequest->status_fuelman === 'disetujui' || $fuelRequest->status_vendor === 'disetujui'))
+                    <img src="{{ asset($fuelRequest->vendor_signature ?? $fuelRequest->fuelman_signature) }}" alt="Vendor / Fuel Man Signature" class="fuel-doc-sig-img">
+                @elseif($fuelRequest->status_fuelman === 'ditolak' || $fuelRequest->status_vendor === 'ditolak')
+                    <span style="color:#ef4444; font-size:12px; font-weight:700;">[ DITOLAK ]</span>
+                @else
+                    <span style="color:#94a3b8; font-size:12px;">(Menunggu Approval)</span>
+                @endif
+            </div>
             <div class="fuel-doc-sig-line"></div>
             <span class="fuel-doc-sig-name">{{ $fuelRequest->vendor_name }}</span>
             <span class="fuel-doc-sig-role">(Vendor)</span>

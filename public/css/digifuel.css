@@ -1587,19 +1587,43 @@ body {
   display: flex;
   flex-direction: column;
   align-items: center;
+  justify-content: flex-start;
+  box-sizing: border-box;
 }
 
 .fuel-doc-sig-title {
   font-size: 12px;
   font-weight: 700;
   margin-bottom: 8px;
+  min-height: 28px;
+  display: flex;
+  align-items: flex-end;
+  justify-content: center;
+  text-align: center;
 }
 
-.fuel-doc-sig-img {
+.fuel-doc-sig-slot {
   height: 90px;
-  max-width: 100px;
-  object-fit: contain;
+  min-height: 90px;
+  max-height: 90px;
+  width: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
   margin-bottom: 6px;
+  overflow: hidden;
+  box-sizing: border-box;
+}
+
+.fuel-doc-sig-slot img,
+.fuel-doc-sig-img {
+  max-height: 90px !important;
+  max-width: 110px !important;
+  height: auto !important;
+  width: auto !important;
+  object-fit: contain !important;
+  display: block !important;
+  margin: 0 auto !important;
 }
 
 .fuel-doc-sig-line {
@@ -1611,10 +1635,13 @@ body {
 .fuel-doc-sig-name {
   font-size: 11px;
   font-weight: 800;
+  min-height: 16px;
+  display: block;
 }
 
 .fuel-doc-sig-role {
   font-size: 10.5px;
+  display: block;
 }
 
 /* FOOTER */
