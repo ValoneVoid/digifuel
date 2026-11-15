@@ -248,6 +248,10 @@
             <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.3" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"></circle><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z"></path></svg>
             <span>Administrator</span>
         </button>
+        <button type="button" class="digi-guide-pill" onclick="switchGuideTab('ttd', this)">
+            <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.3" stroke-linecap="round" stroke-linejoin="round"><path d="M12 19l7-7 3 3-7 7-3-3z"></path><path d="M18 13l-1.5-7.5L2 2l3.5 14.5L13 18l5-5z"></path><path d="M2 2l7.586 7.586"></path><circle cx="11" cy="11" r="2"></circle></svg>
+            <span>Tanda Tangan Digital</span>
+        </button>
         <button type="button" class="digi-guide-pill" onclick="switchGuideTab('faq', this)">
             <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.3" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"></circle><path d="M9.09 9a3 3 0 0 1 5.83 1c0 2-3 3-3 3"></path><line x1="12" y1="17" x2="12.01" y2="17"></line></svg>
             <span>Tanya Jawab (FAQ)</span>
@@ -458,6 +462,16 @@
                     </p>
                 </div>
             </div>
+
+            <div class="digi-guide-step-row">
+                <span class="digi-step-badge">4</span>
+                <div class="digi-step-content">
+                    <h3 class="digi-step-title">Pengajuan Mandiri Dept Head (Hierarki Atasan & Smart Bypass)</h3>
+                    <p class="digi-step-desc">
+                        Jika Anda mengajukan permohonan BBM untuk kendaraan operasional Anda sendiri, sistem secara otomatis membypass verifikasi SPV (Bawahan). Pengajuan Anda langsung siap direalisasikan oleh Vendor BBM dan kolom SPV pada lembar cetak PDF berstatus <code>N/A</code> dengan tata letak simetris dan sejajar.
+                    </p>
+                </div>
+            </div>
         </div>
     </div>
 
@@ -530,6 +544,26 @@
             <div class="digi-guide-step-row">
                 <span class="digi-step-badge">3</span>
                 <div class="digi-step-content">
+                    <h3 class="digi-step-title">Master Unit & Kolom Divisi / Beban Account</h3>
+                    <p class="digi-step-desc">
+                        Saat mendaftarkan atau memperbarui unit kendaraan di Tab 2, admin dapat mengisi kolom <strong>Divisi / Beban Account</strong> (misal: <em>Service</em>, <em>Spareparts</em>, <em>Hauling</em>). Informasi ini langsung terhubung ke tabel <strong>Evaluasi Konsumsi BBM</strong> serta terunduh di berkas Excel Multi-Sheet (Sheet <em>Master_Kendaraan</em> & <em>Dashboard</em>).
+                    </p>
+                </div>
+            </div>
+
+            <div class="digi-guide-step-row">
+                <span class="digi-step-badge">4</span>
+                <div class="digi-step-content">
+                    <h3 class="digi-step-title">Periode Evaluasi BBM Otomatis Berjalan</h3>
+                    <p class="digi-step-desc">
+                        Menu <strong>Evaluasi</strong> kini secara default selalu membuka periode bulan berjalan saat diakses (misal November 2026), sehingga admin tidak perlu repot memindahkan kalender filter secara manual.
+                    </p>
+                </div>
+            </div>
+
+            <div class="digi-guide-step-row">
+                <span class="digi-step-badge">5</span>
+                <div class="digi-step-content">
                     <h3 class="digi-step-title">Ekspor Arsip & Pembersihan Audit Trail</h3>
                     <p class="digi-step-desc">
                         Pada Tab 7 (Audit Trail), terdapat 2 tombol khusus:<br>
@@ -542,7 +576,61 @@
     </div>
 
     <!-- ============================================================== -->
-    <!-- PANEL 7: TANYA JAWAB UMUM (FAQ)                                 -->
+    <!-- PANEL 7: TANDA TANGAN DIGITAL (CANVAS & UNGGAH FILE)           -->
+    <!-- ============================================================== -->
+    <div id="guide-panel-ttd" class="digi-guide-panel" style="display: none;">
+        <div class="digi-guide-card">
+            <h2 style="font-size: 16px; font-weight: 800; color: #0f172a; margin: 0 0 14px 0;">
+                Panduan Tanda Tangan Digital Langsung di Layar (Canvas Pad)
+            </h2>
+            <p style="font-size: 13.5px; color: #64748b; margin: 0 0 16px 0;">
+                Tanda tangan digital digunakan pada dokumen PDF resmi (Surat Permintaan Bahan Bakar). Setiap pengguna (Driver, SPV, Dept Head, Vendor) dapat mengatur tanda tangan di menu <strong>Profil Pengguna</strong> (klik nama Anda di pojok kanan atas > Profil).
+            </p>
+
+            <div class="digi-guide-step-row">
+                <span class="digi-step-badge">1</span>
+                <div class="digi-step-content">
+                    <h3 class="digi-step-title">Pilih Mode "Gambar di Layar (Canvas)"</h3>
+                    <p class="digi-step-desc">
+                        Di bagian Tanda Tangan Digital pada halaman Profil, pilih tab <strong>"Gambar di Layar (Canvas)"</strong>.
+                    </p>
+                </div>
+            </div>
+
+            <div class="digi-guide-step-row">
+                <span class="digi-step-badge">2</span>
+                <div class="digi-step-content">
+                    <h3 class="digi-step-title">Goreskan Tanda Tangan Menggunakan Kursor atau Layar Sentuh</h3>
+                    <p class="digi-step-desc">
+                        - <strong>Di Komputer / Laptop:</strong> Klik dan tahan tombol kiri mouse / touchpad untuk menggambar.<br>
+                        - <strong>Di Smartphone / Tablet:</strong> Sentuh langsung permukaan layar menggunakan jari atau stylus pen.<br>
+                        - Terdapat <em>garis panduan abu-abu</em> (baseline guide) sebagai patokan posisi tanda tangan agar simetris.
+                    </p>
+                </div>
+            </div>
+
+            <div class="digi-guide-step-row">
+                <span class="digi-step-badge">3</span>
+                <div class="digi-step-content">
+                    <h3 class="digi-step-title">Koreksi & Pemotongan Otomatis (Smart Auto-Crop)</h3>
+                    <p class="digi-step-desc">
+                        - Jika goresan salah, klik tombol merah <strong>"Bersihkan"</strong> untuk mengosongkan kanvas dan mengulang kembali.<br>
+                        - Saat tombol <strong>"Simpan Tanda Tangan"</strong> diklik, sistem DigiFuel secara cerdas memotong area kosong transparan di sekeliling goresan (<em>auto-crop bounding box</em>), sehingga tanda tangan Anda tampil jelas, proporsional, dan tidak buram pada dokumen resmi PDF.
+                    </p>
+                </div>
+            </div>
+
+            <div class="digi-callout digi-callout-info">
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" style="flex-shrink: 0; margin-top: 1px;"><circle cx="12" cy="12" r="10"></circle><line x1="12" cy="16" x2="12" y2="12"></line><line x1="12" y1="8" x2="12.01" y2="8"></line></svg>
+                <div>
+                    <strong>Pilihan Alternatif:</strong> Anda juga tetap dapat mengunggah berkas gambar tanda tangan (PNG transparan atau JPG) melalui tab <em>"Unggah Berkas Gambar"</em> jika sudah memiliki scan tanda tangan di perangkat.
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- ============================================================== -->
+    <!-- PANEL 8: TANYA JAWAB UMUM (FAQ)                                 -->
     <!-- ============================================================== -->
     <div id="guide-panel-faq" class="digi-guide-panel" style="display: none;">
         <div class="digi-guide-card">
@@ -563,6 +651,16 @@
             <div class="digi-faq-item">
                 <div class="digi-faq-q">
                     <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#0284c7" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"></circle><path d="M9.09 9a3 3 0 0 1 5.83 1c0 2-3 3-3 3"></path><line x1="12" y1="17" x2="12.01" y2="17"></line></svg>
+                    Mengapa kolom Mengetahui (SPV) tertulis "N/A" pada lembar PDF?
+                </div>
+                <p class="digi-faq-a">
+                    Kolom SPV berstatus <strong>N/A (Bypassed)</strong> terjadi apabila permohonan diajukan langsung oleh level manajerial (Dept Head / Manager). Sesuai hierarki kerja, pimpinan tidak memerlukan persetujuan dari bawahan (SPV). Tata letak garis tanda tangan tetap dibuat sejajar dan rapi dengan kolom lainnya.
+                </p>
+            </div>
+
+            <div class="digi-faq-item">
+                <div class="digi-faq-q">
+                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#0284c7" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"></circle><path d="M9.09 9a3 3 0 0 1 5.83 1c0 2-3 3-3 3"></path><line x1="12" y1="17" x2="12.01" y2="17"></line></svg>
                     Bagaimana jika saya salah mengetik jumlah liter saat mengajukan?
                 </div>
                 <p class="digi-faq-a">
@@ -577,6 +675,16 @@
                 </div>
                 <p class="digi-faq-a">
                     Pastikan HP Anda terhubung ke jaringan internet atau Wi-Fi kantor/site. Buka aplikasi Google Chrome atau Safari di HP, lalu akses alamat website resmi FuelLink (atau IP server lokal). Tampilan FuelLink akan otomatis menyesuaikan layar HP Anda dengan nyaman.
+                </p>
+            </div>
+
+            <div class="digi-faq-item">
+                <div class="digi-faq-q">
+                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#0284c7" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"></circle><path d="M9.09 9a3 3 0 0 1 5.83 1c0 2-3 3-3 3"></path><line x1="12" y1="17" x2="12.01" y2="17"></line></svg>
+                    Bagaimana cara mengelompokkan biaya konsumsi BBM per Divisi?
+                </div>
+                <p class="digi-faq-a">
+                    Administrator dapat mengisi kolom <strong>Divisi / Beban Account</strong> pada menu <em>Master Data > Unit Kendaraan</em>. Setelah diisi, seluruh evaluasi konsumsi BBM bulanan di menu <em>Evaluasi</em> maupun unduhan berkas Excel Multi-Sheet akan otomatis menampilkan klasifikasi divisi unit tersebut.
                 </p>
             </div>
 

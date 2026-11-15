@@ -13,10 +13,14 @@
    - [C. Dept Head / Manager](#c-dept-head--manager)
    - [D. Vendor Penyedia BBM (Persetujuan & Realisasi)](#d-vendor-penyedia-bbm-persetujuan--realisasi)
    - [E. Administrator Sistem](#e-administrator-sistem)
+   - [F. Semua Pengguna: Tanda Tangan Digital Langsung](#f-semua-pengguna-tanda-tangan-digital-langsung)
 4. [Tanya Jawab Umum (FAQ & Troubleshooting)](#-tanya-jawab-umum-faq--troubleshooting)
    - [Apakah Audit Trail Terhapus Tiap Bulan?](#apakah-audit-trail-terhapus-tiap-bulan)
    - [Cara Akses FuelLink dari HP / Smartphone](#cara-akses-fuellink-dari-hp--smartphone)
    - [Bagaimana Jika Ada Salah Ketik Jumlah Liter?](#bagaimana-jika-ada-salah-ketik-jumlah-liter)
+   - [Mengapa Kolom SPV Tertulis N/A pada Lembar PDF?](#mengapa-kolom-spv-tertulis-na-pada-lembar-pdf)
+   - [Cara Membuat Tanda Tangan Digital Rapi & Proporsional](#cara-membuat-tanda-tangan-digital-rapi--proporsional)
+   - [Bagaimana Cara Mengelompokkan Biaya BBM Berdasarkan Divisi?](#bagaimana-cara-mengelompokkan-biaya-bbm-berdasarkan-divisi)
 
 ---
 
@@ -94,6 +98,10 @@ Membuat Permohonan ──▶ Memeriksa & Setuju ──▶ Persetujuan Akhir ─�
 2. Periksa ringkasan permohonan yang telah divalidasi oleh SPV.
 3. Klik tombol hijau **"Approve Manager"**.
 4. Tanda tangan digital resmi Anda akan otomatis tersemat ke dokumen bukti pengajuan, dan tiket pengajuan siap direalisasikan oleh Vendor BBM.
+5. **Alur Khusus Pengajuan Mandiri (*Smart Bypass*)**:
+   - Jika Anda (Dept Head / Manager) mengajukan permohonan BBM untuk kendaraan operasional Anda sendiri, sistem akan secara otomatis melompati (*bypass*) tahap persetujuan SPV.
+   - Permohonan langsung berstatus disetujui manajerial dan diteruskan ke Vendor BBM, sehingga tidak terjadi kebingungan struktural atasan meminta persetujuan bawahan.
+   - Pada lembar cetak dokumen resmi PDF, kolom persetujuan SPV akan tertera rapi dengan status `N/A` (Garis tanda tangan tetap simetris dan sejajar).
 
 ---
 
@@ -120,9 +128,35 @@ Membuat Permohonan ──▶ Memeriksa & Setuju ──▶ Persetujuan Akhir ─�
 2. **Pencarian Cepat & Pengurutan Tabel (Sort A-Z / 1-9)**:
    - Ketik di kotak pencarian untuk menyaring data seketika.
    - Klik kepala kolom tabel (`<th>`) mana saja untuk mengurutkan data (angka, abjad, harga rupiah, dan tanggal) secara instan.
-3. **Ekspor Arsip & Pembersihan Audit Trail**:
+3. **Pengelolaan Unit & Kolom Divisi / Beban Account**:
+   - Saat mendaftarkan atau mengedit unit kendaraan di Tab 2 (Master Unit), isi kolom **Divisi / Beban Account** (contoh: *Service*, *Spareparts*, *Hauling*, atau *Supporting*).
+   - Data divisi ini otomatis tersinkronisasi ke:
+     - Tabel **Evaluasi Konsumsi BBM** (`/evaluation`) untuk memilah beban biaya per bagian.
+     - Berkas **Ekspor Excel Multi-Sheet** (`.xlsx`) pada Sheet *Master_Kendaraan* dan Sheet *Dashboard*.
+4. **Periode Evaluasi BBM Dinamis**:
+   - Filter periode evaluasi konsumsi BBM otomatis membuka bulan berjalan saat diakses (misal November 2026), tanpa perlu memilih bulan secara manual.
+5. **Ekspor Arsip & Pembersihan Audit Trail**:
    - Di Tab 7 (Audit Trail), terdapat tombol hijau **"Ekspor Arsip Excel"** untuk mengunduh seluruh rekam jejak sistem ke format `.xlsx`.
    - Tombol abu-abu **"Kelola Retensi Log"** memungkinkan admin membersihkan log lama (misal log berusia > 6 bulan) dengan verifikasi keamanan mengetik `BERSIHKAN`.
+
+---
+
+### F. Semua Pengguna: Tanda Tangan Digital Langsung
+*Tanda tangan digital digunakan pada lembar bukti persetujuan dan pengisian BBM resmi (format PDF A4).*
+
+Setiap pengguna (Driver, SPV, Dept Head, Petugas Vendor BBM) dapat mengatur tanda tangannya melalui menu **Profil Pengguna** (`/profile`):
+
+1. **Cara 1: Gambar Langsung di Layar (Sangat Direkomendasikan)**:
+   - Pilih tab **"Gambar di Layar (Canvas)"**.
+   - Gunakan **mouse / kursor** (di komputer/laptop) atau **sentuhan jari / stylus pen** (di HP/tablet).
+   - Bubuhkan tanda tangan Anda di atas kotak kanvas mengikuti garis panduan abu-abu (*baseline guide*).
+   - Jika goresan kurang rapi, klik tombol merah **"Bersihkan"** untuk mengulang.
+   - Klik tombol hijau **"Simpan Tanda Tangan"**.
+   - *Keunggulan*: Sistem secara otomatis memotong area kosong di sekeliling goresan (*smart auto-crop*), sehingga tanda tangan Anda tampak presisi, proporsional, dan tidak buram pada dokumen resmi PDF.
+2. **Cara 2: Unggah Berkas Gambar**:
+   - Pilih tab **"Unggah Berkas Gambar"**.
+   - Pilih file gambar tanda tangan dari perangkat Anda (format PNG berlatar transparan atau JPG).
+   - Klik tombol simpan.
 
 ---
 
@@ -144,6 +178,17 @@ Membuat Permohonan ──▶ Memeriksa & Setuju ──▶ Persetujuan Akhir ─�
 
 ### Bagaimana Jika Ada Salah Ketik Jumlah Liter?
 > Jangan panik! Supervisor (SPV) Anda dapat melihat dan mengoreksi jumlah liter secara langsung di formulir persetujuan sebelum menekan tombol setuju.
+
+### Mengapa Kolom SPV Tertulis N/A pada Lembar PDF?
+> Kolom SPV berstatus `N/A` (Not Applicable / Bypassed) terjadi ketika permohonan diajukan langsung oleh level manajerial (Dept Head / Manager). Sesuai aturan hierarki organisasi, atasan tidak memerlukan tanda tangan bawahan (SPV). Garis tanda tangan pada PDF dirancang tetap sejajar dan simetris secara tipografi agar dokumen tetap rapi dan profesional.
+
+### Cara Membuat Tanda Tangan Digital Rapi & Proporsional
+> Buka menu **Profil**, lalu pilih tab **Gambar di Layar**. Gambarlah dengan goresan yang jelas di atas kanvas. Sistem DigiFuel dilengkapi teknologi *Auto-Crop Bounding Box* yang otomatis mendeteksi dan memotong ruang kosong di sekeliling tanda tangan Anda sebelum dicetak ke dokumen resmi.
+
+### Bagaimana Cara Mengelompokkan Biaya BBM Berdasarkan Divisi?
+> 1. Masuk ke menu **Master Data** > Tab **Unit Kendaraan**.
+> 2. Isi kolom **Divisi / Beban Account** pada masing-masing unit (misal: *Service*, *Spareparts*, *Supporting*).
+> 3. Buka menu **Evaluasi**, kolom divisi akan otomatis muncul dan dapat difilter atau diunduh ke Excel multi-sheet.
 
 ---
 *DigiFuel — PT United Tractors Tbk Site Satui. Efisiensi, Akurasi, dan Transparansi Operasional.*

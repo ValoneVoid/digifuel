@@ -4,7 +4,7 @@
 [![Laravel](https://img.shields.io/badge/Laravel-11.x-FF2D20?style=for-the-badge&logo=laravel&logoColor=white)](https://laravel.com)
 [![PHP](https://img.shields.io/badge/PHP-8.2%2B-777BB4?style=for-the-badge&logo=php&logoColor=white)](https://php.net)
 [![MySQL](https://img.shields.io/badge/MySQL-8.0%2B-4479A1?style=for-the-badge&logo=mysql&logoColor=white)](https://mysql.com)
-[![Tests](https://img.shields.io/badge/Tests-67%20Passed%20(685%20Assertions)-success?style=for-the-badge&logo=checkmarx&logoColor=white)]()
+[![Tests](https://img.shields.io/badge/Tests-72%20Passed%20(781%20Assertions)-success?style=for-the-badge&logo=checkmarx&logoColor=white)]()
 [![Security](https://img.shields.io/badge/Security-Hardened%20(OWASP%20Ready)-blue?style=for-the-badge&logo=shield&logoColor=white)]()
 
 > 📘 **Butuh Panduan Penggunaan untuk Pengguna Lapangan?**  
@@ -27,6 +27,7 @@ Proses pengajuan BBM berjalan secara sekuensial dan terotomatisasi:
 - **Stage 2 (Dept Head / Manager Approval)**: Verifikasi tingkat manajerial sebelum diteruskan ke vendor BBM.
 - **Stage 3 (Vendor Approval)**: Validasi oleh perwakilan perusahaan vendor terkait kuota dan kesiapan suplai.
 - **Stage 4 (Fuel Man Realization)**: Petugas dispenser/fuel truck mencatat realisasi pengisian aktual (Liter, Jam/KM Meter, dan Waktu pengisian).
+- **Hierarki Atasan & Smart Bypass**: Jika permohonan diajukan langsung oleh pejabat manajerial (Dept Head / Manager), sistem secara cerdas melakukan bypass tahap SPV dan langsung diteruskan ke vendor, dengan kolom SPV pada lembar cetak dokumen berstatus *Bypassed* (`N/A`) yang tetap rapi dan sejajar.
 
 ### 2. Notifikasi Otomatis WhatsApp (Fonnte API)
 - Notifikasi terkirim otomatis ke nomor WhatsApp penanggung jawab hanya pada tahap yang memerlukan aksi:
@@ -41,11 +42,13 @@ Proses pengajuan BBM berjalan secara sekuensial dan terotomatisasi:
 - Deteksi otomatis pemborosan BBM (*waste liters*) dan estimasi kerugian finansial (*estimated cost loss*):
   - Kategori **Normal**: Rasio efisiensi berada di dalam ambang batas standar.
   - Kategori **Needs Review**: Unit terindikasi boros melebihi deviasi yang diizinkan.
+- **Klasifikasi Divisi / Beban Account**: Setiap unit kendaraan dapat dikelompokkan berdasarkan divisi beban biaya (misal: *Service*, *Spareparts*, *Hauling*, *Supporting*).
+- **Periode Dinamis**: Halaman evaluasi otomatis membuka periode bulan berjalan (`Y-m`) secara dinamis saat diakses.
 - Versioning riwayat standar konsumsi per unit kendaraan dan riwayat fluktuasi harga BBM per vendor.
 
 ### 4. Pelaporan Dokumen & Ekspor Multi-Sheet Excel
-- **Cetak Dokumen Resmi PDF**: Format kop surat standar PT United Tractors Tbk lengkap dengan QR/Tanda Tangan digital, watermark status, dan layout cetak A4.
-- **Ekspor Excel Multi-Sheet**: Format laporan identik dengan acuan monitoring korporat, mencakup sheet monitoring bulanan, rangkuman performa unit, dan rincian transaksi.
+- **Cetak Dokumen Resmi PDF**: Format kop surat standar PT United Tractors Tbk lengkap dengan QR/Tanda Tangan digital, watermark status, tata letak garis tanda tangan simetris dan sejajar (meskipun ada kolom tanpa tanda tangan/bypass), serta layout cetak A4.
+- **Ekspor Excel Multi-Sheet**: Format laporan identik dengan acuan monitoring korporat, mencakup sheet monitoring bulanan, rangkuman performa unit dengan kolom *Divisi / Beban Account*, dan rincian transaksi per unit lengkap dengan formula Excel otomatis.
 
 ### 5. Tampilan Responsif & Gestur Sentuh Mobile
 - Tampilan antarmuka responsif untuk smartphone dan tablet.
@@ -61,7 +64,7 @@ Proses pengajuan BBM berjalan secara sekuensial dan terotomatisasi:
 ### 7. Navigasi Cepat Burger Bar & Pengurutan Kolom Master Data
 - **Menu Burger Bar Ringkas (☰)**: Tombol pemicu cepat 32px di sisi kiri bar navigasi master data yang membuka katalog seluruh 7 langkah konfigurasi (popover di desktop dan bottom-sheet drawer di mobile).
 - **Pencarian Cepat & Click-to-Sort**: Filter instan client-side dan pengurutan dinamis seluruh kolom tabel (A-Z, 1-9, mata uang rupiah, dan tanggal) hanya dengan mengklik kepala kolom (`<th>`).
-- **Formulir Terpadu**: Input data master terintegrasi tanpa duplikasi dan dilindungi verifikasi modal 2 langkah.
+- **Formulir Terpadu & Kolom Divisi**: Input data unit kendaraan mencakup penentuan *Divisi / Beban Account* tanpa duplikasi dan dilindungi verifikasi modal 2 langkah.
 
 ### 8. Sistem Retensi Audit Trail & Ekspor Arsip Cadangan
 - **Ekspor Arsip Excel**: Admin dapat mengunduh seluruh catatan log audit ke format Excel (`.xlsx`) sewaktu-waktu sebagai cadangan offline (*cold storage*).
@@ -71,6 +74,12 @@ Proses pengajuan BBM berjalan secara sekuensial dan terotomatisasi:
 ### 9. Pusat Panduan & Edukasi Pengguna Awam (`/panduan`)
 - Halaman panduan terpadu yang ramah pengguna awam dengan tab peran (Driver, SPV, Manager, Vendor, Fuelman, Admin) dan tanya jawab populer (FAQ).
 - Tombol akses cepat **Panduan** (`?`) disematkan langsung di bilah navigasi atas aplikasi agar dapat dibuka seketika dari halaman manapun.
+
+### 10. Tanda Tangan Digital Kanvas Interaktif (HTML5 Canvas Pad)
+- Pengguna (Driver, Pejabat Approver, Vendor) dapat membubuhkan tanda tangan langsung di layar menggunakan kursor / mouse di PC atau sentuhan jari / stylus di HP/Tablet pada menu Profil (`/profile`).
+- **Smart Auto-Crop**: Pemotongan otomatis area kosong transparan (*whitespace trimming*) di sekeliling goresan agar tanda tangan pas dan proporsional pada dokumen PDF.
+- **Dual Mode**: Mendukung pilihan gambar langsung di kanvas digital maupun opsi unggah berkas gambar (PNG/JPG).
+- **Status Live & Defensive Validation**: Dilengkapi garis panduan dasar (*baseline guide*), pembersihan instan (*clear canvas*), dan perlindungan dari pengiriman kanvas kosong.
 
 ---
 
@@ -186,7 +195,7 @@ php artisan test
 
 **Hasil Pengujian:**
 ```text
-Tests:    67 passed (685 assertions)
+Tests:    72 passed (781 assertions)
 Duration: ~20 detik
 Status:   100% Passed
 ```
