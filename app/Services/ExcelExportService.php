@@ -151,9 +151,10 @@ class ExcelExportService
         string $filename,
         array $headers,
         array $rows,
-        string $period = '2026-05',
+        ?string $period = null,
         ?array $multiSheetData = null
     ): BinaryFileResponse {
+        $period = $period ?? now()->format('Y-m');
         if (!empty($multiSheetData)) {
             return $this->generateMultiSheetWorkbook($filename, $multiSheetData);
         }
@@ -174,7 +175,7 @@ class ExcelExportService
             abort(500, 'Tidak dapat membuat file Excel multi-sheet (.xlsx).');
         }
 
-        $period = $data['period'] ?? '2026-05';
+        $period = $data['period'] ?? now()->format('Y-m');
         $price = (float)($data['price'] ?? 27000.0);
         $masterVehicles = $data['master_vehicles'] ?? [];
         $unitSheets = $data['unit_sheets'] ?? [];

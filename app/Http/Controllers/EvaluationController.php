@@ -33,7 +33,8 @@ class EvaluationController extends Controller
     public function index(Request $request)
     {
         $user = $this->getActiveUser();
-        $period = $request->get('period', '2026-05');
+        $defaultPeriod = now()->format('Y-m');
+        $period = $request->get('period', $defaultPeriod);
 
         $query = FuelEvaluation::with(['vehicle.unitVendor', 'calculator']);
 
@@ -120,7 +121,9 @@ class EvaluationController extends Controller
         $unitVendors = UnitVendor::where('is_active', true)->orderBy('name')->get();
         $periods = FuelEvaluation::select('period')->distinct()->orderBy('period', 'desc')->pluck('period');
         if ($periods->isEmpty()) {
-            $periods = collect(['2026-05', '2025-05', '2025-03']);
+            $periods = collect([$period]);
+        } elseif (!$periods->contains($period)) {
+            $periods = $periods->prepend($period);
         }
 
         return view('evaluation.index', compact(
@@ -182,7 +185,8 @@ class EvaluationController extends Controller
     public function export(Request $request, ExcelExportService $excel)
     {
         $user = $this->getActiveUser();
-        $period = $request->get('period', '2026-05');
+        $defaultPeriod = now()->format('Y-m');
+        $period = $request->get('period', $defaultPeriod);
 
         $query = FuelEvaluation::with(['vehicle'])->where('period', $period);
         if ($request->filled('status')) {
