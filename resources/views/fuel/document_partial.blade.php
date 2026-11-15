@@ -113,14 +113,16 @@
             <span class="fuel-doc-sig-title">Mengetahui (SPV),</span>
             @if($fuelRequest->spv_signature && $fuelRequest->status_spv === 'disetujui')
                 <img src="{{ asset($fuelRequest->spv_signature) }}" alt="SPV Signature" class="fuel-doc-sig-img">
+            @elseif($fuelRequest->isSpvBypassed())
+                <div style="height: 90px; display:flex; align-items:center; justify-content:center; color:#94a3b8; font-size:14px; font-weight:700; letter-spacing:1px;">N/A</div>
             @elseif($fuelRequest->status_spv === 'ditolak')
                 <div style="height: 90px; display:flex; align-items:center; justify-content:center; color:#ef4444; font-size:12px; font-weight:700;">[ DITOLAK ]</div>
             @else
                 <div style="height: 90px; display:flex; align-items:center; justify-content:center; color:#94a3b8; font-size:12px;">(Menunggu Approval)</div>
             @endif
             <div class="fuel-doc-sig-line"></div>
-            <span class="fuel-doc-sig-name">{{ $fuelRequest->spv ? $fuelRequest->spv->name : ($fuelRequest->spv_name ?? 'Supervisor') }}</span>
-            <span class="fuel-doc-sig-role">(Spv/Dept. Head)</span>
+            <span class="fuel-doc-sig-name">{{ $fuelRequest->isSpvBypassed() ? '—' : ($fuelRequest->spv ? $fuelRequest->spv->name : ($fuelRequest->spv_name ?? 'Supervisor')) }}</span>
+            <span class="fuel-doc-sig-role">(Spv / Foreman)</span>
         </div>
 
         <!-- 3. Approve by (Dept Head) -->

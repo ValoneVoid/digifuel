@@ -18,6 +18,8 @@ class StoreFuelRequest extends FormRequest
 
     public function rules(): array
     {
+        $isDepthead = $this->user()?->isDepthead();
+
         return [
             'request_date' => ['required', 'date'],
             'planned_fuel_time' => ['nullable', 'date'],
@@ -26,9 +28,9 @@ class StoreFuelRequest extends FormRequest
             'total_liters' => ['required', 'numeric', 'gt:0', 'max:5000'],
             'hm_km' => ['required', 'numeric', 'min:0'],
             'area' => ['required', 'string'],
-            'spv_id' => ['required', 'exists:users,id'],
+            'spv_id' => [$isDepthead ? 'nullable' : 'required', 'exists:users,id'],
             'fuelman_id' => ['nullable', 'exists:users,id'],
-            'depthead_id' => ['required', 'exists:users,id'],
+            'depthead_id' => [$isDepthead ? 'nullable' : 'required', 'exists:users,id'],
             'vendor_name' => ['required', 'string'],
             'notes' => ['nullable', 'string', 'max:1000'],
             'action_type' => ['nullable', 'in:submit,draft'],
@@ -122,17 +124,19 @@ class StoreFuelRequest extends FormRequest
                 }
             }
 
-            if ($this->filled('spv_id')) {
-                $spv = User::find($this->input('spv_id'));
-                if (!$spv || !$spv->is_active) {
-                    $validator->errors()->add('spv_id', 'Approver SPV yang dipilih sedang nonaktif.');
+            if (!$authUser?->isDepthead()) {
+                if ($this->filled('spv_id')) {
+                    $spv = User::find($this->input('spv_id'));
+                    if (!$spv || !$spv->is_active) {
+                        $validator->errors()->add('spv_id', 'Approver SPV yang dipilih sedang nonaktif.');
+                    }
                 }
-            }
 
-            if ($this->filled('depthead_id')) {
-                $depthead = User::find($this->input('depthead_id'));
-                if (!$depthead || !$depthead->is_active) {
-                    $validator->errors()->add('depthead_id', 'Approver Dept Head/Manager yang dipilih sedang nonaktif.');
+                if ($this->filled('depthead_id')) {
+                    $depthead = User::find($this->input('depthead_id'));
+                    if (!$depthead || !$depthead->is_active) {
+                        $validator->errors()->add('depthead_id', 'Approver Dept Head/Manager yang dipilih sedang nonaktif.');
+                    }
                 }
             }
 
@@ -143,7 +147,7 @@ class StoreFuelRequest extends FormRequest
                 }
             }
 
-            if ($area) {
+            if ($area && !$authUser?->isDepthead()) {
                 if ($this->filled('spv_id')) {
                     $spvAssignedInArea = AreaApprover::where('area_id', $area->id)->where('role_type', 'spv')->exists();
                     $spvExplicitlyInactive = AreaApprover::where('area_id', $area->id)

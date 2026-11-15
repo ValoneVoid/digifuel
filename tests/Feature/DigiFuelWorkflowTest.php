@@ -6,6 +6,7 @@ use Illuminate\Foundation\Testing\RefreshDatabase;
 use Tests\TestCase;
 use App\Models\User;
 use App\Models\Vehicle;
+use App\Models\Area;
 use App\Models\FuelRequest;
 use App\Models\FuelEvaluation;
 use App\Services\FuelEvaluationService;
@@ -308,7 +309,7 @@ class DigiFuelWorkflowTest extends TestCase
         $this->actingAs($depthead);
         $this->get('/admin/master')->assertStatus(403);
         $this->get('/evaluation')->assertStatus(403);
-        $this->get('/fuel')->assertStatus(403);
+        $this->get('/fuel')->assertStatus(200);
         $this->get('/approval')->assertStatus(200);
         $this->get(route('approval.show', $ownFuelRequest->id))->assertStatus(200);
 
@@ -648,6 +649,79 @@ class DigiFuelWorkflowTest extends TestCase
             'depthead_id' => 'Approver Dept Head / Manager wajib dipilih.',
             'vendor_name' => 'Vendor pengisian BBM wajib dipilih.',
         ]);
+    }
+
+    /**
+     * Memastikan jika Dept Head / Manager membuat Fuel Request:
+     * - Tidak wajib memilih SPV (tahap SPV di-bypass otomatis).
+     * - Permohonan langsung auto-approved oleh Dept Head dengan tanda tangan digitalnya.
+     * - Status langsung berpindah ke 'pending_vendor' dan siap direalisasikan oleh Vendor BBM.
+     */
+    public function test_depthead_fuel_request_bypasses_spv_and_auto_approves_to_vendor_stage(): void
+    {
+        $depthead = User::whereIn('role', ['depthead', 'manager'])->firstOrFail();
+        if (!$depthead->signature_url) {
+            $depthead->update(['signature_url' => 'images/sig_depthead.png']);
+        }
+
+        $vehicle = Vehicle::where('is_active', true)->firstOrFail();
+        $area = Area::where('is_active', true)->firstOrFail();
+        $vendor = User::where('role', 'vendor')->firstOrFail();
+        if (!$vendor->signature_url) {
+            $vendor->update(['signature_url' => 'images/sig_fuelman.png']);
+        }
+
+        $this->actingAs($depthead);
+
+        // Dept Head submits request without spv_id and without depthead_id
+        $response = $this->post(route('fuel.store'), [
+            'request_date' => '2026-11-15 14:00:00',
+            'unit_code' => $vehicle->unit_code,
+            'police_no' => $vehicle->police_no,
+            'hm_km' => 12500,
+            'total_liters' => 50,
+            'area' => $area->name,
+            'vendor_name' => 'Cv. Sudan Mandiri',
+            'notes' => 'Pengajuan BBM khusus unit Dept Head operasional',
+            'action_type' => 'submit',
+        ]);
+
+        $response->assertRedirect(route('history.index'));
+        $response->assertSessionHas('success');
+
+        $req = FuelRequest::latest('id')->firstOrFail();
+        $this->assertEquals($depthead->id, $req->user_id);
+        $this->assertEquals('disetujui', $req->status_spv);
+        $this->assertEquals('disetujui', $req->status_depthead);
+        $this->assertEquals('menunggu', $req->status_vendor);
+        $this->assertEquals('pending_vendor', $req->current_stage);
+        $this->assertEquals('Bypassed (Dept Head)', $req->spv_name);
+        $this->assertNotNull($req->depthead_signature);
+
+        // Vendor can immediately approve and complete realization
+        $this->actingAs($vendor);
+        $approveResp = $this->post(route('approval.approve', $req->id), [
+            'note' => 'Pengisian BBM Dept Head selesai',
+            'actual_liters' => 50.0,
+            'meter_at_fueling' => 12500,
+            'fueled_at' => '2026-11-15 14:30:00',
+        ]);
+        $approveResp->assertRedirect();
+
+        $req->refresh();
+        $this->assertEquals('completed', $req->current_stage);
+        $this->assertEquals('disetujui', $req->status_vendor);
+        $this->assertTrue($req->isVendorApproved());
+
+        // Check document sheet view displays N/A instead of (Menunggu Approval)
+        $docResp = $this->get(route('fuel.document', $req->id));
+        $docResp->assertStatus(200);
+        $docResp->assertSee('N/A');
+
+        // Check PDF generation works cleanly for bypassed SPV
+        $pdfResp = $this->get(route('fuel.pdf.stream', $req->id));
+        $pdfResp->assertStatus(200);
+        $this->assertEquals('application/pdf', $pdfResp->headers->get('Content-Type'));
     }
 }
 

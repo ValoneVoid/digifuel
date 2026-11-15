@@ -213,43 +213,58 @@
                     @enderror
                 </div>
 
-                <div class="digi-form-group" style="margin-bottom: 16px;">
-                    <label class="digi-form-label">Pilih Approval SPV (Acknowledge) <span class="digi-required">*</span></label>
-                    <select name="spv_id" id="spv_select" class="digi-select @error('spv_id') is-invalid @enderror" required>
-                        <option value="">- Pilih Approval SPV -</option>
-                        @foreach($spvs as $spv)
-                            <option value="{{ $spv->id }}" {{ old('spv_id', $spvs->first()?->id) == $spv->id ? 'selected' : '' }}>
-                                Approval By {{ $spv->nrp ?? $spv->username }} - {{ $spv->name }}
-                            </option>
-                        @endforeach
-                    </select>
-                    <span id="spvEmptyMsg" style="display:none; color:#b45309; font-size:12px; margin-top:4px;">⚠️ Tidak ada Approver SPV yang aktif pada area ini. Silakan hubungi Admin.</span>
-                    @error('spv_id')
-                        <div class="digi-invalid-feedback">
-                            <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><circle cx="12" cy="12" r="10"></circle><line x1="12" y1="8" x2="12" y2="12"></line><line x1="12" y1="16" x2="12.01" y2="16"></line></svg>
-                            {{ $message }}
+                @if($user->isDepthead())
+                    <!-- Jalur Cepat Khusus Dept Head / Manager (Auto-Approved) -->
+                    <div style="background: #f0fdf4; border: 1px solid #bbf7d0; border-radius: 12px; padding: 14px 16px; margin-bottom: 18px;">
+                        <div style="display: flex; align-items: center; gap: 8px; font-weight: 700; color: #166534; font-size: 13.5px;">
+                            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"></path><polyline points="22 4 12 14.01 9 11.01"></polyline></svg>
+                            Jalur Cepat Pengajuan Dept Head (Auto-Approved)
                         </div>
-                    @enderror
-                </div>
+                        <p style="font-size: 12px; color: #15803d; margin: 4px 0 0 0; line-height: 1.5;">
+                            Karena Anda memiliki wewenang <strong>Dept Head / Manager</strong>, tahap verifikasi SPV otomatis dilewati (hierarki atasan) dan pengajuan langsung disahkan dengan tanda tangan digital Anda. Setelah diajukan, permohonan langsung masuk ke antrean <strong>Vendor BBM</strong> untuk realisasi pengisian.
+                        </p>
+                        <input type="hidden" name="spv_id" id="spv_select" value="">
+                        <input type="hidden" name="depthead_id" id="depthead_select" value="{{ $user->id }}">
+                    </div>
+                @else
+                    <div class="digi-form-group" style="margin-bottom: 16px;">
+                        <label class="digi-form-label">Pilih Approval SPV (Acknowledge) <span class="digi-required">*</span></label>
+                        <select name="spv_id" id="spv_select" class="digi-select @error('spv_id') is-invalid @enderror" required>
+                            <option value="">- Pilih Approval SPV -</option>
+                            @foreach($spvs as $spv)
+                                <option value="{{ $spv->id }}" {{ old('spv_id', $spvs->first()?->id) == $spv->id ? 'selected' : '' }}>
+                                    Approval By {{ $spv->nrp ?? $spv->username }} - {{ $spv->name }}
+                                </option>
+                            @endforeach
+                        </select>
+                        <span id="spvEmptyMsg" style="display:none; color:#b45309; font-size:12px; margin-top:4px;">⚠️ Tidak ada Approver SPV yang aktif pada area ini. Silakan hubungi Admin.</span>
+                        @error('spv_id')
+                            <div class="digi-invalid-feedback">
+                                <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><circle cx="12" cy="12" r="10"></circle><line x1="12" y1="8" x2="12" y2="12"></line><line x1="12" y1="16" x2="12.01" y2="16"></line></svg>
+                                {{ $message }}
+                            </div>
+                        @enderror
+                    </div>
 
-                <div class="digi-form-group" style="margin-bottom: 16px;">
-                    <label class="digi-form-label">Pilih Approval Dept Head (Approve) <span class="digi-required">*</span></label>
-                    <select name="depthead_id" id="depthead_select" class="digi-select @error('depthead_id') is-invalid @enderror" required>
-                        <option value="">- Pilih Approval Dept Head -</option>
-                        @foreach($deptheads as $dh)
-                            <option value="{{ $dh->id }}" {{ old('depthead_id', $deptheads->first()?->id) == $dh->id ? 'selected' : '' }}>
-                                Approval By {{ $dh->username }} ({{ $dh->name }})
-                            </option>
-                        @endforeach
-                    </select>
-                    <span id="dhEmptyMsg" style="display:none; color:#b45309; font-size:12px; margin-top:4px;">⚠️ Tidak ada Approver Dept Head yang aktif pada area ini. Silakan hubungi Admin.</span>
-                    @error('depthead_id')
-                        <div class="digi-invalid-feedback">
-                            <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><circle cx="12" cy="12" r="10"></circle><line x1="12" y1="8" x2="12" y2="12"></line><line x1="12" y1="16" x2="12.01" y2="16"></line></svg>
-                            {{ $message }}
-                        </div>
-                    @enderror
-                </div>
+                    <div class="digi-form-group" style="margin-bottom: 16px;">
+                        <label class="digi-form-label">Pilih Approval Dept Head (Approve) <span class="digi-required">*</span></label>
+                        <select name="depthead_id" id="depthead_select" class="digi-select @error('depthead_id') is-invalid @enderror" required>
+                            <option value="">- Pilih Approval Dept Head -</option>
+                            @foreach($deptheads as $dh)
+                                <option value="{{ $dh->id }}" {{ old('depthead_id', $deptheads->first()?->id) == $dh->id ? 'selected' : '' }}>
+                                    Approval By {{ $dh->username }} ({{ $dh->name }})
+                                </option>
+                            @endforeach
+                        </select>
+                        <span id="dhEmptyMsg" style="display:none; color:#b45309; font-size:12px; margin-top:4px;">⚠️ Tidak ada Approver Dept Head yang aktif pada area ini. Silakan hubungi Admin.</span>
+                        @error('depthead_id')
+                            <div class="digi-invalid-feedback">
+                                <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><circle cx="12" cy="12" r="10"></circle><line x1="12" y1="8" x2="12" y2="12"></line><line x1="12" y1="16" x2="12.01" y2="16"></line></svg>
+                                {{ $message }}
+                            </div>
+                        @enderror
+                    </div>
+                @endif
 
                 <div class="digi-form-group" style="margin-bottom: 16px;">
                     <label class="digi-form-label">Pilih Perusahaan Vendor BBM <span class="digi-required">*</span></label>
@@ -337,6 +352,7 @@
 @section('scripts')
 <script>
 const areaApproverMap = @json($areaApproverMap ?? []);
+const isDeptHead = {{ $user->isDepthead() ? 'true' : 'false' }};
 
 function handleUnitChange(select) {
     const selectedOption = select.options[select.selectedIndex];
@@ -466,31 +482,31 @@ function handleAreaChange(areaName) {
     // Immediate update from preloaded map
     if (areaApproverMap[areaName]) {
         const data = areaApproverMap[areaName];
-        populateSelect('spv_select', data.spvs, 'id', 'label', '- Pilih Approval SPV -');
-        populateSelect('depthead_select', data.deptheads, 'id', 'label', '- Pilih Approval Dept Head -');
+        if (!isDeptHead) {
+            populateSelect('spv_select', data.spvs, 'id', 'label', '- Pilih Approval SPV -');
+            populateSelect('depthead_select', data.deptheads, 'id', 'label', '- Pilih Approval Dept Head -');
+            const spvMsg = document.getElementById('spvEmptyMsg');
+            if (spvMsg) spvMsg.style.display = (!data.spvs || data.spvs.length === 0) ? 'block' : 'none';
+            const dhMsg = document.getElementById('dhEmptyMsg');
+            if (dhMsg) dhMsg.style.display = (!data.deptheads || data.deptheads.length === 0) ? 'block' : 'none';
+        }
         populateSelect('vendor_select', data.vendors, 'name', 'name', '- Pilih Perusahaan Vendor BBM -');
-
-        const spvMsg = document.getElementById('spvEmptyMsg');
-        if (spvMsg) spvMsg.style.display = (!data.spvs || data.spvs.length === 0) ? 'block' : 'none';
-
-        const dhMsg = document.getElementById('dhEmptyMsg');
-        if (dhMsg) dhMsg.style.display = (!data.deptheads || data.deptheads.length === 0) ? 'block' : 'none';
     }
 
     // Also synchronize dynamically via Fetch API
     fetch(`/api/area-approvers?area=${encodeURIComponent(areaName)}`)
         .then(res => res.json())
         .then(data => {
-            if (data && data.spvs) {
-                populateSelect('spv_select', data.spvs, 'id', 'label', '- Pilih Approval SPV -');
-                populateSelect('depthead_select', data.deptheads, 'id', 'label', '- Pilih Approval Dept Head -');
+            if (data && data.vendors) {
+                if (!isDeptHead) {
+                    populateSelect('spv_select', data.spvs, 'id', 'label', '- Pilih Approval SPV -');
+                    populateSelect('depthead_select', data.deptheads, 'id', 'label', '- Pilih Approval Dept Head -');
+                    const spvMsg = document.getElementById('spvEmptyMsg');
+                    if (spvMsg) spvMsg.style.display = (!data.spvs || data.spvs.length === 0) ? 'block' : 'none';
+                    const dhMsg = document.getElementById('dhEmptyMsg');
+                    if (dhMsg) dhMsg.style.display = (!data.deptheads || data.deptheads.length === 0) ? 'block' : 'none';
+                }
                 populateSelect('vendor_select', data.vendors, 'name', 'name', '- Pilih Perusahaan Vendor BBM -');
-
-                const spvMsg = document.getElementById('spvEmptyMsg');
-                if (spvMsg) spvMsg.style.display = (!data.spvs || data.spvs.length === 0) ? 'block' : 'none';
-
-                const dhMsg = document.getElementById('dhEmptyMsg');
-                if (dhMsg) dhMsg.style.display = (!data.deptheads || data.deptheads.length === 0) ? 'block' : 'none';
             }
         })
         .catch(() => {});
@@ -544,8 +560,13 @@ function openPreviewModal() {
     document.getElementById('prev_unit').textContent = ': ' + (unitSel.value || '-') + ' / ' + (police || '-');
     document.getElementById('prev_liters').textContent = ': ' + (hmKm ? hmKm + ' KM' : '-') + ' | ' + (liters || '0') + ' Liter';
     document.getElementById('prev_area').textContent = ': ' + (area || '-');
-    document.getElementById('prev_spv').textContent = ': ' + (spvSel.options[spvSel.selectedIndex]?.text || '-');
-    document.getElementById('prev_depthead').textContent = ': ' + (dhSel.options[dhSel.selectedIndex]?.text || '-');
+    if (isDeptHead) {
+        document.getElementById('prev_spv').textContent = ': Bypassed (Pengajuan Langsung Dept Head)';
+        document.getElementById('prev_depthead').textContent = ': Otomatis Disetujui (Anda)';
+    } else {
+        document.getElementById('prev_spv').textContent = ': ' + (spvSel?.options ? (spvSel.options[spvSel.selectedIndex]?.text || '-') : '-');
+        document.getElementById('prev_depthead').textContent = ': ' + (dhSel?.options ? (dhSel.options[dhSel.selectedIndex]?.text || '-') : '-');
+    }
     document.getElementById('prev_vendor').textContent = ': ' + (vendor || '-');
 
     document.getElementById('previewModal').style.display = 'flex';
@@ -608,8 +629,10 @@ document.addEventListener('DOMContentLoaded', function() {
                 { id: 'total_liters', name: 'Total Liter' },
                 { id: 'hm_km', name: 'KM / HM' },
                 { id: 'area_select', name: 'Area Operasional' },
-                { id: 'spv_select', name: 'Approval SPV' },
-                { id: 'depthead_select', name: 'Approval Dept Head' },
+                ...(!isDeptHead ? [
+                    { id: 'spv_select', name: 'Approval SPV' },
+                    { id: 'depthead_select', name: 'Approval Dept Head' },
+                ] : []),
                 { id: 'vendor_select', name: 'Vendor BBM' },
             ];
 

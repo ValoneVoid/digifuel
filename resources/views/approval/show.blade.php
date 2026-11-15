@@ -29,14 +29,14 @@
         </div>
         <div>
             <div style="font-weight: 700; color: {{ $spvDone ? '#15803d' : ($fuelRequest->status_spv === 'ditolak' ? '#b91c1c' : '#854d0e') }};">2. SPV / Dept Head</div>
-            <div style="color: #475569;">{{ $fuelRequest->spv?->name ?? '-' }}</div>
+            <div style="color: #475569;">{{ $fuelRequest->spv?->name ?? ($fuelRequest->spv_name ?: 'Bypassed (Dept Head)') }}</div>
             <span class="digi-badge {{ $spvDone ? 'digi-badge-green' : ($fuelRequest->status_spv === 'ditolak' ? 'digi-badge-red' : 'digi-badge-yellow') }}" style="margin-top:4px;">
-                {{ ucfirst($fuelRequest->status_spv) }}
+                {{ (!$fuelRequest->spv_id && $spvDone) ? 'Bypassed' : ucfirst($fuelRequest->status_spv) }}
             </span>
         </div>
         <div>
             <div style="font-weight: 700; color: {{ $dhDone ? '#15803d' : ($fuelRequest->status_depthead === 'ditolak' ? '#b91c1c' : '#475569') }};">3. Dept Head / Mgr</div>
-            <div style="color: #475569;">{{ $fuelRequest->depthead?->name ?? '-' }}</div>
+            <div style="color: #475569;">{{ $fuelRequest->depthead?->name ?? ($fuelRequest->depthead_name ?: '-') }}</div>
             <span class="digi-badge {{ $dhDone ? 'digi-badge-green' : ($fuelRequest->status_depthead === 'ditolak' ? 'digi-badge-red' : ($fuelRequest->status_depthead === 'menunggu' ? 'digi-badge-yellow' : 'digi-badge-gray')) }}" style="margin-top:4px;">
                 {{ $fuelRequest->status_depthead === '-' ? 'Menunggu Tahap 2' : ucfirst($fuelRequest->status_depthead) }}
             </span>

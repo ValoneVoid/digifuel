@@ -486,15 +486,21 @@
                 <div class="sig-image-box">
                     @if(!empty($approvals['spv']['signature']) && $approvals['spv']['is_approved'])
                         <img src="{{ $approvals['spv']['signature'] }}" alt="SPV Signature" class="sig-image">
+                    @elseif(!empty($approvals['spv']['is_bypassed']) || $fuelRequest->isSpvBypassed())
+                        <div class="sig-placeholder" style="color: #64748b; font-size: 13px; font-weight: bold; letter-spacing: 1px; padding: 22px 0;">
+                            N/A
+                        </div>
                     @else
                         <div class="sig-placeholder">(Tanda Tangan Digital)</div>
                     @endif
                 </div>
                 <div class="sig-line"></div>
-                <div class="sig-signer-name">{{ $approvals['spv']['name'] }}</div>
+                <div class="sig-signer-name">{{ $fuelRequest->isSpvBypassed() ? '—' : $approvals['spv']['name'] }}</div>
                 <div class="sig-signer-role">SPV / Foreman Operasional</div>
                 <div class="sig-date">
-                    @if($approvals['spv']['action_at'])
+                    @if($fuelRequest->isSpvBypassed())
+                        Status: N/A
+                    @elseif($approvals['spv']['action_at'])
                         {{ $approvals['spv']['action_at']->format('d/m/Y H:i') }}
                     @else
                         Status: {{ $approvals['spv']['status'] }}

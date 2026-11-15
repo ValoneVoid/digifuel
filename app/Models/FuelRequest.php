@@ -119,4 +119,12 @@ class FuelRequest extends Model
             || $this->status_vendor === 'disetujui'
             || ($this->status_spv === 'disetujui' && $this->status_depthead === 'disetujui' && $this->status_fuelman === 'disetujui');
     }
+
+    public function isSpvBypassed(): bool
+    {
+        return (!$this->spv_id && $this->status_spv === 'disetujui')
+            || str_contains((string)$this->spv_name, 'Bypass')
+            || str_contains((string)$this->spv_note, 'Bypassed')
+            || str_contains((string)$this->spv_note, 'Bypass');
+    }
 }

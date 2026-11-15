@@ -190,8 +190,12 @@ class FuelRequestController extends Controller
                 ->with('success', "Fuel Request {$fuelRequest->request_no} berhasil disimpan sebagai Draft.");
         }
 
+        $successMsg = $user->isDepthead()
+            ? "Permintaan Fuel {$fuelRequest->request_no} berhasil dibuat dan otomatis disetujui (Dept Head). Menunggu Persetujuan & Realisasi Vendor!"
+            : "Permintaan Fuel {$fuelRequest->request_no} berhasil dikirim dan menunggu persetujuan SPV!";
+
         return redirect()->route('history.index')
-            ->with('success', "Permintaan Fuel {$fuelRequest->request_no} berhasil dikirim dan menunggu persetujuan SPV!");
+            ->with('success', $successMsg);
     }
 
     public function submitDraft($id, FuelRequestService $service, FuelRequestPolicy $policy)
@@ -209,8 +213,12 @@ class FuelRequestController extends Controller
 
         $service->submitDraft($fuelRequest, $user);
 
+        $submitMsg = $user->isDepthead()
+            ? "Fuel Request {$fuelRequest->request_no} berhasil diajukan dan langsung diteruskan ke Vendor (Auto-Approved Dept Head)!"
+            : "Fuel Request {$fuelRequest->request_no} berhasil diajukan ke SPV!";
+
         return redirect()->route('history.index')
-            ->with('success', "Fuel Request {$fuelRequest->request_no} berhasil diajukan ke SPV!");
+            ->with('success', $submitMsg);
     }
 
     public function cancel($id, FuelRequestPolicy $policy)

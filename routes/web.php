@@ -59,8 +59,8 @@ Route::middleware(['auth'])->group(function () {
         Route::get('/signatures/file/{filename}', [ProfileController::class, 'serveSignature'])->name('signature.serve');
     });
 
-    // Fuel Request Submission, Draft, Cancellation & Dependent Dropdown AJAX (Driver, SPV & Admin)
-    Route::middleware(['role:driver,spv,admin'])->group(function () {
+    // Fuel Request Submission, Draft, Cancellation & Dependent Dropdown AJAX (Driver, SPV, Dept Head/Manager & Admin)
+    Route::middleware(['role:driver,spv,depthead,manager,admin'])->group(function () {
         Route::get('/fuel', [FuelRequestController::class, 'create'])->name('fuel.create');
         Route::post('/fuel', [FuelRequestController::class, 'store'])->name('fuel.store');
         Route::post('/fuel/{id}/submit-draft', [FuelRequestController::class, 'submitDraft'])->name('fuel.submit.draft');

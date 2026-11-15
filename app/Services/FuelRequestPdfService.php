@@ -189,10 +189,11 @@ class FuelRequestPdfService
             'approvals' => [
                 'spv' => [
                     'name' => $spvName,
-                    'status' => $fuelRequest->status_spv === 'disetujui' ? 'Disetujui' : ($fuelRequest->status_spv ?? '-'),
+                    'status' => $fuelRequest->status_spv === 'disetujui' ? ($fuelRequest->spv_id ? 'Disetujui' : 'Bypassed') : ($fuelRequest->status_spv ?? '-'),
                     'action_at' => $fuelRequest->spv_action_at ?? $spvApproval?->action_at,
                     'signature' => $spvSig,
                     'is_approved' => $fuelRequest->status_spv === 'disetujui',
+                    'is_bypassed' => (!$fuelRequest->spv_id && $fuelRequest->status_spv === 'disetujui'),
                 ],
                 'depthead' => [
                     'name' => $deptheadName,

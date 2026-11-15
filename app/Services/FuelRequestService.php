@@ -72,18 +72,31 @@ class FuelRequestService
                 ]);
             }
 
-            $spv = User::where('id', $data['spv_id'])->where('is_active', true)->first();
-            if (!$spv) {
+            $spv = null;
+            $isDeptheadSubmitter = $user->isDepthead();
+
+            if (!empty($data['spv_id'])) {
+                $spv = User::where('id', $data['spv_id'])->where('is_active', true)->first();
+            }
+            if (!$isDeptheadSubmitter && !$spv) {
                 throw ValidationException::withMessages([
                     'spv_id' => 'Approver SPV tidak ditemukan atau sedang nonaktif.',
                 ]);
             }
 
-            $depthead = User::where('id', $data['depthead_id'])->where('is_active', true)->first();
-            if (!$depthead) {
-                throw ValidationException::withMessages([
-                    'depthead_id' => 'Approver Dept Head/Manager tidak ditemukan atau sedang nonaktif.',
-                ]);
+            $depthead = null;
+            if ($isDeptheadSubmitter) {
+                // Dept Head submitter is their own approver (or use selected approver if specified)
+                $depthead = !empty($data['depthead_id'])
+                    ? (User::where('id', $data['depthead_id'])->where('is_active', true)->first() ?: $user)
+                    : $user;
+            } else {
+                $depthead = !empty($data['depthead_id']) ? User::where('id', $data['depthead_id'])->where('is_active', true)->first() : null;
+                if (!$depthead) {
+                    throw ValidationException::withMessages([
+                        'depthead_id' => 'Approver Dept Head/Manager tidak ditemukan atau sedang nonaktif.',
+                    ]);
+                }
             }
 
             $fuelman = !empty($data['fuelman_id'])
@@ -127,9 +140,41 @@ class FuelRequestService
             $employee = $user->employee;
             $sourceCompany = $employee ? $employee->company : ($user->company ?? self::DEFAULT_DOCUMENT_COMPANY);
 
-            $initialStage = $isDraft ? 'draft' : 'pending_spv';
-            $initialSpvStatus = $isDraft ? 'draft' : 'menunggu';
-            $initialOverallStatus = $isDraft ? 'draft' : 'menunggu';
+            if ($isDraft) {
+                $initialStage = 'draft';
+                $initialSpvStatus = 'draft';
+                $initialDeptheadStatus = 'draft';
+                $initialManagerStatus = 'draft';
+                $initialOverallStatus = 'draft';
+                $spvActionAt = null;
+                $spvNote = null;
+                $deptheadActionAt = null;
+                $deptheadNote = null;
+                $deptheadSig = null;
+            } elseif ($isDeptheadSubmitter) {
+                // OPTION B: Auto-approved by Dept Head submitter -> bypass SPV, jump to pending_vendor
+                $initialStage = 'pending_vendor';
+                $initialSpvStatus = 'disetujui';
+                $initialDeptheadStatus = 'disetujui';
+                $initialManagerStatus = 'disetujui';
+                $initialOverallStatus = 'menunggu';
+                $spvActionAt = now();
+                $spvNote = 'Bypassed (Pengajuan langsung oleh Dept Head)';
+                $deptheadActionAt = now();
+                $deptheadNote = 'Disetujui otomatis (Pengajuan oleh Dept Head)';
+                $deptheadSig = $user->signature_url;
+            } else {
+                $initialStage = 'pending_spv';
+                $initialSpvStatus = 'menunggu';
+                $initialDeptheadStatus = '-';
+                $initialManagerStatus = '-';
+                $initialOverallStatus = 'menunggu';
+                $spvActionAt = null;
+                $spvNote = null;
+                $deptheadActionAt = null;
+                $deptheadNote = null;
+                $deptheadSig = null;
+            }
 
             $fuelRequest = FuelRequest::create([
                 'request_no' => $requestNo,
@@ -154,48 +199,86 @@ class FuelRequestService
                 'area' => $area ? $area->name : $data['area'],
                 'area_id' => $area?->id,
                 'notes' => $data['notes'] ?? null,
-                'spv_id' => $spv->id,
-                'spv_name' => 'Approval By ' . ($spv->nrp ?? $spv->username) . ' - ' . $spv->name,
+                'spv_id' => $spv?->id,
+                'spv_name' => $spv ? ('Approval By ' . ($spv->nrp ?? $spv->username) . ' - ' . $spv->name) : 'Bypassed (Dept Head)',
+                'spv_action_at' => $spvActionAt,
+                'spv_note' => $spvNote,
                 'manager_id' => $depthead->id,
                 'manager_name' => 'Approval By ' . ($depthead->username ?? $depthead->name),
+                'manager_action_at' => $deptheadActionAt,
+                'manager_note' => $deptheadNote,
                 'depthead_id' => $depthead->id,
                 'depthead_name' => 'Approval By ' . ($depthead->username ?? $depthead->name),
+                'depthead_action_at' => $deptheadActionAt,
+                'depthead_note' => $deptheadNote,
+                'depthead_signature' => $deptheadSig,
                 'vendor_id' => $vendor?->id,
                 'vendor_user_id' => $vendorUser?->id,
                 'vendor_name' => $vendor ? $vendor->name : $data['vendor_name'],
                 'fuelman_id' => $fuelman?->id,
                 'fuelman_name' => $fuelman ? 'Approval By ' . $fuelman->name : null,
                 'status_spv' => $initialSpvStatus,
-                'status_manager' => '-',
-                'status_depthead' => '-',
-                'status_vendor' => '-',
-                'status_fuelman' => '-',
+                'status_manager' => $initialManagerStatus,
+                'status_depthead' => $initialDeptheadStatus,
+                'status_vendor' => ($isDeptheadSubmitter && !$isDraft) ? 'menunggu' : '-',
+                'status_fuelman' => ($isDeptheadSubmitter && !$isDraft) ? 'menunggu' : '-',
                 'overall_status' => $initialOverallStatus,
                 'current_stage' => $initialStage,
                 'driver_signature' => $user->signature_url,
             ]);
 
+            if ($isDeptheadSubmitter && !$isDraft) {
+                FuelRequestApproval::create([
+                    'fuel_request_id' => $fuelRequest->id,
+                    'approver_id' => $user->id,
+                    'stage' => 'manager',
+                    'status' => 'approved',
+                    'note' => 'Disetujui otomatis saat pengajuan dibuat oleh Dept Head.',
+                    'signature_path' => $user->signature_url,
+                    'action_at' => now(),
+                ]);
+            }
+
+            $historyDescription = $isDraft
+                ? "Fuel Request {$requestNo} disimpan sebagai Draft oleh {$user->name}."
+                : ($isDeptheadSubmitter
+                    ? "Fuel Request {$requestNo} diajukan oleh Dept Head ({$user->name}) untuk unit {$vehicle->unit_code} ({$data['total_liters']} Liter). Verifikasi SPV di-bypass dan otomatis disetujui Dept Head. Menunggu Persetujuan & Realisasi Vendor."
+                    : "Fuel Request {$requestNo} diajukan oleh {$user->name} untuk unit {$vehicle->unit_code} ({$data['total_liters']} Liter) dan menunggu persetujuan SPV."
+                );
+
             FuelRequestHistory::record(
                 $fuelRequest->id,
                 $user->id,
-                $isDraft ? 'draft_saved' : 'created',
+                $isDraft ? 'draft_saved' : ($isDeptheadSubmitter ? 'approved_manager' : 'created'),
                 null,
                 $initialStage,
-                $isDraft
-                    ? "Fuel Request {$requestNo} disimpan sebagai Draft oleh {$user->name}."
-                    : "Fuel Request {$requestNo} diajukan oleh {$user->name} untuk unit {$vehicle->unit_code} ({$data['total_liters']} Liter) dan menunggu persetujuan SPV."
+                $historyDescription
             );
 
             if (!$isDraft) {
-                UserNotification::notify(
-                    $spv->id,
-                    $fuelRequest->id,
-                    "Pengajuan Baru: {$requestNo}",
-                    "Fuel Request {$requestNo} dari {$user->name} ({$vehicle->unit_code} - {$data['total_liters']} L) menunggu persetujuan SPV Anda.",
-                    'warning'
-                );
-
-                $this->whatsappService->notifyPendingSpv($fuelRequest, $user);
+                if ($isDeptheadSubmitter) {
+                    if ($vendorUser) {
+                        UserNotification::notify(
+                            $vendorUser->id,
+                            $fuelRequest->id,
+                            "Menunggu Approval Vendor: {$requestNo}",
+                            "Fuel Request {$requestNo} dari Dept Head {$user->name} ({$vehicle->unit_code} - {$data['total_liters']} L) telah disetujui dan siap untuk realisasi pengisian BBM.",
+                            'warning'
+                        );
+                    }
+                    $this->whatsappService->notifyReadyForVendor($fuelRequest, $user);
+                } else {
+                    if ($spv) {
+                        UserNotification::notify(
+                            $spv->id,
+                            $fuelRequest->id,
+                            "Pengajuan Baru: {$requestNo}",
+                            "Fuel Request {$requestNo} dari {$user->name} ({$vehicle->unit_code} - {$data['total_liters']} L) menunggu persetujuan SPV Anda.",
+                            'warning'
+                        );
+                        $this->whatsappService->notifyPendingSpv($fuelRequest, $user);
+                    }
+                }
             }
 
             return $fuelRequest;
@@ -219,32 +302,83 @@ class FuelRequestService
                 ]);
             }
 
+            $isDeptheadSubmitter = $user->isDepthead();
+            $targetStage = $isDeptheadSubmitter ? 'pending_vendor' : 'pending_spv';
+
             $locked->update([
-                'status_spv' => 'menunggu',
+                'status_spv' => $isDeptheadSubmitter ? 'disetujui' : 'menunggu',
+                'spv_action_at' => $isDeptheadSubmitter ? now() : null,
+                'spv_note' => $isDeptheadSubmitter ? 'Bypassed (Pengajuan langsung oleh Dept Head)' : null,
+                'depthead_id' => $isDeptheadSubmitter ? $user->id : $locked->depthead_id,
+                'depthead_name' => $isDeptheadSubmitter ? ('Approval By ' . ($user->username ?? $user->name)) : $locked->depthead_name,
+                'status_depthead' => $isDeptheadSubmitter ? 'disetujui' : '-',
+                'depthead_action_at' => $isDeptheadSubmitter ? now() : null,
+                'depthead_note' => $isDeptheadSubmitter ? 'Disetujui otomatis (Pengajuan oleh Dept Head)' : null,
+                'depthead_signature' => $isDeptheadSubmitter ? $user->signature_url : null,
+                'manager_id' => $isDeptheadSubmitter ? $user->id : $locked->manager_id,
+                'manager_name' => $isDeptheadSubmitter ? ('Approval By ' . ($user->username ?? $user->name)) : $locked->manager_name,
+                'status_manager' => $isDeptheadSubmitter ? 'disetujui' : '-',
+                'manager_action_at' => $isDeptheadSubmitter ? now() : null,
+                'manager_note' => $isDeptheadSubmitter ? 'Disetujui otomatis (Pengajuan oleh Dept Head)' : null,
+                'status_vendor' => $isDeptheadSubmitter ? 'menunggu' : '-',
+                'status_fuelman' => $isDeptheadSubmitter ? 'menunggu' : '-',
                 'overall_status' => 'menunggu',
-                'current_stage' => 'pending_spv',
+                'current_stage' => $targetStage,
                 'request_date' => now(),
                 'driver_signature' => $user->signature_url ?? $locked->driver_signature,
             ]);
 
-            FuelRequestHistory::record(
-                $locked->id,
-                $user->id,
-                'submitted',
-                'draft',
-                'pending_spv',
-                "Draft Fuel Request {$locked->request_no} resmi diajukan dan menunggu persetujuan SPV."
-            );
+            if ($isDeptheadSubmitter) {
+                FuelRequestApproval::create([
+                    'fuel_request_id' => $locked->id,
+                    'approver_id' => $user->id,
+                    'stage' => 'manager',
+                    'status' => 'approved',
+                    'note' => 'Disetujui otomatis saat draft diajukan oleh Dept Head.',
+                    'signature_path' => $user->signature_url,
+                    'action_at' => now(),
+                ]);
 
-            UserNotification::notify(
-                $locked->spv_id,
-                $locked->id,
-                "Pengajuan Baru: {$locked->request_no}",
-                "Fuel Request {$locked->request_no} menunggu persetujuan SPV Anda.",
-                'warning'
-            );
+                FuelRequestHistory::record(
+                    $locked->id,
+                    $user->id,
+                    'approved_manager',
+                    'draft',
+                    'pending_vendor',
+                    "Draft Fuel Request {$locked->request_no} diajukan oleh Dept Head ({$user->name}). Tahap SPV di-bypass dan otomatis disetujui Dept Head. Menunggu Persetujuan & Realisasi Vendor."
+                );
 
-            $this->whatsappService->notifyPendingSpv($locked, $user);
+                if ($locked->vendor_user_id) {
+                    UserNotification::notify(
+                        $locked->vendor_user_id,
+                        $locked->id,
+                        "Menunggu Approval Vendor: {$locked->request_no}",
+                        "Fuel Request {$locked->request_no} dari Dept Head {$user->name} telah disetujui dan siap untuk realisasi pengisian BBM.",
+                        'warning'
+                    );
+                }
+                $this->whatsappService->notifyReadyForVendor($locked, $user);
+            } else {
+                FuelRequestHistory::record(
+                    $locked->id,
+                    $user->id,
+                    'submitted',
+                    'draft',
+                    'pending_spv',
+                    "Draft Fuel Request {$locked->request_no} resmi diajukan dan menunggu persetujuan SPV."
+                );
+
+                if ($locked->spv_id) {
+                    UserNotification::notify(
+                        $locked->spv_id,
+                        $locked->id,
+                        "Pengajuan Baru: {$locked->request_no}",
+                        "Fuel Request {$locked->request_no} menunggu persetujuan SPV Anda.",
+                        'warning'
+                    );
+                }
+                $this->whatsappService->notifyPendingSpv($locked, $user);
+            }
 
             return $locked;
         });
