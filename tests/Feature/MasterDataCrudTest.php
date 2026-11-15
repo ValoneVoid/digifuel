@@ -823,6 +823,7 @@ class MasterDataCrudTest extends TestCase
                 'unit_code' => 'LV-STREAMLINE-01',
                 'police_no' => 'DA 7788 UT',
                 'model' => 'Toyota Hilux Single Cabin',
+                'division' => 'Service',
                 'unit_vendor_id' => $uv->id,
                 'default_area_id' => $area->id,
                 'tank_capacity' => 85,
@@ -832,17 +833,19 @@ class MasterDataCrudTest extends TestCase
         $createResp->assertRedirect(route('admin.master', ['tab' => 'units']));
 
         $veh = Vehicle::where('unit_code', 'LV-STREAMLINE-01')->firstOrFail();
+        $this->assertEquals('Service', $veh->division);
         $this->assertEquals(85, (float) $veh->tank_capacity);
         $this->assertEquals($area->id, $veh->default_area_id);
         $this->assertNotNull($veh->activeFuelStandard);
         $this->assertEquals(8.5, (float) $veh->activeFuelStandard->standard_value);
 
-        // 2. Update Unit with revised standard_consumption
+        // 2. Update Unit with revised standard_consumption & division
         $updateResp = $this->actingAs($this->admin)
             ->put(route('admin.master.units.update', $veh->id), [
                 'unit_code' => 'LV-STREAMLINE-01',
                 'police_no' => 'DA 7788 UT',
                 'model' => 'Toyota Hilux Single Cabin Updated',
+                'division' => 'Sparepart',
                 'unit_vendor_id' => $uv->id,
                 'default_area_id' => $area->id,
                 'tank_capacity' => 90,
@@ -852,6 +855,7 @@ class MasterDataCrudTest extends TestCase
         $updateResp->assertRedirect(route('admin.master', ['tab' => 'units']));
 
         $veh->refresh();
+        $this->assertEquals('Sparepart', $veh->division);
         $this->assertEquals(90, (float) $veh->tank_capacity);
         $this->assertEquals(9.2, (float) $veh->activeFuelStandard->standard_value);
     }

@@ -851,7 +851,7 @@
                     <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" style="display:inline-block; vertical-align:middle; margin-right:3px;"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg>Batal Edit
                 </button>
             </div>
-            <div class="digi-form-grid-3">
+            <div class="digi-responsive-grid-4">
                 <div class="digi-form-group">
                     <label class="digi-form-label">Unit Code (Unik) <span class="digi-required">*</span></label>
                     <input type="text" name="unit_code" id="unit_code" class="digi-input" placeholder="Contoh: UT 208 DA 8191" required>
@@ -863,6 +863,10 @@
                 <div class="digi-form-group">
                     <label class="digi-form-label">Model / Tipe Unit <span class="digi-required">*</span></label>
                     <input type="text" name="model" id="unit_model" class="digi-input" placeholder="Contoh: B/U FMC JB HDX TRITON" required>
+                </div>
+                <div class="digi-form-group">
+                    <label class="digi-form-label">Divisi / Beban Account</label>
+                    <input type="text" name="division" id="unit_division" class="digi-input" placeholder="Ketik: Service atau Sparepart">
                 </div>
             </div>
             <div class="digi-responsive-grid-4" style="margin-bottom: 0;">
@@ -926,6 +930,7 @@
                         <th>Unit Code</th>
                         <th>Nomor Polisi</th>
                         <th>Tipe / Model Unit</th>
+                        <th>Divisi / Beban Account</th>
                         <th>Perusahaan Rental Unit (Rental / Internal)</th>
                         <th>Area Default</th>
                         <th>Kapasitas Tangki</th>
@@ -941,6 +946,13 @@
                             <td style="font-weight: 700; color: #0284c7;">{{ $v->unit_code }}</td>
                             <td>{{ $v->police_no }}</td>
                             <td>{{ $v->model ?? $v->unit_type }}</td>
+                            <td>
+                                @if($v->division)
+                                    <span class="digi-badge digi-badge-purple" style="font-weight: 600;">{{ $v->division }}</span>
+                                @else
+                                    <span style="color: #94a3b8; font-size: 12px;">-</span>
+                                @endif
+                            </td>
                             <td>
                                 @if($v->unitVendor)
                                     <span class="digi-badge digi-badge-blue" title="{{ $v->unitVendor->name }}">{{ $v->unitVendor->name }}</span>
@@ -2968,6 +2980,9 @@ function editUnit(v) {
     document.getElementById('unit_code').value = v.unit_code || '';
     document.getElementById('unit_police_no').value = v.police_no || '';
     document.getElementById('unit_model').value = v.model || v.unit_type || '';
+    if (document.getElementById('unit_division')) {
+        document.getElementById('unit_division').value = v.division || '';
+    }
     if (document.getElementById('unit_vendor_id')) {
         document.getElementById('unit_vendor_id').value = v.unit_vendor_id || '';
     }
@@ -2997,6 +3012,9 @@ function resetUnitForm() {
         form.classList.remove('is-editing');
     }
     document.getElementById('unit_id').value = '';
+    if (document.getElementById('unit_division')) {
+        document.getElementById('unit_division').value = '';
+    }
     if (document.getElementById('unit_vendor_id')) {
         document.getElementById('unit_vendor_id').value = '';
     }

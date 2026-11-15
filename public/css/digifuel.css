@@ -2162,3 +2162,120 @@ div[style*="overflow-x: auto"]::-webkit-scrollbar-thumb:hover {
   letter-spacing: 0.3px;
   vertical-align: middle;
 }
+
+/* ==========================================================================
+   DIGITAL SIGNATURE PAD (HTML5 CANVAS & FILE SWITCHER)
+   ========================================================================== */
+.digi-sigpad-container {
+  background: #ffffff;
+  border: 1.5px solid #cbd5e1;
+  border-radius: 12px;
+  overflow: hidden;
+  box-shadow: 0 2px 8px rgba(15, 23, 42, 0.05);
+  max-width: 520px;
+  width: 100%;
+}
+
+.digi-sigpad-tabs {
+  display: flex;
+  background: #f1f5f9;
+  border-bottom: 1.5px solid #e2e8f0;
+  padding: 4px;
+  gap: 4px;
+}
+
+.digi-sigpad-tab-btn {
+  flex: 1;
+  padding: 8px 14px;
+  font-size: 13px;
+  font-weight: 600;
+  border: none;
+  background: transparent;
+  color: #64748b;
+  border-radius: 8px;
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  transition: all 0.2s ease;
+}
+
+.digi-sigpad-tab-btn:hover {
+  color: #1e293b;
+  background: rgba(255, 255, 255, 0.6);
+}
+
+.digi-sigpad-tab-btn.active {
+  background: #ffffff;
+  color: #0284c7;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.08);
+}
+
+.digi-sigpad-body {
+  padding: 14px 16px;
+}
+
+.digi-sigpad-canvas-wrapper {
+  position: relative;
+  background: #ffffff;
+  border: 1.5px dashed #cbd5e1;
+  border-radius: 10px;
+  cursor: crosshair;
+  touch-action: none;
+  overflow: hidden;
+  transition: border-color 0.2s ease, box-shadow 0.2s ease;
+}
+
+.digi-sigpad-canvas-wrapper:hover,
+.digi-sigpad-canvas-wrapper.is-drawing {
+  border-color: #0284c7;
+  box-shadow: 0 0 0 3px rgba(2, 132, 199, 0.12);
+}
+
+.digi-sigpad-canvas {
+  display: block;
+  width: 100%;
+  height: 190px;
+  touch-action: none;
+  background: #ffffff;
+}
+
+.digi-sigpad-baseline {
+  position: absolute;
+  bottom: 38px;
+  left: 24px;
+  right: 24px;
+  border-bottom: 1px dashed #cbd5e1;
+  pointer-events: none;
+}
+
+.digi-sigpad-baseline-hint {
+  position: absolute;
+  bottom: 8px;
+  left: 0;
+  right: 0;
+  text-align: center;
+  font-size: 11px;
+  color: #94a3b8;
+  pointer-events: none;
+  user-select: none;
+}
+
+.digi-sigpad-footer {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  margin-top: 12px;
+  flex-wrap: wrap;
+}
+
+.digi-sigpad-status {
+  font-size: 12px;
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  font-weight: 500;
+}
+

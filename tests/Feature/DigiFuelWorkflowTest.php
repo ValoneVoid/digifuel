@@ -723,5 +723,52 @@ class DigiFuelWorkflowTest extends TestCase
         $pdfResp->assertStatus(200);
         $this->assertEquals('application/pdf', $pdfResp->headers->get('Content-Type'));
     }
+
+    public function test_user_can_create_signature_via_direct_canvas_drawing_and_file_upload(): void
+    {
+        $user = User::factory()->create([
+            'role' => 'driver',
+            'is_active' => true,
+        ]);
+
+        $this->actingAs($user);
+
+        // 1. Profile page renders signature pad container and tabs
+        $profileResp = $this->get(route('profile.index'));
+        $profileResp->assertStatus(200);
+        $profileResp->assertSee('Gores Langsung (Kanvas)');
+        $profileResp->assertSee('Upload File Gambar');
+        $profileResp->assertSee('digiSignatureCanvas');
+
+        // 2. Submit valid canvas signature (Base64 PNG)
+        ob_start();
+        $im = imagecreatetruecolor(80, 40);
+        $white = imagecolorallocate($im, 255, 255, 255);
+        $black = imagecolorallocate($im, 0, 0, 0);
+        imagefill($im, 0, 0, $white);
+        imageline($im, 5, 20, 75, 20, $black);
+        imagepng($im);
+        $rawPng = ob_get_clean();
+        imagedestroy($im);
+        $base64Png = 'data:image/png;base64,' . base64_encode($rawPng);
+
+        $submitResp = $this->post(route('profile.signature'), [
+            'signature_base64' => $base64Png,
+        ]);
+
+        $submitResp->assertRedirect(route('profile.index'));
+        $submitResp->assertSessionHas('success');
+
+        $user->refresh();
+        $this->assertNotNull($user->signature_url);
+        $this->assertTrue($user->hasActiveSignature());
+
+        // 3. Submit invalid or empty base64 is rejected gracefully
+        $invalidResp = $this->post(route('profile.signature'), [
+            'signature_base64' => 'data:image/png;base64,invalidbytes',
+        ]);
+        $invalidResp->assertRedirect(route('profile.index'));
+        $invalidResp->assertSessionHas('error');
+    }
 }
 

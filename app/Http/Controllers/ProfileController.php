@@ -258,10 +258,76 @@ class ProfileController extends Controller
     {
         $user = $this->getActiveUser();
 
+        // 1. Opsi A: Goresan Tanda Tangan Langsung dari Canvas (Base64 PNG)
+        if ($request->filled('signature_base64')) {
+            $base64Data = (string) $request->input('signature_base64');
+
+            if (!preg_match('/^data:image\/(png|jpeg);base64,/', $base64Data, $matches)) {
+                return redirect()->route('profile.index')
+                    ->with('error', 'Format data tanda tangan kanvas tidak valid.');
+            }
+
+            $imgType = $matches[1] === 'jpeg' ? 'jpg' : 'png';
+            $encodedImg = substr($base64Data, strpos($base64Data, ',') + 1);
+            $decodedImg = base64_decode($encodedImg, true);
+
+            if ($decodedImg === false || strlen($decodedImg) < 100) {
+                return redirect()->route('profile.index')
+                    ->with('error', 'Goresan tanda tangan terlalu kosong atau tidak terbaca. Silakan gores tanda tangan Anda pada area kanvas.');
+            }
+
+            $imageInfo = @getimagesizefromstring($decodedImg);
+            if ($imageInfo === false || !in_array($imageInfo['mime'] ?? '', ['image/png', 'image/jpeg'])) {
+                return redirect()->route('profile.index')
+                    ->with('error', 'Data tanda tangan digital tidak valid.');
+            }
+
+            $filename = 'sig_user_' . $user->id . '_' . time() . '.' . $imgType;
+
+            // Store in private storage disk
+            $privateDir = storage_path('app/private/signatures');
+            if (!file_exists($privateDir)) {
+                mkdir($privateDir, 0755, true);
+            }
+            file_put_contents($privateDir . DIRECTORY_SEPARATOR . $filename, $decodedImg);
+
+            // Also copy to public/uploads/signatures for seamless printable sheet rendering
+            $publicDir = public_path('uploads/signatures');
+            if (!file_exists($publicDir)) {
+                mkdir($publicDir, 0755, true);
+            }
+            @copy($privateDir . DIRECTORY_SEPARATOR . $filename, $publicDir . DIRECTORY_SEPARATOR . $filename);
+
+            // Deactivate previous signatures in history without deleting files used on historical documents
+            UserSignature::where('user_id', $user->id)->update(['is_active' => false]);
+
+            $signatureUrl = 'signatures/file/' . $filename;
+            UserSignature::create([
+                'user_id' => $user->id,
+                'signature_path' => $signatureUrl,
+                'is_active' => true,
+            ]);
+
+            $user->signature_url = $signatureUrl;
+            $user->save();
+
+            FuelRequestHistory::record(
+                null,
+                $user->id,
+                'signature_uploaded',
+                null,
+                'active',
+                "Pengguna {$user->name} membuat tanda tangan digital langsung via kanvas ({$filename})."
+            );
+
+            return redirect()->route('profile.index')->with('success', 'Tanda tangan digital berhasil dibuat dan disimpan!');
+        }
+
+        // 2. Opsi B: Unggah Berkas Gambar Tanda Tangan (File Upload)
         $request->validate([
             'signature' => ['required', 'file', 'image', 'mimes:png,jpg,jpeg', 'max:2048'],
         ], [
-            'signature.required' => 'Silakan pilih file gambar tanda tangan.',
+            'signature.required' => 'Silakan gambar tanda tangan pada kanvas atau pilih berkas gambar tanda tangan.',
             'signature.image' => 'File yang diunggah harus berupa gambar asli (bukan sekadar berganti ekstensi).',
             'signature.mimes' => 'Format tanda tangan harus berupa PNG atau JPEG/JPG.',
             'signature.max' => 'Ukuran file tanda tangan maksimal 2 MB.',

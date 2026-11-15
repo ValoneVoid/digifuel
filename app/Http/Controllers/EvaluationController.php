@@ -63,6 +63,7 @@ class EvaluationController extends Controller
                 $q->where('unit_code', 'like', "%{$s}%")
                   ->orWhere('police_no', 'like', "%{$s}%")
                   ->orWhere('model', 'like', "%{$s}%")
+                  ->orWhere('division', 'like', "%{$s}%")
                   ->orWhere('unit_type', 'like', "%{$s}%");
             });
         }
@@ -202,10 +203,11 @@ class EvaluationController extends Controller
             "Mengekspor Laporan Evaluasi Konsumsi BBM periode {$period} ke Excel (.xlsx) sejumlah {$data->count()} unit."
         );
 
-        // Struktur 10 Kolom (A s/d J) identik dengan Dashboard_Monitoring_BBM MEI 2026.xlsx
+        // Struktur 11 Kolom (A s/d K) termasuk Divisi / Beban Account
         $headers = [
             'ID Kendaraan',
             'Tipe Unit',
+            'Divisi / Beban Account',
             'Total Jarak (Km)',
             'Total Pengisian Fuel (L)',
             'Rasio Aktual (Km/L)',
@@ -218,7 +220,7 @@ class EvaluationController extends Controller
 
         $rows = [];
         foreach ($data as $index => $eval) {
-            $r = $index + 9; // Baris data di Sheet Dashboard dimulai pada Row 9 (A9:J23)
+            $r = $index + 9; // Baris data di Sheet Dashboard dimulai pada Row 9
             $price = (int)round($eval->price_used > 0 ? $eval->price_used : 27000);
             $actualRatio = $eval->total_actual_liters > 0
                 ? round($eval->total_distance_or_hours / $eval->total_actual_liters, 2)
@@ -230,35 +232,37 @@ class EvaluationController extends Controller
                 $eval->vehicle?->unit_code ?? '-',
                 // Col B: Tipe Unit
                 $eval->vehicle?->model ?? $eval->vehicle?->unit_type ?? '-',
-                // Col C: Total Jarak (Km)
+                // Col C: Divisi / Beban Account
+                $eval->vehicle?->division ?? '-',
+                // Col D: Total Jarak (Km)
                 (float)$eval->total_distance_or_hours,
-                // Col D: Total Pengisian Fuel (L)
+                // Col E: Total Pengisian Fuel (L)
                 (float)$eval->total_actual_liters,
-                // Col E: Rasio Aktual (Km/L) -> =IF(D9>0, C9/D9, 0)
+                // Col F: Rasio Aktual (Km/L) -> =IF(E9>0, D9/E9, 0)
                 [
-                    'formula' => "IF(D{$r}>0, C{$r}/D{$r}, 0)",
+                    'formula' => "IF(E{$r}>0, D{$r}/E{$r}, 0)",
                     'value' => $actualRatio,
                 ],
-                // Col F: Rasio Standar (Km/L)
+                // Col G: Rasio Standar (Km/L)
                 (float)$eval->standard_used,
-                // Col G: Evaluasi per Unit -> =IF(E9<(F9-0.5), "Tidak Wajar", "Wajar")
+                // Col H: Evaluasi per Unit -> =IF(F9<(G9-0.5), "Tidak Wajar", "Wajar")
                 [
-                    'formula' => "IF(E{$r}<(F{$r}-0.5), \"Tidak Wajar\", \"Wajar\")",
+                    'formula' => "IF(F{$r}<(G{$r}-0.5), \"Tidak Wajar\", \"Wajar\")",
                     'value' => $evalLabel,
                 ],
-                // Col H: Total Biaya (IDR) -> =D9*27000
+                // Col I: Total Biaya (IDR) -> =E9*27000
                 [
-                    'formula' => "D{$r}*{$price}",
+                    'formula' => "E{$r}*{$price}",
                     'value' => (float)$eval->total_actual_cost,
                 ],
-                // Col I: Varian Pemborosan (L) -> =IF(E9<F9, D9-(C9/F9), 0)
+                // Col J: Varian Pemborosan (L) -> =IF(F9<G9, E9-(D9/G9), 0)
                 [
-                    'formula' => "IF(E{$r}<F{$r}, D{$r}-(C{$r}/F{$r}), 0)",
+                    'formula' => "IF(F{$r}<G{$r}, E{$r}-(D{$r}/G{$r}), 0)",
                     'value' => (float)$eval->waste_liters,
                 ],
-                // Col J: Biaya Kerugian (IDR) -> =I9*27000
+                // Col K: Biaya Kerugian (IDR) -> =J9*27000
                 [
-                    'formula' => "I{$r}*{$price}",
+                    'formula' => "J{$r}*{$price}",
                     'value' => (float)$eval->estimated_cost_loss,
                 ],
             ];
@@ -283,6 +287,7 @@ class EvaluationController extends Controller
             $masterVehicles[] = [
                 'unit_code' => $unitCode,
                 'model' => $v?->model ?? $v?->unit_type ?? 'Light Vehicle',
+                'division' => $v?->division ?? '-',
                 'unit_vendor' => $v?->unitVendor?->name ?? 'Internal UT',
                 'target_ratio' => (float)$eval->standard_used,
                 'tank_capacity' => (float)($v?->tank_capacity ?? 80),

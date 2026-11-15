@@ -25,6 +25,7 @@ class MultiSheetExcelExportTest extends TestCase
             'unit_code' => 'UT 208 DA 8191',
             'police_no' => 'DA 8191',
             'model' => 'B/U FMC JB HDX TRITON',
+            'division' => 'Service',
             'unit_type' => 'Light Vehicle',
             'meter_type' => 'km',
             'tank_capacity' => 80,
@@ -35,6 +36,7 @@ class MultiSheetExcelExportTest extends TestCase
             'unit_code' => 'UT - 304 ( DA 8078 JJ )',
             'police_no' => 'DA 8078 JJ',
             'model' => 'LV BOX HDX TRITON',
+            'division' => 'Sparepart',
             'unit_type' => 'Light Vehicle',
             'meter_type' => 'km',
             'tank_capacity' => 80,
@@ -108,12 +110,21 @@ class MultiSheetExcelExportTest extends TestCase
         $this->assertContains('UT 208 DA 8191', $sheetNames);
         $this->assertContains('UT - 304 ( DA 8078 JJ )', $sheetNames);
 
-        // Inspect Dashboard XML contains genuine formulas
+        // Inspect Dashboard XML contains genuine formulas and Division references
         $dashXml = $zip->getFromName('xl/worksheets/sheet1.xml');
         $this->assertStringContainsString("SUM('UT 208 DA 8191'!G2:G1000)", $dashXml);
         $this->assertStringContainsString('Master_Kendaraan!A2', $dashXml);
         $this->assertStringContainsString('Master_Kendaraan!C2', $dashXml);
+        $this->assertStringContainsString('Master_Kendaraan!F2', $dashXml);
+        $this->assertStringContainsString('Service', $dashXml);
+        $this->assertStringContainsString('Sparepart', $dashXml);
         $this->assertStringContainsString('TOTAL JARAK (KM)', $dashXml);
+
+        // Inspect Master_Kendaraan XML contains Division column
+        $masterXml = $zip->getFromName('xl/worksheets/sheet2.xml');
+        $this->assertStringContainsString('Divisi / Beban Account', $masterXml);
+        $this->assertStringContainsString('Service', $masterXml);
+        $this->assertStringContainsString('Sparepart', $masterXml);
 
         // Inspect Unit Sheet XML contains VLOOKUP and calculation formulas
         $unitXml = $zip->getFromName('xl/worksheets/sheet3.xml');
@@ -123,5 +134,12 @@ class MultiSheetExcelExportTest extends TestCase
 
         $zip->close();
         @unlink($tempPath);
+
+        // Also verify Evaluation index page renders Division badge
+        $evalIndex = $this->actingAs($admin)->get('/evaluation?period=2026-05');
+        $evalIndex->assertStatus(200);
+        $evalIndex->assertSee('Divisi / Beban Account');
+        $evalIndex->assertSee('Service');
+        $evalIndex->assertSee('Sparepart');
     }
 }

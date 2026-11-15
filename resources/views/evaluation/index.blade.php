@@ -136,6 +136,7 @@
                     <th style="color: #ffffff; background: #1e3a8a;">ID Kendaraan</th>
                     <th style="color: #ffffff; background: #1e3a8a;">Tipe Unit</th>
                     <th style="color: #ffffff; background: #1e3a8a;">Vendor Unit</th>
+                    <th style="color: #ffffff; background: #1e3a8a;">Divisi / Beban Account</th>
                     <th style="color: #ffffff; background: #1e3a8a; text-align: right;">Total Jarak (Km)</th>
                     <th style="color: #ffffff; background: #1e3a8a; text-align: right;">Total Pengisian Fuel (L)</th>
                     <th style="color: #ffffff; background: #1e3a8a; text-align: right;">Rasio Aktual (Km/L)</th>
@@ -160,6 +161,15 @@
                             <span class="digi-badge digi-badge-blue" style="font-size: 11px; white-space: nowrap;">
                                 {{ $eval->vehicle?->unitVendor?->name ?? 'Internal UT' }}
                             </span>
+                        </td>
+                        <td>
+                            @if($eval->vehicle?->division)
+                                <span class="digi-badge digi-badge-purple" style="font-size: 11px; white-space: nowrap; font-weight: 600;">
+                                    {{ $eval->vehicle->division }}
+                                </span>
+                            @else
+                                <span style="color: #94a3b8; font-size: 12px;">-</span>
+                            @endif
                         </td>
                         <td style="text-align: right;">{{ number_format($eval->total_distance_or_hours, 0, ',', '.') }}</td>
                         <td style="text-align: right;">{{ number_format($eval->total_actual_liters, 1, ',', '.') }}</td>
@@ -195,7 +205,7 @@
                     </tr>
                 @empty
                     <tr>
-                        <td colspan="12" style="text-align: center; color: #94a3b8; padding: 36px;">
+                        <td colspan="13" style="text-align: center; color: #94a3b8; padding: 36px;">
                             Belum ada data evaluasi pada periode <strong>{{ $period }}</strong>. Klik tombol <strong>Hitung Evaluasi</strong> untuk menjalankan kalkulasi otomatis dari transaksi BBM.
                         </td>
                     </tr>
@@ -205,7 +215,7 @@
                 <tfoot>
                     <tr style="background: #f8fafc; font-weight: 800; border-top: 2px solid #cbd5e1;">
                         <td></td>
-                        <td colspan="2">Total / Rata-rata Nasional</td>
+                        <td colspan="3">Total / Rata-rata Nasional</td>
                         <td style="text-align: right;">{{ number_format($summary['total_distance'], 0, ',', '.') }}</td>
                         <td style="text-align: right;">{{ number_format($summary['total_actual_liters'], 1, ',', '.') }}</td>
                         <td style="text-align: right;">{{ number_format($summary['avg_ratio'], 1, ',', '.') }}</td>

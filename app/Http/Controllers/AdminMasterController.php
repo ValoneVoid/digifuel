@@ -99,12 +99,15 @@ class AdminMasterController extends Controller
         $employees = $employeesQuery->paginate($perPage)->withQueryString();
 
         $vehiclesQuery = Vehicle::with(['defaultArea', 'activeFuelStandard', 'unitVendor'])->orderBy('unit_code');
-        if ($tab === 'vehicles' && $search !== '') {
+        if (($tab === 'vehicles' || $tab === 'units') && $search !== '') {
             $vehiclesQuery->where(function ($q) use ($search) {
                 $q->where('unit_code', 'like', "%{$search}%")
+                  ->orWhere('police_no', 'like', "%{$search}%")
                   ->orWhere('plate_number', 'like', "%{$search}%")
                   ->orWhere('model', 'like', "%{$search}%")
+                  ->orWhere('unit_type', 'like', "%{$search}%")
                   ->orWhere('vehicle_type', 'like', "%{$search}%")
+                  ->orWhere('division', 'like', "%{$search}%")
                   ->orWhereHas('unitVendor', fn($uv) => $uv->where('name', 'like', "%{$search}%"))
                   ->orWhereHas('defaultArea', fn($a) => $a->where('name', 'like', "%{$search}%"));
             });
@@ -390,6 +393,7 @@ class AdminMasterController extends Controller
             'unit_code' => ['required', 'string', 'max:80', Rule::unique('vehicles', 'unit_code')],
             'police_no' => ['required', 'string', 'max:50'],
             'model' => ['nullable', 'string', 'max:120'],
+            'division' => ['nullable', 'string', 'max:100'],
             'unit_type' => ['nullable', 'string', 'max:80'],
             'unit_vendor_id' => ['nullable', 'exists:unit_vendors,id'],
             'meter_type' => ['nullable', 'in:km,hm'],
@@ -411,6 +415,7 @@ class AdminMasterController extends Controller
             'unit_code' => $validated['unit_code'],
             'police_no' => $validated['police_no'],
             'model' => $validated['model'] ?? ($validated['unit_type'] ?? 'Light Vehicle'),
+            'division' => !empty($validated['division']) ? trim((string)$validated['division']) : null,
             'unit_type' => $validated['unit_type'] ?? ($validated['model'] ?? 'Light Vehicle'),
             'unit_vendor_id' => !empty($validated['unit_vendor_id']) ? (int)$validated['unit_vendor_id'] : null,
             'meter_type' => $validated['meter_type'] ?? 'km',
@@ -446,6 +451,7 @@ class AdminMasterController extends Controller
             'unit_code' => ['required', 'string', 'max:80', Rule::unique('vehicles', 'unit_code')->ignore($veh->id)],
             'police_no' => ['required', 'string', 'max:50'],
             'model' => ['nullable', 'string', 'max:120'],
+            'division' => ['nullable', 'string', 'max:100'],
             'unit_type' => ['nullable', 'string', 'max:80'],
             'unit_vendor_id' => ['nullable', 'exists:unit_vendors,id'],
             'meter_type' => ['nullable', 'in:km,hm'],
@@ -467,6 +473,7 @@ class AdminMasterController extends Controller
             'unit_code' => $validated['unit_code'],
             'police_no' => $validated['police_no'],
             'model' => $validated['model'] ?? ($validated['unit_type'] ?? $veh->model),
+            'division' => array_key_exists('division', $validated) ? (!empty($validated['division']) ? trim((string)$validated['division']) : null) : $veh->division,
             'unit_type' => $validated['unit_type'] ?? ($validated['model'] ?? $veh->unit_type ?? 'Light Vehicle'),
             'unit_vendor_id' => array_key_exists('unit_vendor_id', $validated) ? (!empty($validated['unit_vendor_id']) ? (int)$validated['unit_vendor_id'] : null) : $veh->unit_vendor_id,
             'meter_type' => $validated['meter_type'] ?? $veh->meter_type ?? 'km',
