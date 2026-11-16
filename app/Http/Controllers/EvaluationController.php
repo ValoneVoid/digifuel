@@ -33,15 +33,58 @@ class EvaluationController extends Controller
     public function index(Request $request)
     {
         $user = $this->getActiveUser();
-        $defaultPeriod = now()->format('Y-m');
+
+        // Get all available periods from evaluations
+        $periods = FuelEvaluation::select('period')->distinct()->orderBy('period', 'desc')->pluck('period');
+        $defaultPeriod = $periods->first() ?? now()->format('Y-m');
+
+        // Mode: 'monthly' (default), 'range', or 'yearly'
+        $mode = $request->get('mode', 'monthly');
+        if (!in_array($mode, ['monthly', 'range', 'yearly'])) {
+            $mode = 'monthly';
+        }
+
         $period = $request->get('period', $defaultPeriod);
+        $periodStart = $request->get('period_start', substr($defaultPeriod, 0, 4) . '-01');
+        $periodEnd = $request->get('period_end', $defaultPeriod);
+        $year = $request->get('year', substr($defaultPeriod, 0, 4));
+
+        if ($periodStart > $periodEnd) {
+            $tmp = $periodStart;
+            $periodStart = $periodEnd;
+            $periodEnd = $tmp;
+        }
+
+        // Available years for dropdown
+        $availableYears = FuelEvaluation::selectRaw('DISTINCT SUBSTRING(period, 1, 4) as yr')
+            ->orderBy('yr', 'desc')
+            ->pluck('yr');
+        if ($availableYears->isEmpty()) {
+            $availableYears = collect([now()->format('Y')]);
+        }
+        if (!$availableYears->contains($year)) {
+            $availableYears = $availableYears->prepend($year);
+        }
+
+        // View type when multi-month: 'consolidated' (1 row per unit) vs 'monthly' (raw monthly rows)
+        $viewType = $request->get('view', ($mode === 'monthly' ? 'monthly' : 'consolidated'));
 
         $query = FuelEvaluation::with(['vehicle.unitVendor', 'calculator']);
 
-        if ($request->filled('period')) {
-            $query->where('period', $request->period);
-        } else {
+        if ($mode === 'monthly') {
             $query->where('period', $period);
+            $parsed = \Carbon\Carbon::createFromFormat('Y-m', $period);
+            $periodLabel = $parsed ? $parsed->translatedFormat('F Y') : $period;
+        } elseif ($mode === 'range') {
+            $query->where('period', '>=', $periodStart)->where('period', '<=', $periodEnd);
+            $pStart = \Carbon\Carbon::createFromFormat('Y-m', $periodStart);
+            $pEnd = \Carbon\Carbon::createFromFormat('Y-m', $periodEnd);
+            $periodLabel = ($pStart && $pEnd)
+                ? 'Rentang ' . $pStart->translatedFormat('M Y') . ' s/d ' . $pEnd->translatedFormat('M Y')
+                : "Rentang {$periodStart} s/d {$periodEnd}";
+        } else { // yearly
+            $query->where('period', 'like', "{$year}-%");
+            $periodLabel = "Tahun {$year}";
         }
 
         if ($request->filled('unit_code')) {
@@ -69,7 +112,6 @@ class EvaluationController extends Controller
             });
         }
 
-        $evaluations = (clone $query)->orderBy('id', 'asc')->paginate(20)->withQueryString();
         $allForSummary = (clone $query)->get();
 
         // Valid evaluations only for distance, waste, and cost loss aggregation (never include invalid/incomplete data!)
@@ -97,19 +139,52 @@ class EvaluationController extends Controller
             'normal_count' => $allForSummary->where('evaluation_status', 'normal')->count(),
         ];
 
-        // Chart Data from real database records
-        $topWastefulUnits = $validEvaluations
+        // Chart Data grouped by vehicle to avoid duplicates across multi-month views
+        $vehicleChartGroups = $allForSummary->groupBy('vehicle_id')->map(function ($group) {
+            $first = $group->first();
+            $actL = (float)$group->sum('total_actual_liters');
+            $stdL = (float)$group->sum('total_standard_liters');
+            $wasteL = (float)$group->sum('waste_liters');
+            $costLoss = (float)$group->sum('estimated_cost_loss');
+
+            $rawCode = $first->vehicle?->unit_code ?? '-';
+            // Extract clean short label (e.g. "UT 208 DA 8191" -> "UT-208" or "UT - 206 ( DA 8457 ZQ )" -> "UT-206")
+            $shortLabel = trim(explode('(', $rawCode)[0]);
+            if (preg_match('/^(UT\s*[-\s]?\s*\d+[A-Z]?)/i', $shortLabel, $m)) {
+                $cleanUnit = preg_replace('/\s+/', '', $m[1]);
+                $shortLabel = preg_replace('/^(UT)(\d+)/', '$1-$2', $cleanUnit);
+            }
+
+            return [
+                'unit_code' => $rawCode,
+                'short_label' => $shortLabel ?: $rawCode,
+                'actual_liters' => $actL,
+                'standard_liters' => $stdL,
+                'waste_liters' => $wasteL,
+                'cost_loss' => $costLoss,
+            ];
+        })->values();
+
+        // Limit Chart 1 to units with actual liters (top consuming units, max 10 for best mobile/desktop readability)
+        $chartUnits = $vehicleChartGroups->where('actual_liters', '>', 0)->sortByDesc('actual_liters')->take(10)->values();
+        if ($chartUnits->isEmpty()) {
+            $chartUnits = $vehicleChartGroups->take(10)->values();
+        }
+
+        $topWastefulUnits = $vehicleChartGroups
             ->where('waste_liters', '>', 0)
-            ->sortByDesc('estimated_cost_loss')
+            ->sortByDesc('cost_loss')
             ->take(8)
             ->values();
 
         $chartData = [
-            'unitLabels' => $allForSummary->map(fn($e) => $e->vehicle?->unit_code ?? '-')->values(),
-            'actualLiters' => $allForSummary->map(fn($e) => (float)$e->total_actual_liters)->values(),
-            'standardLiters' => $allForSummary->map(fn($e) => (float)$e->total_standard_liters)->values(),
-            'wasteLabels' => $topWastefulUnits->map(fn($e) => $e->vehicle?->unit_code ?? '-')->values(),
-            'wasteCosts' => $topWastefulUnits->map(fn($e) => (float)$e->estimated_cost_loss)->values(),
+            'unitLabels' => $chartUnits->pluck('short_label')->values(),
+            'fullLabels' => $chartUnits->pluck('unit_code')->values(),
+            'actualLiters' => $chartUnits->pluck('actual_liters')->values(),
+            'standardLiters' => $chartUnits->pluck('standard_liters')->values(),
+            'wasteLabels' => $topWastefulUnits->pluck('short_label')->values(),
+            'wasteFullLabels' => $topWastefulUnits->pluck('unit_code')->values(),
+            'wasteCosts' => $topWastefulUnits->pluck('cost_loss')->values(),
             'statusCounts' => [
                 $allForSummary->where('evaluation_status', 'normal')->count(),
                 $allForSummary->where('evaluation_status', 'needs_review')->count(),
@@ -117,9 +192,72 @@ class EvaluationController extends Controller
             ],
         ];
 
+        // Handle evaluations listing: consolidated per unit vs monthly rows
+        $isConsolidated = ($mode !== 'monthly' && $viewType === 'consolidated');
+
+        if ($isConsolidated) {
+            $groupedByVehicle = $allForSummary->groupBy('vehicle_id');
+            $consolidatedList = $groupedByVehicle->map(function ($records) {
+                $first = $records->first();
+                $vehicle = $first->vehicle;
+                $dist = (float)$records->sum('total_distance_or_hours');
+                $actualLiters = (float)$records->sum('total_actual_liters');
+                $stdLiters = (float)$records->sum('total_standard_liters');
+                $actualCost = (float)$records->sum('total_actual_cost');
+                $wasteLiters = (float)$records->sum('waste_liters');
+                $costLoss = (float)$records->sum('estimated_cost_loss');
+
+                $actRatio = $actualLiters > 0 ? round($dist / $actualLiters, 2) : 0;
+                $stdRatio = (float)$first->standard_used;
+                $tolerance = (float)$first->tolerance_used;
+
+                if ($actualLiters <= 0 || $dist <= 0) {
+                    $status = 'incomplete';
+                } elseif ($first->standard_type === 'liter_per_hour') {
+                    $allowed = $stdLiters * (1 + ($tolerance / 100));
+                    $status = $actualLiters > $allowed ? 'needs_review' : 'normal';
+                } else {
+                    $status = $actRatio < ($stdRatio - 0.5) ? 'needs_review' : 'normal';
+                }
+
+                return (object)[
+                    'id' => $first->id,
+                    'latest_id' => $records->sortByDesc('period')->first()->id,
+                    'vehicle' => $vehicle,
+                    'period' => $records->pluck('period')->sort()->values()->implode(', '),
+                    'period_count' => $records->count(),
+                    'total_distance_or_hours' => $dist,
+                    'total_actual_liters' => $actualLiters,
+                    'total_standard_liters' => $stdLiters,
+                    'actual_ratio' => $actRatio,
+                    'standard_used' => $stdRatio,
+                    'evaluation_status' => $status,
+                    'total_actual_cost' => $actualCost,
+                    'waste_liters' => $wasteLiters,
+                    'estimated_cost_loss' => $costLoss,
+                ];
+            })->values();
+
+            if ($request->filled('status')) {
+                $consolidatedList = $consolidatedList->where('evaluation_status', $request->status)->values();
+            }
+
+            $page = (int)$request->get('page', 1);
+            $perPage = 20;
+            $evaluations = new \Illuminate\Pagination\LengthAwarePaginator(
+                $consolidatedList->forPage($page, $perPage)->values(),
+                $consolidatedList->count(),
+                $perPage,
+                $page,
+                ['path' => $request->url(), 'query' => $request->query()]
+            );
+        } else {
+            $evaluations = (clone $query)->orderBy('period', 'desc')->orderBy('id', 'asc')->paginate(20)->withQueryString();
+        }
+
         $vehicles = Vehicle::where('is_active', true)->orderBy('unit_code')->get();
         $unitVendors = UnitVendor::where('is_active', true)->orderBy('name')->get();
-        $periods = FuelEvaluation::select('period')->distinct()->orderBy('period', 'desc')->pluck('period');
+
         if ($periods->isEmpty()) {
             $periods = collect([$period]);
         } elseif (!$periods->contains($period)) {
@@ -134,6 +272,14 @@ class EvaluationController extends Controller
             'unitVendors',
             'periods',
             'period',
+            'mode',
+            'periodStart',
+            'periodEnd',
+            'year',
+            'periodLabel',
+            'viewType',
+            'isConsolidated',
+            'availableYears',
             'user'
         ));
     }
@@ -145,6 +291,52 @@ class EvaluationController extends Controller
             return redirect()->back()->with('error', 'Hanya Administrator yang diizinkan menjalankan kalkulasi evaluasi BBM.');
         }
 
+        $calcMode = $request->get('calc_mode', 'monthly');
+
+        // Multi-Month Range Calculation
+        if ($calcMode === 'range' && $request->filled('calc_start') && $request->filled('calc_end')) {
+            $startStr = $request->calc_start;
+            $endStr = $request->calc_end;
+            if ($startStr > $endStr) {
+                $tmp = $startStr;
+                $startStr = $endStr;
+                $endStr = $tmp;
+            }
+
+            $start = \Carbon\Carbon::createFromFormat('Y-m', $startStr)->startOfMonth();
+            $end = \Carbon\Carbon::createFromFormat('Y-m', $endStr)->startOfMonth();
+
+            $totalCount = 0;
+            $curr = $start->copy();
+            while ($curr <= $end) {
+                $p = $curr->format('Y-m');
+                $totalCount += $service->evaluatePeriod($p, $user->id);
+                $curr->addMonth();
+            }
+
+            return redirect()->route('evaluation.index', [
+                'mode' => 'range',
+                'period_start' => $startStr,
+                'period_end' => $endStr
+            ])->with('success', "Kalkulasi evaluasi konsumsi BBM rentang {$startStr} s/d {$endStr} selesai ({$totalCount} unit-bulan dievaluasi).");
+        }
+
+        // Full Year Calculation (12 months)
+        if ($calcMode === 'yearly' && $request->filled('calc_year')) {
+            $y = $request->calc_year;
+            $totalCount = 0;
+            for ($m = 1; $m <= 12; $m++) {
+                $p = sprintf('%s-%02d', $y, $m);
+                $totalCount += $service->evaluatePeriod($p, $user->id);
+            }
+
+            return redirect()->route('evaluation.index', [
+                'mode' => 'yearly',
+                'year' => $y
+            ])->with('success', "Kalkulasi evaluasi konsumsi BBM tahun {$y} (12 bulan) selesai ({$totalCount} unit-bulan dievaluasi).");
+        }
+
+        // Default: Single Month Calculation
         $validated = $request->validate([
             'period' => 'required|string',
             'vehicle_id' => 'nullable|exists:vehicles,id',
@@ -185,15 +377,56 @@ class EvaluationController extends Controller
     public function export(Request $request, ExcelExportService $excel)
     {
         $user = $this->getActiveUser();
-        $defaultPeriod = now()->format('Y-m');
-        $period = $request->get('period', $defaultPeriod);
 
-        $query = FuelEvaluation::with(['vehicle'])->where('period', $period);
+        // Get available periods
+        $periods = FuelEvaluation::select('period')->distinct()->orderBy('period', 'desc')->pluck('period');
+        $defaultPeriod = $periods->first() ?? now()->format('Y-m');
+
+        $mode = $request->get('mode', 'monthly');
+        if (!in_array($mode, ['monthly', 'range', 'yearly'])) {
+            $mode = 'monthly';
+        }
+
+        $period = $request->get('period', $defaultPeriod);
+        $periodStart = $request->get('period_start', substr($defaultPeriod, 0, 4) . '-01');
+        $periodEnd = $request->get('period_end', $defaultPeriod);
+        $year = $request->get('year', substr($defaultPeriod, 0, 4));
+
+        if ($periodStart > $periodEnd) {
+            $tmp = $periodStart;
+            $periodStart = $periodEnd;
+            $periodEnd = $tmp;
+        }
+
+        $query = FuelEvaluation::with(['vehicle.unitVendor']);
+
+        if ($mode === 'monthly') {
+            $query->where('period', $period);
+            $parsed = \Carbon\Carbon::createFromFormat('Y-m', $period);
+            $periodLabel = $parsed ? $parsed->translatedFormat('F Y') : $period;
+            $fileName = "Dashboard_Monitoring_BBM_{$period}_" . date('Ymd_His') . '.xlsx';
+        } elseif ($mode === 'range') {
+            $query->where('period', '>=', $periodStart)->where('period', '<=', $periodEnd);
+            $pStart = \Carbon\Carbon::createFromFormat('Y-m', $periodStart);
+            $pEnd = \Carbon\Carbon::createFromFormat('Y-m', $periodEnd);
+            $periodLabel = ($pStart && $pEnd)
+                ? 'Rentang ' . $pStart->translatedFormat('M Y') . ' s/d ' . $pEnd->translatedFormat('M Y')
+                : "Rentang {$periodStart} s/d {$periodEnd}";
+            $fileName = "Dashboard_Monitoring_BBM_Rentang_{$periodStart}_sd_{$periodEnd}_" . date('Ymd_His') . '.xlsx';
+        } else { // yearly
+            $query->where('period', 'like', "{$year}-%");
+            $periodLabel = "Tahun {$year}";
+            $fileName = "Dashboard_Monitoring_BBM_Tahun_{$year}_" . date('Ymd_His') . '.xlsx';
+        }
+
         if ($request->filled('status')) {
             $query->where('evaluation_status', $request->status);
         }
         if ($request->filled('unit_code')) {
             $query->whereHas('vehicle', fn($q) => $q->where('unit_code', $request->unit_code));
+        }
+        if ($request->filled('unit_vendor_id')) {
+            $query->whereHas('vehicle', fn($q) => $q->where('unit_vendor_id', $request->unit_vendor_id));
         }
 
         $data = $query->orderBy('id', 'asc')->get();
@@ -204,7 +437,7 @@ class EvaluationController extends Controller
             'report_exported',
             null,
             'completed',
-            "Mengekspor Laporan Evaluasi Konsumsi BBM periode {$period} ke Excel (.xlsx) sejumlah {$data->count()} unit."
+            "Mengekspor Laporan Evaluasi Konsumsi BBM ({$periodLabel}) ke Excel (.xlsx) sejumlah {$data->count()} record."
         );
 
         // Struktur 11 Kolom (A s/d K) termasuk Divisi / Beban Account
@@ -222,164 +455,278 @@ class EvaluationController extends Controller
             'Biaya Kerugian (IDR)',
         ];
 
-        $rows = [];
-        foreach ($data as $index => $eval) {
-            $r = $index + 9; // Baris data di Sheet Dashboard dimulai pada Row 9
-            $price = (int)round($eval->price_used > 0 ? $eval->price_used : 27000);
-            $actualRatio = $eval->total_actual_liters > 0
-                ? round($eval->total_distance_or_hours / $eval->total_actual_liters, 2)
-                : 0;
-            $evalLabel = $actualRatio < ($eval->standard_used - 0.5) ? 'Tidak Wajar' : 'Wajar';
-
-            $rows[] = [
-                // Col A: ID Kendaraan
-                $eval->vehicle?->unit_code ?? '-',
-                // Col B: Tipe Unit
-                $eval->vehicle?->model ?? $eval->vehicle?->unit_type ?? '-',
-                // Col C: Divisi / Beban Account
-                $eval->vehicle?->division ?? '-',
-                // Col D: Total Jarak (Km)
-                (float)$eval->total_distance_or_hours,
-                // Col E: Total Pengisian Fuel (L)
-                (float)$eval->total_actual_liters,
-                // Col F: Rasio Aktual (Km/L) -> =IF(E9>0, D9/E9, 0)
-                [
-                    'formula' => "IF(E{$r}>0, D{$r}/E{$r}, 0)",
-                    'value' => $actualRatio,
-                ],
-                // Col G: Rasio Standar (Km/L)
-                (float)$eval->standard_used,
-                // Col H: Evaluasi per Unit -> =IF(F9<(G9-0.5), "Tidak Wajar", "Wajar")
-                [
-                    'formula' => "IF(F{$r}<(G{$r}-0.5), \"Tidak Wajar\", \"Wajar\")",
-                    'value' => $evalLabel,
-                ],
-                // Col I: Total Biaya (IDR) -> =E9*27000
-                [
-                    'formula' => "E{$r}*{$price}",
-                    'value' => (float)$eval->total_actual_cost,
-                ],
-                // Col J: Varian Pemborosan (L) -> =IF(F9<G9, E9-(D9/G9), 0)
-                [
-                    'formula' => "IF(F{$r}<G{$r}, E{$r}-(D{$r}/G{$r}), 0)",
-                    'value' => (float)$eval->waste_liters,
-                ],
-                // Col K: Biaya Kerugian (IDR) -> =J9*27000
-                [
-                    'formula' => "J{$r}*{$price}",
-                    'value' => (float)$eval->estimated_cost_loss,
-                ],
-            ];
-        }
-
-        $fileName = "Dashboard_Monitoring_BBM_{$period}_" . date('Ymd_His') . '.xlsx';
-
-        // Get active fuel price for this period
-        $priceRecord = FuelPrice::getCurrentPrice("{$period}-15") ?? FuelPrice::where('is_active', true)->latest('effective_start')->first();
+        // Determine active fuel price
+        $priceEffectiveDate = $mode === 'monthly' ? "{$period}-15" : ($mode === 'range' ? "{$periodEnd}-15" : "{$year}-06-15");
+        $priceRecord = FuelPrice::getCurrentPrice($priceEffectiveDate) ?? FuelPrice::where('is_active', true)->latest('effective_start')->first();
         $pricePerLiter = $priceRecord ? (float)$priceRecord->price_per_liter : 27000.00;
 
-        // Load reference data if present
-        $refDataFile = app_path('Services/monitoring_bbm_mei_2026_data.json');
-        $refData = file_exists($refDataFile) ? json_decode(file_get_contents($refDataFile), true) : [];
-
+        $rows = [];
         $masterVehicles = [];
         $unitSheets = [];
 
-        foreach ($data as $eval) {
-            $v = $eval->vehicle;
-            $unitCode = $v?->unit_code ?? "Unit-{$eval->id}";
-            $masterVehicles[] = [
-                'unit_code' => $unitCode,
-                'model' => $v?->model ?? $v?->unit_type ?? 'Light Vehicle',
-                'division' => $v?->division ?? '-',
-                'unit_vendor' => $v?->unitVendor?->name ?? 'Internal UT',
-                'target_ratio' => (float)$eval->standard_used,
-                'tank_capacity' => (float)($v?->tank_capacity ?? 80),
-            ];
+        if ($mode === 'monthly') {
+            foreach ($data as $index => $eval) {
+                $r = $index + 9;
+                $price = (int)round($eval->price_used > 0 ? $eval->price_used : $pricePerLiter);
+                $actualRatio = $eval->total_actual_liters > 0
+                    ? round($eval->total_distance_or_hours / $eval->total_actual_liters, 2)
+                    : 0;
+                $evalLabel = $actualRatio < ($eval->standard_used - 0.5) ? 'Tidak Wajar' : 'Wajar';
 
-            // Load transactions for this vehicle
-            $txRows = [];
-            $transactions = $eval->transactions()->with(['fuelRequest.user', 'fuelman'])->orderBy('fueled_at', 'asc')->get();
-            if ($transactions->isEmpty() && $v) {
-                $transactions = FuelTransaction::whereHas('fuelRequest', function ($q) use ($v, $period) {
-                    $q->where('vehicle_id', $v->id)->orWhere('unit_code', $v->unit_code);
-                })->where('fueled_at', 'like', "{$period}%")->orderBy('fueled_at', 'asc')->with(['fuelRequest.user', 'fuelman'])->get();
-            }
+                $rows[] = [
+                    $eval->vehicle?->unit_code ?? '-',
+                    $eval->vehicle?->model ?? $eval->vehicle?->unit_type ?? '-',
+                    $eval->vehicle?->division ?? '-',
+                    (float)$eval->total_distance_or_hours,
+                    (float)$eval->total_actual_liters,
+                    [
+                        'formula' => "IF(E{$r}>0, D{$r}/E{$r}, 0)",
+                        'value' => $actualRatio,
+                    ],
+                    (float)$eval->standard_used,
+                    [
+                        'formula' => "IF(F{$r}<(G{$r}-0.5), \"Tidak Wajar\", \"Wajar\")",
+                        'value' => $evalLabel,
+                    ],
+                    [
+                        'formula' => "E{$r}*{$price}",
+                        'value' => (float)$eval->total_actual_cost,
+                    ],
+                    [
+                        'formula' => "IF(F{$r}<G{$r}, E{$r}-(D{$r}/G{$r}), 0)",
+                        'value' => (float)$eval->waste_liters,
+                    ],
+                    [
+                        'formula' => "J{$r}*{$price}",
+                        'value' => (float)$eval->estimated_cost_loss,
+                    ],
+                ];
 
-            if ($transactions->isNotEmpty()) {
-                foreach ($transactions as $tx) {
-                    $fr = $tx->fuelRequest;
-                    $dateStr = $tx->fueled_at ? $tx->fueled_at->format('Y-m-d') : ($fr?->request_date ? $fr->request_date->format('Y-m-d') : date('Y-m-d'));
-                    $odoStart = (float)($fr?->hm_km ?? 0);
-                    $odoEnd = (float)$tx->meter_at_fueling;
-                    if ($odoEnd < $odoStart) {
-                        $odoEnd = $odoStart;
+                $v = $eval->vehicle;
+                $unitCode = $v?->unit_code ?? "Unit-{$eval->id}";
+                $masterVehicles[] = [
+                    'unit_code' => $unitCode,
+                    'model' => $v?->model ?? $v?->unit_type ?? 'Light Vehicle',
+                    'division' => $v?->division ?? '-',
+                    'unit_vendor' => $v?->unitVendor?->name ?? 'Internal UT',
+                    'target_ratio' => (float)$eval->standard_used,
+                    'tank_capacity' => (float)($v?->tank_capacity ?? 80),
+                ];
+
+                // Load transactions
+                $txRows = [];
+                $transactions = $eval->transactions()->with(['fuelRequest.user', 'fuelman'])->orderBy('fueled_at', 'asc')->get();
+                if ($transactions->isEmpty() && $v) {
+                    $transactions = FuelTransaction::whereHas('fuelRequest', function ($q) use ($v, $period) {
+                        $q->where('vehicle_id', $v->id)->orWhere('unit_code', $v->unit_code);
+                    })->where('fueled_at', 'like', "{$period}%")->orderBy('fueled_at', 'asc')->with(['fuelRequest.user', 'fuelman'])->get();
+                }
+
+                if ($transactions->isNotEmpty()) {
+                    foreach ($transactions as $tx) {
+                        $fr = $tx->fuelRequest;
+                        $dateStr = $tx->fueled_at ? $tx->fueled_at->format('Y-m-d') : ($fr?->request_date ? $fr->request_date->format('Y-m-d') : date('Y-m-d'));
+                        $odoStart = (float)($fr?->hm_km ?? 0);
+                        $odoEnd = (float)$tx->meter_at_fueling;
+                        if ($odoEnd < $odoStart) {
+                            $odoEnd = $odoStart;
+                        }
+                        $dist = round($odoEnd - $odoStart, 2);
+                        $liters = (float)$tx->actual_liters;
+                        $actRatio = $liters > 0 ? round($dist / $liters, 2) : 0;
+                        $stdRatio = (float)$eval->standard_used;
+                        $fuelCost = round($liters * $pricePerLiter, 2);
+                        $isWajar = $actRatio >= ($stdRatio - 0.5);
+                        $waste = ($actRatio < $stdRatio && $stdRatio > 0) ? round($liters - ($dist / $stdRatio), 2) : 0;
+                        $loss = round($waste * $pricePerLiter, 2);
+
+                        $txRows[] = [
+                            'date' => $dateStr,
+                            'unit_code' => $unitCode,
+                            'driver' => $fr?->driver_name ?? $fr?->user?->name ?? '-',
+                            'odo_start' => $odoStart,
+                            'odo_end' => $odoEnd,
+                            'distance' => $dist,
+                            'fuel_liters' => $liters,
+                            'actual_ratio' => $actRatio,
+                            'standard_ratio' => $stdRatio,
+                            'fuel_cost' => $fuelCost,
+                            'evaluation' => $isWajar ? 'Wajar' : 'Tidak Wajar',
+                            'waste_liters' => $waste,
+                            'loss_cost' => $loss,
+                        ];
                     }
-                    $dist = round($odoEnd - $odoStart, 2);
-                    $liters = (float)$tx->actual_liters;
-                    $actRatio = $liters > 0 ? round($dist / $liters, 2) : 0;
+                } else {
+                    $dist = (float)$eval->total_distance_or_hours;
+                    $liters = (float)$eval->total_actual_liters;
+                    $mStart = (float)$eval->meter_start;
+                    $mEnd = (float)$eval->meter_end;
                     $stdRatio = (float)$eval->standard_used;
-                    $fuelCost = round($liters * $pricePerLiter, 2);
-                    $isWajar = $actRatio >= ($stdRatio - 0.5);
-                    $waste = ($actRatio < $stdRatio && $stdRatio > 0) ? round($liters - ($dist / $stdRatio), 2) : 0;
-                    $loss = round($waste * $pricePerLiter, 2);
+                    $actRatio = (float)$eval->actual_ratio;
+                    $isWajar = $eval->evaluation_status === 'normal' || $actRatio >= ($stdRatio - 0.5);
 
                     $txRows[] = [
-                        'date' => $dateStr,
+                        'date' => "{$period}-01",
                         'unit_code' => $unitCode,
-                        'driver' => $fr?->driver_name ?? $fr?->user?->name ?? '-',
-                        'odo_start' => $odoStart,
-                        'odo_end' => $odoEnd,
+                        'driver' => '-',
+                        'odo_start' => $mStart,
+                        'odo_end' => $mEnd > $mStart ? $mEnd : ($mStart + $dist),
                         'distance' => $dist,
                         'fuel_liters' => $liters,
                         'actual_ratio' => $actRatio,
                         'standard_ratio' => $stdRatio,
-                        'fuel_cost' => $fuelCost,
+                        'fuel_cost' => (float)$eval->total_actual_cost,
                         'evaluation' => $isWajar ? 'Wajar' : 'Tidak Wajar',
-                        'waste_liters' => $waste,
-                        'loss_cost' => $loss,
+                        'waste_liters' => (float)$eval->waste_liters,
+                        'loss_cost' => (float)$eval->estimated_cost_loss,
                     ];
                 }
-            } elseif (isset($refData[$unitCode])) {
-                $txRows = $refData[$unitCode];
-            } else {
-                $dist = (float)$eval->total_distance_or_hours;
-                $liters = (float)$eval->total_actual_liters;
-                $mStart = (float)$eval->meter_start;
-                $mEnd = (float)$eval->meter_end;
-                $stdRatio = (float)$eval->standard_used;
-                $actRatio = (float)$eval->actual_ratio;
-                $isWajar = $eval->evaluation_status === 'normal' || $actRatio >= ($stdRatio - 0.5);
 
-                $txRows[] = [
-                    'date' => "{$period}-01",
-                    'unit_code' => $unitCode,
-                    'driver' => '-',
-                    'odo_start' => $mStart,
-                    'odo_end' => $mEnd > $mStart ? $mEnd : ($mStart + $dist),
-                    'distance' => $dist,
-                    'fuel_liters' => $liters,
-                    'actual_ratio' => $actRatio,
-                    'standard_ratio' => $stdRatio,
-                    'fuel_cost' => (float)$eval->total_actual_cost,
-                    'evaluation' => $isWajar ? 'Wajar' : 'Tidak Wajar',
-                    'waste_liters' => (float)$eval->waste_liters,
-                    'loss_cost' => (float)$eval->estimated_cost_loss,
-                ];
+                $unitSheets[$unitCode] = $txRows;
             }
+        } else {
+            // Group by vehicle for consolidated Range / Yearly export
+            $groupedByVehicle = $data->groupBy('vehicle_id');
+            $rowCounter = 0;
 
-            $unitSheets[$unitCode] = $txRows;
+            foreach ($groupedByVehicle as $vehicleId => $evalGroup) {
+                $r = $rowCounter + 9;
+                $rowCounter++;
+
+                $firstEval = $evalGroup->first();
+                $v = $firstEval->vehicle;
+                $unitCode = $v?->unit_code ?? "Unit-{$vehicleId}";
+
+                $totDist = (float)$evalGroup->sum('total_distance_or_hours');
+                $totLiters = (float)$evalGroup->sum('total_actual_liters');
+                $totCost = (float)$evalGroup->sum('total_actual_cost');
+                $totWaste = (float)$evalGroup->sum('waste_liters');
+                $totLoss = (float)$evalGroup->sum('estimated_cost_loss');
+
+                $actualRatio = $totLiters > 0 ? round($totDist / $totLiters, 2) : 0;
+                $stdRatio = (float)$firstEval->standard_used;
+                $evalLabel = $actualRatio < ($stdRatio - 0.5) ? 'Tidak Wajar' : 'Wajar';
+
+                $rows[] = [
+                    $unitCode,
+                    $v?->model ?? $v?->unit_type ?? '-',
+                    $v?->division ?? '-',
+                    $totDist,
+                    $totLiters,
+                    [
+                        'formula' => "IF(E{$r}>0, D{$r}/E{$r}, 0)",
+                        'value' => $actualRatio,
+                    ],
+                    $stdRatio,
+                    [
+                        'formula' => "IF(F{$r}<(G{$r}-0.5), \"Tidak Wajar\", \"Wajar\")",
+                        'value' => $evalLabel,
+                    ],
+                    [
+                        'formula' => "E{$r}*{$pricePerLiter}",
+                        'value' => $totCost,
+                    ],
+                    [
+                        'formula' => "IF(F{$r}<G{$r}, E{$r}-(D{$r}/G{$r}), 0)",
+                        'value' => $totWaste,
+                    ],
+                    [
+                        'formula' => "J{$r}*{$pricePerLiter}",
+                        'value' => $totLoss,
+                    ],
+                ];
+
+                $masterVehicles[] = [
+                    'unit_code' => $unitCode,
+                    'model' => $v?->model ?? $v?->unit_type ?? 'Light Vehicle',
+                    'division' => $v?->division ?? '-',
+                    'unit_vendor' => $v?->unitVendor?->name ?? 'Internal UT',
+                    'target_ratio' => $stdRatio,
+                    'tank_capacity' => (float)($v?->tank_capacity ?? 80),
+                ];
+
+                // Load all transactions across the range / year
+                $txQuery = FuelTransaction::whereHas('fuelRequest', function ($q) use ($v) {
+                    $q->where('vehicle_id', $v->id)->orWhere('unit_code', $v->unit_code);
+                });
+
+                if ($mode === 'range') {
+                    $txQuery->whereBetween('fueled_at', ["{$periodStart}-01 00:00:00", "{$periodEnd}-31 23:59:59"]);
+                } else { // yearly
+                    $txQuery->where('fueled_at', 'like', "{$year}%");
+                }
+
+                $transactions = $txQuery->orderBy('fueled_at', 'asc')->with(['fuelRequest.user', 'fuelman'])->get();
+                $txRows = [];
+
+                if ($transactions->isNotEmpty()) {
+                    foreach ($transactions as $tx) {
+                        $fr = $tx->fuelRequest;
+                        $dateStr = $tx->fueled_at ? $tx->fueled_at->format('Y-m-d') : ($fr?->request_date ? $fr->request_date->format('Y-m-d') : date('Y-m-d'));
+                        $odoStart = (float)($fr?->hm_km ?? 0);
+                        $odoEnd = (float)$tx->meter_at_fueling;
+                        if ($odoEnd < $odoStart) {
+                            $odoEnd = $odoStart;
+                        }
+                        $dist = round($odoEnd - $odoStart, 2);
+                        $liters = (float)$tx->actual_liters;
+                        $actRatio = $liters > 0 ? round($dist / $liters, 2) : 0;
+                        $fuelCost = round($liters * $pricePerLiter, 2);
+                        $isWajar = $actRatio >= ($stdRatio - 0.5);
+                        $waste = ($actRatio < $stdRatio && $stdRatio > 0) ? round($liters - ($dist / $stdRatio), 2) : 0;
+                        $loss = round($waste * $pricePerLiter, 2);
+
+                        $txRows[] = [
+                            'date' => $dateStr,
+                            'unit_code' => $unitCode,
+                            'driver' => $fr?->driver_name ?? $fr?->user?->name ?? '-',
+                            'odo_start' => $odoStart,
+                            'odo_end' => $odoEnd,
+                            'distance' => $dist,
+                            'fuel_liters' => $liters,
+                            'actual_ratio' => $actRatio,
+                            'standard_ratio' => $stdRatio,
+                            'fuel_cost' => $fuelCost,
+                            'evaluation' => $isWajar ? 'Wajar' : 'Tidak Wajar',
+                            'waste_liters' => $waste,
+                            'loss_cost' => $loss,
+                        ];
+                    }
+                } else {
+                    // Fallback to monthly evaluation records summary row
+                    foreach ($evalGroup as $e) {
+                        $txRows[] = [
+                            'date' => "{$e->period}-01",
+                            'unit_code' => $unitCode,
+                            'driver' => '-',
+                            'odo_start' => (float)$e->meter_start,
+                            'odo_end' => (float)$e->meter_end,
+                            'distance' => (float)$e->total_distance_or_hours,
+                            'fuel_liters' => (float)$e->total_actual_liters,
+                            'actual_ratio' => (float)$e->actual_ratio,
+                            'standard_ratio' => (float)$e->standard_used,
+                            'fuel_cost' => (float)$e->total_actual_cost,
+                            'evaluation' => $e->evaluation_status === 'normal' ? 'Wajar' : 'Tidak Wajar',
+                            'waste_liters' => (float)$e->waste_liters,
+                            'loss_cost' => (float)$e->estimated_cost_loss,
+                        ];
+                    }
+                }
+
+                $unitSheets[$unitCode] = $txRows;
+            }
         }
 
         $multiSheetData = [
-            'period' => $period,
+            'period' => $periodLabel,
+            'period_label' => $periodLabel,
             'price' => $pricePerLiter,
             'master_vehicles' => $masterVehicles,
             'unit_sheets' => $unitSheets,
             'evaluations' => $data,
         ];
 
-        return $excel->downloadEvaluationDashboardXlsx($fileName, $headers, $rows, $period, $multiSheetData);
+        return $excel->downloadEvaluationDashboardXlsx($fileName, $headers, $rows, $periodLabel, $multiSheetData);
     }
 }
 
