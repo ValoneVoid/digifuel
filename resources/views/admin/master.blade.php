@@ -980,22 +980,39 @@
                                     <span class="dot"></span>{{ $v->is_active ? 'Aktif' : 'Nonaktif' }}
                                 </span>
                             </td>
-                            <td>
-                                <div style="display: flex; gap: 6px; align-items: center;">
-                                    <button type="button" class="btn-digi btn-digi-yellow" style="padding: 5px 12px; font-size: 12px;"
-                                        data-item="{{ json_encode($v) }}" onclick="editUnit(this)">
-                                        Edit
+                            <td style="text-align: center;">
+                                <div class="digi-action-menu-wrap" style="display: inline-block; position: relative;">
+                                    <button type="button" class="digi-action-dots-btn" onclick="toggleUserActionMenu(this, event)" title="Menu Aksi" aria-label="Menu Aksi"
+                                        style="width: 34px; height: 34px; border-radius: 8px; border: 1px solid #cbd5e1; background: #ffffff; color: #334155; display: inline-flex; align-items: center; justify-content: center; cursor: pointer; transition: all 0.15s ease;">
+                                        <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor">
+                                            <circle cx="12" cy="5" r="2"></circle>
+                                            <circle cx="12" cy="12" r="2"></circle>
+                                            <circle cx="12" cy="19" r="2"></circle>
+                                        </svg>
                                     </button>
-                                    <button type="button" class="btn-digi {{ $v->is_active ? 'btn-digi-red' : 'btn-digi-green' }}" style="padding: 5px 12px; font-size: 12px;"
-                                        data-type="unit" data-id="{{ $v->id }}" data-tab="units" data-name="{{ $v->unit_code }}" data-active="{{ $v->is_active ? '1' : '0' }}"
-                                        onclick="openToggleModalFromBtn(this)">
-                                        {{ $v->is_active ? 'Nonaktifkan' : 'Aktifkan' }}
-                                    </button>
-                                    <button type="button" class="btn-digi btn-digi-gray" style="padding: 5px 12px; font-size: 12px; background: #fee2e2; color: #b91c1c; border: 1px solid #fecaca;"
-                                        data-action="{{ route('admin.master.units.destroy', $v->id) }}" data-entity="Data Unit / Kendaraan" data-name="{{ $v->unit_code }} ({{ $v->police_no }})"
-                                        onclick="openDeleteModalFromBtn(this)">
-                                        Hapus
-                                    </button>
+                                    <div class="digi-action-dropdown" style="display: none; position: fixed; min-width: 165px; background: #ffffff; border: 1px solid #e2e8f0; border-radius: 10px; box-shadow: 0 10px 25px rgba(15, 23, 42, 0.14); padding: 6px; z-index: 9999; text-align: left;">
+                                        <button type="button" class="digi-action-item"
+                                            data-item="{{ json_encode($v) }}" onclick="closeAllUserActionMenus(); editUnit(this)"
+                                            style="width: 100%; display: flex; align-items: center; gap: 8px; padding: 8px 10px; border: none; background: transparent; border-radius: 7px; font-size: 13px; font-weight: 600; color: #b45309; cursor: pointer; text-align: left;">
+                                            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"></path><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"></path></svg>
+                                            <span>Edit</span>
+                                        </button>
+                                        <button type="button" class="digi-action-item"
+                                            data-type="unit" data-id="{{ $v->id }}" data-tab="units" data-name="{{ $v->unit_code }}" data-active="{{ $v->is_active ? '1' : '0' }}"
+                                            onclick="closeAllUserActionMenus(); openToggleModalFromBtn(this)"
+                                            style="width: 100%; display: flex; align-items: center; gap: 8px; padding: 8px 10px; border: none; background: transparent; border-radius: 7px; font-size: 13px; font-weight: 600; color: {{ $v->is_active ? '#dc2626' : '#16a34a' }}; cursor: pointer; text-align: left;">
+                                            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M18.36 6.64a9 9 0 1 1-12.73 0"></path><line x1="12" y1="2" x2="12" y2="12"></line></svg>
+                                            <span>{{ $v->is_active ? 'Nonaktifkan' : 'Aktifkan' }}</span>
+                                        </button>
+                                        <div style="height: 1px; background: #f1f5f9; margin: 4px 0;"></div>
+                                        <button type="button" class="digi-action-item"
+                                            data-action="{{ route('admin.master.units.destroy', $v->id) }}" data-entity="Data Unit / Kendaraan" data-name="{{ $v->unit_code }} ({{ $v->police_no }})"
+                                            onclick="closeAllUserActionMenus(); openDeleteModalFromBtn(this)"
+                                            style="width: 100%; display: flex; align-items: center; gap: 8px; padding: 8px 10px; border: none; background: transparent; border-radius: 7px; font-size: 13px; font-weight: 600; color: #b91c1c; cursor: pointer; text-align: left;">
+                                            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="3 6 5 6 21 6"></polyline><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path></svg>
+                                            <span>Hapus</span>
+                                        </button>
+                                    </div>
                                 </div>
                             </td>
                         </tr>
@@ -1099,22 +1116,39 @@
                                     <span class="dot"></span>{{ $uv->is_active ? 'Aktif' : 'Nonaktif' }}
                                 </span>
                             </td>
-                            <td>
-                                <div style="display: flex; gap: 6px; align-items: center;">
-                                    <button type="button" class="btn-digi btn-digi-yellow" style="padding: 5px 12px; font-size: 12px;"
-                                        data-item="{{ json_encode($uv) }}" onclick="editUnitVendor(this)">
-                                        Edit
+                            <td style="text-align: center;">
+                                <div class="digi-action-menu-wrap" style="display: inline-block; position: relative;">
+                                    <button type="button" class="digi-action-dots-btn" onclick="toggleUserActionMenu(this, event)" title="Menu Aksi" aria-label="Menu Aksi"
+                                        style="width: 34px; height: 34px; border-radius: 8px; border: 1px solid #cbd5e1; background: #ffffff; color: #334155; display: inline-flex; align-items: center; justify-content: center; cursor: pointer; transition: all 0.15s ease;">
+                                        <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor">
+                                            <circle cx="12" cy="5" r="2"></circle>
+                                            <circle cx="12" cy="12" r="2"></circle>
+                                            <circle cx="12" cy="19" r="2"></circle>
+                                        </svg>
                                     </button>
-                                    <button type="button" class="btn-digi {{ $uv->is_active ? 'btn-digi-red' : 'btn-digi-green' }}" style="padding: 5px 12px; font-size: 12px;"
-                                        data-type="unit_vendor" data-id="{{ $uv->id }}" data-tab="unit_vendors" data-name="{{ $uv->name }}" data-active="{{ $uv->is_active ? '1' : '0' }}"
-                                        onclick="openToggleModalFromBtn(this)">
-                                        {{ $uv->is_active ? 'Nonaktifkan' : 'Aktifkan' }}
-                                    </button>
-                                    <button type="button" class="btn-digi btn-digi-gray" style="padding: 5px 12px; font-size: 12px; background: #fee2e2; color: #b91c1c; border: 1px solid #fecaca;"
-                                        data-action="{{ route('admin.master.unit-vendors.destroy', $uv->id) }}" data-entity="Data Perusahaan Rental Unit" data-name="{{ ($uv->code ? $uv->code . ' - ' : '') . $uv->name }}"
-                                        onclick="openDeleteModalFromBtn(this)">
-                                        Hapus
-                                    </button>
+                                    <div class="digi-action-dropdown" style="display: none; position: fixed; min-width: 165px; background: #ffffff; border: 1px solid #e2e8f0; border-radius: 10px; box-shadow: 0 10px 25px rgba(15, 23, 42, 0.14); padding: 6px; z-index: 9999; text-align: left;">
+                                        <button type="button" class="digi-action-item"
+                                            data-item="{{ json_encode($uv) }}" onclick="closeAllUserActionMenus(); editUnitVendor(this)"
+                                            style="width: 100%; display: flex; align-items: center; gap: 8px; padding: 8px 10px; border: none; background: transparent; border-radius: 7px; font-size: 13px; font-weight: 600; color: #b45309; cursor: pointer; text-align: left;">
+                                            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"></path><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"></path></svg>
+                                            <span>Edit</span>
+                                        </button>
+                                        <button type="button" class="digi-action-item"
+                                            data-type="unit_vendor" data-id="{{ $uv->id }}" data-tab="unit_vendors" data-name="{{ $uv->name }}" data-active="{{ $uv->is_active ? '1' : '0' }}"
+                                            onclick="closeAllUserActionMenus(); openToggleModalFromBtn(this)"
+                                            style="width: 100%; display: flex; align-items: center; gap: 8px; padding: 8px 10px; border: none; background: transparent; border-radius: 7px; font-size: 13px; font-weight: 600; color: {{ $uv->is_active ? '#dc2626' : '#16a34a' }}; cursor: pointer; text-align: left;">
+                                            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M18.36 6.64a9 9 0 1 1-12.73 0"></path><line x1="12" y1="2" x2="12" y2="12"></line></svg>
+                                            <span>{{ $uv->is_active ? 'Nonaktifkan' : 'Aktifkan' }}</span>
+                                        </button>
+                                        <div style="height: 1px; background: #f1f5f9; margin: 4px 0;"></div>
+                                        <button type="button" class="digi-action-item"
+                                            data-action="{{ route('admin.master.unit-vendors.destroy', $uv->id) }}" data-entity="Data Perusahaan Rental Unit" data-name="{{ ($uv->code ? $uv->code . ' - ' : '') . $uv->name }}"
+                                            onclick="closeAllUserActionMenus(); openDeleteModalFromBtn(this)"
+                                            style="width: 100%; display: flex; align-items: center; gap: 8px; padding: 8px 10px; border: none; background: transparent; border-radius: 7px; font-size: 13px; font-weight: 600; color: #b91c1c; cursor: pointer; text-align: left;">
+                                            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="3 6 5 6 21 6"></polyline><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path></svg>
+                                            <span>Hapus</span>
+                                        </button>
+                                    </div>
                                 </div>
                             </td>
                         </tr>
@@ -1316,22 +1350,39 @@
                                     <span class="dot"></span>{{ $a->is_active ? 'Aktif' : 'Nonaktif' }}
                                 </span>
                             </td>
-                            <td>
-                                <div style="display: flex; gap: 6px; align-items: center;">
-                                    <button type="button" class="btn-digi btn-digi-yellow" style="padding: 5px 12px; font-size: 12px;"
-                                        data-item="{{ json_encode($a) }}" onclick="editArea(this)">
-                                        Edit
+                            <td style="text-align: center;">
+                                <div class="digi-action-menu-wrap" style="display: inline-block; position: relative;">
+                                    <button type="button" class="digi-action-dots-btn" onclick="toggleUserActionMenu(this, event)" title="Menu Aksi" aria-label="Menu Aksi"
+                                        style="width: 34px; height: 34px; border-radius: 8px; border: 1px solid #cbd5e1; background: #ffffff; color: #334155; display: inline-flex; align-items: center; justify-content: center; cursor: pointer; transition: all 0.15s ease;">
+                                        <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor">
+                                            <circle cx="12" cy="5" r="2"></circle>
+                                            <circle cx="12" cy="12" r="2"></circle>
+                                            <circle cx="12" cy="19" r="2"></circle>
+                                        </svg>
                                     </button>
-                                    <button type="button" class="btn-digi {{ $a->is_active ? 'btn-digi-red' : 'btn-digi-green' }}" style="padding: 5px 12px; font-size: 12px;"
-                                        data-type="area" data-id="{{ $a->id }}" data-tab="areas" data-name="{{ $a->name }}" data-active="{{ $a->is_active ? '1' : '0' }}"
-                                        onclick="openToggleModalFromBtn(this)">
-                                        {{ $a->is_active ? 'Nonaktifkan' : 'Aktifkan' }}
-                                    </button>
-                                    <button type="button" class="btn-digi btn-digi-gray" style="padding: 5px 12px; font-size: 12px; background: #fee2e2; color: #b91c1c; border: 1px solid #fecaca;"
-                                        data-action="{{ route('admin.master.areas.destroy', $a->id) }}" data-entity="Area Operasional" data-name="{{ ($a->code ? $a->code . ' - ' : '') . $a->name }}"
-                                        onclick="openDeleteModalFromBtn(this)">
-                                        Hapus
-                                    </button>
+                                    <div class="digi-action-dropdown" style="display: none; position: fixed; min-width: 165px; background: #ffffff; border: 1px solid #e2e8f0; border-radius: 10px; box-shadow: 0 10px 25px rgba(15, 23, 42, 0.14); padding: 6px; z-index: 9999; text-align: left;">
+                                        <button type="button" class="digi-action-item"
+                                            data-item="{{ json_encode($a) }}" onclick="closeAllUserActionMenus(); editArea(this)"
+                                            style="width: 100%; display: flex; align-items: center; gap: 8px; padding: 8px 10px; border: none; background: transparent; border-radius: 7px; font-size: 13px; font-weight: 600; color: #b45309; cursor: pointer; text-align: left;">
+                                            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"></path><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"></path></svg>
+                                            <span>Edit</span>
+                                        </button>
+                                        <button type="button" class="digi-action-item"
+                                            data-type="area" data-id="{{ $a->id }}" data-tab="areas" data-name="{{ $a->name }}" data-active="{{ $a->is_active ? '1' : '0' }}"
+                                            onclick="closeAllUserActionMenus(); openToggleModalFromBtn(this)"
+                                            style="width: 100%; display: flex; align-items: center; gap: 8px; padding: 8px 10px; border: none; background: transparent; border-radius: 7px; font-size: 13px; font-weight: 600; color: {{ $a->is_active ? '#dc2626' : '#16a34a' }}; cursor: pointer; text-align: left;">
+                                            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M18.36 6.64a9 9 0 1 1-12.73 0"></path><line x1="12" y1="2" x2="12" y2="12"></line></svg>
+                                            <span>{{ $a->is_active ? 'Nonaktifkan' : 'Aktifkan' }}</span>
+                                        </button>
+                                        <div style="height: 1px; background: #f1f5f9; margin: 4px 0;"></div>
+                                        <button type="button" class="digi-action-item"
+                                            data-action="{{ route('admin.master.areas.destroy', $a->id) }}" data-entity="Area Operasional" data-name="{{ ($a->code ? $a->code . ' - ' : '') . $a->name }}"
+                                            onclick="closeAllUserActionMenus(); openDeleteModalFromBtn(this)"
+                                            style="width: 100%; display: flex; align-items: center; gap: 8px; padding: 8px 10px; border: none; background: transparent; border-radius: 7px; font-size: 13px; font-weight: 600; color: #b91c1c; cursor: pointer; text-align: left;">
+                                            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="3 6 5 6 21 6"></polyline><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path></svg>
+                                            <span>Hapus</span>
+                                        </button>
+                                    </div>
                                 </div>
                             </td>
                         </tr>
@@ -1437,22 +1488,39 @@
                                     <span class="dot"></span>{{ $ven->is_active ? 'Aktif' : 'Nonaktif' }}
                                 </span>
                             </td>
-                            <td>
-                                <div style="display: flex; gap: 6px; align-items: center;">
-                                    <button type="button" class="btn-digi btn-digi-yellow" style="padding: 5px 12px; font-size: 12px;"
-                                        data-item="{{ json_encode($ven) }}" onclick="editVendor(this)">
-                                        Edit
+                            <td style="text-align: center;">
+                                <div class="digi-action-menu-wrap" style="display: inline-block; position: relative;">
+                                    <button type="button" class="digi-action-dots-btn" onclick="toggleUserActionMenu(this, event)" title="Menu Aksi" aria-label="Menu Aksi"
+                                        style="width: 34px; height: 34px; border-radius: 8px; border: 1px solid #cbd5e1; background: #ffffff; color: #334155; display: inline-flex; align-items: center; justify-content: center; cursor: pointer; transition: all 0.15s ease;">
+                                        <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor">
+                                            <circle cx="12" cy="5" r="2"></circle>
+                                            <circle cx="12" cy="12" r="2"></circle>
+                                            <circle cx="12" cy="19" r="2"></circle>
+                                        </svg>
                                     </button>
-                                    <button type="button" class="btn-digi {{ $ven->is_active ? 'btn-digi-red' : 'btn-digi-green' }}" style="padding: 5px 12px; font-size: 12px;"
-                                        data-type="vendor" data-id="{{ $ven->id }}" data-tab="vendors" data-name="{{ $ven->name }}" data-active="{{ $ven->is_active ? '1' : '0' }}"
-                                        onclick="openToggleModalFromBtn(this)">
-                                        {{ $ven->is_active ? 'Nonaktifkan' : 'Aktifkan' }}
-                                    </button>
-                                    <button type="button" class="btn-digi btn-digi-gray" style="padding: 5px 12px; font-size: 12px; background: #fee2e2; color: #b91c1c; border: 1px solid #fecaca;"
-                                        data-action="{{ route('admin.master.vendors.destroy', $ven->id) }}" data-entity="Data Perusahaan" data-name="{{ ($ven->code ? $ven->code . ' - ' : '') . $ven->name }}"
-                                        onclick="openDeleteModalFromBtn(this)">
-                                        Hapus
-                                    </button>
+                                    <div class="digi-action-dropdown" style="display: none; position: fixed; min-width: 165px; background: #ffffff; border: 1px solid #e2e8f0; border-radius: 10px; box-shadow: 0 10px 25px rgba(15, 23, 42, 0.14); padding: 6px; z-index: 9999; text-align: left;">
+                                        <button type="button" class="digi-action-item"
+                                            data-item="{{ json_encode($ven) }}" onclick="closeAllUserActionMenus(); editVendor(this)"
+                                            style="width: 100%; display: flex; align-items: center; gap: 8px; padding: 8px 10px; border: none; background: transparent; border-radius: 7px; font-size: 13px; font-weight: 600; color: #b45309; cursor: pointer; text-align: left;">
+                                            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"></path><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"></path></svg>
+                                            <span>Edit</span>
+                                        </button>
+                                        <button type="button" class="digi-action-item"
+                                            data-type="vendor" data-id="{{ $ven->id }}" data-tab="vendors" data-name="{{ $ven->name }}" data-active="{{ $ven->is_active ? '1' : '0' }}"
+                                            onclick="closeAllUserActionMenus(); openToggleModalFromBtn(this)"
+                                            style="width: 100%; display: flex; align-items: center; gap: 8px; padding: 8px 10px; border: none; background: transparent; border-radius: 7px; font-size: 13px; font-weight: 600; color: {{ $ven->is_active ? '#dc2626' : '#16a34a' }}; cursor: pointer; text-align: left;">
+                                            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M18.36 6.64a9 9 0 1 1-12.73 0"></path><line x1="12" y1="2" x2="12" y2="12"></line></svg>
+                                            <span>{{ $ven->is_active ? 'Nonaktifkan' : 'Aktifkan' }}</span>
+                                        </button>
+                                        <div style="height: 1px; background: #f1f5f9; margin: 4px 0;"></div>
+                                        <button type="button" class="digi-action-item"
+                                            data-action="{{ route('admin.master.vendors.destroy', $ven->id) }}" data-entity="Data Perusahaan" data-name="{{ ($ven->code ? $ven->code . ' - ' : '') . $ven->name }}"
+                                            onclick="closeAllUserActionMenus(); openDeleteModalFromBtn(this)"
+                                            style="width: 100%; display: flex; align-items: center; gap: 8px; padding: 8px 10px; border: none; background: transparent; border-radius: 7px; font-size: 13px; font-weight: 600; color: #b91c1c; cursor: pointer; text-align: left;">
+                                            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="3 6 5 6 21 6"></polyline><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path></svg>
+                                            <span>Hapus</span>
+                                        </button>
+                                    </div>
                                 </div>
                             </td>
                         </tr>
@@ -1731,22 +1799,39 @@
                                     <span class="dot"></span>{{ $std->is_active ? 'Aktif' : 'Nonaktif' }}
                                 </span>
                             </td>
-                            <td>
-                                <div style="display: flex; gap: 6px; align-items: center;">
-                                    <button type="button" class="btn-digi btn-digi-yellow" style="padding: 5px 12px; font-size: 12px;"
-                                        data-item="{{ json_encode($std) }}" onclick="editStandard(this)">
-                                        Edit
+                            <td style="text-align: center;">
+                                <div class="digi-action-menu-wrap" style="display: inline-block; position: relative;">
+                                    <button type="button" class="digi-action-dots-btn" onclick="toggleUserActionMenu(this, event)" title="Menu Aksi" aria-label="Menu Aksi"
+                                        style="width: 34px; height: 34px; border-radius: 8px; border: 1px solid #cbd5e1; background: #ffffff; color: #334155; display: inline-flex; align-items: center; justify-content: center; cursor: pointer; transition: all 0.15s ease;">
+                                        <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor">
+                                            <circle cx="12" cy="5" r="2"></circle>
+                                            <circle cx="12" cy="12" r="2"></circle>
+                                            <circle cx="12" cy="19" r="2"></circle>
+                                        </svg>
                                     </button>
-                                    <button type="button" class="btn-digi {{ $std->is_active ? 'btn-digi-red' : 'btn-digi-green' }}" style="padding: 5px 12px; font-size: 12px;"
-                                        data-type="standard" data-id="{{ $std->id }}" data-tab="standards" data-name="{{ ($std->vehicle?->unit_code ?? '') . ' (' . (float)$std->standard_value . ')' }}" data-active="{{ $std->is_active ? '1' : '0' }}"
-                                        onclick="openToggleModalFromBtn(this)">
-                                        {{ $std->is_active ? 'Nonaktifkan' : 'Aktifkan' }}
-                                    </button>
-                                    <button type="button" class="btn-digi btn-digi-gray" style="padding: 5px 12px; font-size: 12px; background: #fee2e2; color: #b91c1c; border: 1px solid #fecaca;"
-                                        data-action="{{ route('admin.master.standards.destroy', $std->id) }}" data-entity="Standar Konsumsi BBM" data-name="{{ ($std->vehicle?->unit_code ?? '') . ' (' . (float)$std->standard_value . ')' }}"
-                                        onclick="openDeleteModalFromBtn(this)">
-                                        Hapus
-                                    </button>
+                                    <div class="digi-action-dropdown" style="display: none; position: fixed; min-width: 165px; background: #ffffff; border: 1px solid #e2e8f0; border-radius: 10px; box-shadow: 0 10px 25px rgba(15, 23, 42, 0.14); padding: 6px; z-index: 9999; text-align: left;">
+                                        <button type="button" class="digi-action-item"
+                                            data-item="{{ json_encode($std) }}" onclick="closeAllUserActionMenus(); editStandard(this)"
+                                            style="width: 100%; display: flex; align-items: center; gap: 8px; padding: 8px 10px; border: none; background: transparent; border-radius: 7px; font-size: 13px; font-weight: 600; color: #b45309; cursor: pointer; text-align: left;">
+                                            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"></path><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"></path></svg>
+                                            <span>Edit</span>
+                                        </button>
+                                        <button type="button" class="digi-action-item"
+                                            data-type="standard" data-id="{{ $std->id }}" data-tab="standards" data-name="{{ ($std->vehicle?->unit_code ?? '') . ' (' . (float)$std->standard_value . ')' }}" data-active="{{ $std->is_active ? '1' : '0' }}"
+                                            onclick="closeAllUserActionMenus(); openToggleModalFromBtn(this)"
+                                            style="width: 100%; display: flex; align-items: center; gap: 8px; padding: 8px 10px; border: none; background: transparent; border-radius: 7px; font-size: 13px; font-weight: 600; color: {{ $std->is_active ? '#dc2626' : '#16a34a' }}; cursor: pointer; text-align: left;">
+                                            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M18.36 6.64a9 9 0 1 1-12.73 0"></path><line x1="12" y1="2" x2="12" y2="12"></line></svg>
+                                            <span>{{ $std->is_active ? 'Nonaktifkan' : 'Aktifkan' }}</span>
+                                        </button>
+                                        <div style="height: 1px; background: #f1f5f9; margin: 4px 0;"></div>
+                                        <button type="button" class="digi-action-item"
+                                            data-action="{{ route('admin.master.standards.destroy', $std->id) }}" data-entity="Standar Konsumsi BBM" data-name="{{ ($std->vehicle?->unit_code ?? '') . ' (' . (float)$std->standard_value . ')' }}"
+                                            onclick="closeAllUserActionMenus(); openDeleteModalFromBtn(this)"
+                                            style="width: 100%; display: flex; align-items: center; gap: 8px; padding: 8px 10px; border: none; background: transparent; border-radius: 7px; font-size: 13px; font-weight: 600; color: #b91c1c; cursor: pointer; text-align: left;">
+                                            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="3 6 5 6 21 6"></polyline><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path></svg>
+                                            <span>Hapus</span>
+                                        </button>
+                                    </div>
                                 </div>
                             </td>
                         </tr>
@@ -1847,22 +1932,39 @@
                                     <span class="dot"></span>{{ $fp->is_active ? 'Aktif' : 'Nonaktif' }}
                                 </span>
                             </td>
-                            <td>
-                                <div style="display: flex; gap: 6px; align-items: center;">
-                                    <button type="button" class="btn-digi btn-digi-yellow" style="padding: 5px 12px; font-size: 12px;"
-                                        data-item="{{ json_encode($fp) }}" onclick="editPrice(this)">
-                                        Edit
+                            <td style="text-align: center;">
+                                <div class="digi-action-menu-wrap" style="display: inline-block; position: relative;">
+                                    <button type="button" class="digi-action-dots-btn" onclick="toggleUserActionMenu(this, event)" title="Menu Aksi" aria-label="Menu Aksi"
+                                        style="width: 34px; height: 34px; border-radius: 8px; border: 1px solid #cbd5e1; background: #ffffff; color: #334155; display: inline-flex; align-items: center; justify-content: center; cursor: pointer; transition: all 0.15s ease;">
+                                        <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor">
+                                            <circle cx="12" cy="5" r="2"></circle>
+                                            <circle cx="12" cy="12" r="2"></circle>
+                                            <circle cx="12" cy="19" r="2"></circle>
+                                        </svg>
                                     </button>
-                                    <button type="button" class="btn-digi {{ $fp->is_active ? 'btn-digi-red' : 'btn-digi-green' }}" style="padding: 5px 12px; font-size: 12px;"
-                                        data-type="price" data-id="{{ $fp->id }}" data-tab="prices" data-name="{{ $fp->fuel_type . ' (Rp ' . number_format($fp->price_per_liter, 0, ',', '.') . ')' }}" data-active="{{ $fp->is_active ? '1' : '0' }}"
-                                        onclick="openToggleModalFromBtn(this)">
-                                        {{ $fp->is_active ? 'Nonaktifkan' : 'Aktifkan' }}
-                                    </button>
-                                    <button type="button" class="btn-digi btn-digi-gray" style="padding: 5px 12px; font-size: 12px; background: #fee2e2; color: #b91c1c; border: 1px solid #fecaca;"
-                                        data-action="{{ route('admin.master.prices.destroy', $fp->id) }}" data-entity="Harga BBM per Liter" data-name="{{ $fp->fuel_type . ' (Rp ' . number_format($fp->price_per_liter, 0, ',', '.') . '/L)' }}"
-                                        onclick="openDeleteModalFromBtn(this)">
-                                        Hapus
-                                    </button>
+                                    <div class="digi-action-dropdown" style="display: none; position: fixed; min-width: 165px; background: #ffffff; border: 1px solid #e2e8f0; border-radius: 10px; box-shadow: 0 10px 25px rgba(15, 23, 42, 0.14); padding: 6px; z-index: 9999; text-align: left;">
+                                        <button type="button" class="digi-action-item"
+                                            data-item="{{ json_encode($fp) }}" onclick="closeAllUserActionMenus(); editPrice(this)"
+                                            style="width: 100%; display: flex; align-items: center; gap: 8px; padding: 8px 10px; border: none; background: transparent; border-radius: 7px; font-size: 13px; font-weight: 600; color: #b45309; cursor: pointer; text-align: left;">
+                                            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"></path><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"></path></svg>
+                                            <span>Edit</span>
+                                        </button>
+                                        <button type="button" class="digi-action-item"
+                                            data-type="price" data-id="{{ $fp->id }}" data-tab="prices" data-name="{{ $fp->fuel_type . ' (Rp ' . number_format($fp->price_per_liter, 0, ',', '.') . ')' }}" data-active="{{ $fp->is_active ? '1' : '0' }}"
+                                            onclick="closeAllUserActionMenus(); openToggleModalFromBtn(this)"
+                                            style="width: 100%; display: flex; align-items: center; gap: 8px; padding: 8px 10px; border: none; background: transparent; border-radius: 7px; font-size: 13px; font-weight: 600; color: {{ $fp->is_active ? '#dc2626' : '#16a34a' }}; cursor: pointer; text-align: left;">
+                                            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M18.36 6.64a9 9 0 1 1-12.73 0"></path><line x1="12" y1="2" x2="12" y2="12"></line></svg>
+                                            <span>{{ $fp->is_active ? 'Nonaktifkan' : 'Aktifkan' }}</span>
+                                        </button>
+                                        <div style="height: 1px; background: #f1f5f9; margin: 4px 0;"></div>
+                                        <button type="button" class="digi-action-item"
+                                            data-action="{{ route('admin.master.prices.destroy', $fp->id) }}" data-entity="Harga BBM per Liter" data-name="{{ $fp->fuel_type . ' (Rp ' . number_format($fp->price_per_liter, 0, ',', '.') . '/L)' }}"
+                                            onclick="closeAllUserActionMenus(); openDeleteModalFromBtn(this)"
+                                            style="width: 100%; display: flex; align-items: center; gap: 8px; padding: 8px 10px; border: none; background: transparent; border-radius: 7px; font-size: 13px; font-weight: 600; color: #b91c1c; cursor: pointer; text-align: left;">
+                                            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="3 6 5 6 21 6"></polyline><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path></svg>
+                                            <span>Hapus</span>
+                                        </button>
+                                    </div>
                                 </div>
                             </td>
                         </tr>
@@ -3815,10 +3917,17 @@ document.querySelectorAll('.digi-table-responsive').forEach(el => {
     border-color: #94a3b8 !important;
     color: #0f172a !important;
 }
-.digi-action-item:hover {
+.digi-action-dots-btn:active {
+    transform: scale(0.95);
+}
+.digi-action-item:hover,
+.digi-action-item:active {
     background: #f1f5f9 !important;
 }
 @media screen and (max-width: 900px) {
+    .digi-table-responsive {
+        -webkit-overflow-scrolling: touch;
+    }
     .digi-action-dots-btn {
         width: 38px !important;
         height: 38px !important;
@@ -3826,10 +3935,19 @@ document.querySelectorAll('.digi-table-responsive').forEach(el => {
     .digi-action-dropdown {
         min-width: 185px !important;
         padding: 8px !important;
+        border-color: #cbd5e1 !important;
+        box-shadow: 0 12px 32px rgba(15, 23, 42, 0.22) !important;
     }
     .digi-action-item {
         padding: 10px 12px !important;
         font-size: 13.5px !important;
+    }
+}
+@media screen and (max-width: 640px) {
+    .digi-table th,
+    .digi-table td {
+        padding: 8px 10px !important;
+        font-size: 12.5px !important;
     }
 }
 </style>
