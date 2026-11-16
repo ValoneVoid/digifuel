@@ -1184,28 +1184,55 @@ body {
   40%, 80% { transform: translateX(6px); }
 }
 
-/* TOAST NOTIFICATION (POJOK KANAN ATAS, TIDAK MENGHALANGI TENGAH LAYAR) */
+/* TOAST NOTIFICATION (DESKTOP: BAWAH NAVBAR KANAN ATAS, MOBILE: BOTTOM SNACKBAR) */
+.swal2-container.swal2-top-end,
+.swal2-container.swal2-bottom {
+  pointer-events: none !important;
+}
+
 .digi-toast-popup {
-  border-radius: 12px !important;
+  border-radius: 14px !important;
   background: #ffffff !important;
-  box-shadow: 0 10px 28px rgba(15, 23, 42, 0.16) !important;
-  border: 1px solid #e2e8f0 !important;
+  box-shadow: 0 12px 32px rgba(15, 23, 42, 0.16) !important;
+  border: 1px solid #cbd5e1 !important;
   padding: 12px 18px !important;
   font-family: inherit !important;
-  margin-top: 14px !important;
-  margin-right: 16px !important;
+  margin-top: 80px !important; /* Clearance di bawah navbar 65px desktop */
+  margin-right: 24px !important; /* Jarak aman dari pinggir kanan layar desktop */
+  max-width: 440px !important;
+  width: auto !important;
+  box-sizing: border-box !important;
+  pointer-events: auto !important;
+  cursor: pointer !important;
 }
 
 .digi-toast-popup .swal2-title {
   font-size: 13.5px !important;
-  font-weight: 700 !important;
+  font-weight: 600 !important;
   color: #0f172a !important;
-  line-height: 1.4 !important;
+  line-height: 1.45 !important;
+  padding-right: 8px !important;
+  margin: 0 !important;
 }
 
 .digi-toast-popup .swal2-icon {
   margin: 0 10px 0 0 !important;
   transform: scale(0.85);
+  flex-shrink: 0 !important;
+}
+
+.digi-toast-popup .swal2-close {
+  font-size: 20px !important;
+  color: #94a3b8 !important;
+  outline: none !important;
+  box-shadow: none !important;
+  margin: 0 !important;
+  padding: 0 6px !important;
+  transition: color 0.15s ease !important;
+}
+
+.digi-toast-popup .swal2-close:hover {
+  color: #ef4444 !important;
 }
 
 .login-spinner {
@@ -1981,12 +2008,35 @@ div[style*="overflow-x: auto"]::-webkit-scrollbar-thumb:hover {
   .digi-profile-layout {
     grid-template-columns: 1fr;
     gap: 16px;
+    width: 100%;
+    max-width: 100%;
+    box-sizing: border-box;
+  }
+
+  .digi-profile-left {
+    padding: 20px 16px !important;
+    border-radius: 14px !important;
+    box-sizing: border-box !important;
+    max-width: 100% !important;
+    width: 100% !important;
+  }
+
+  .digi-profile-right {
+    padding: 20px 16px !important;
+    border-radius: 14px !important;
+    box-sizing: border-box !important;
+    max-width: 100% !important;
+    width: 100% !important;
+    overflow: hidden !important;
   }
 
   .digi-profile-row {
     grid-template-columns: 1fr;
     gap: 4px;
     padding: 10px 0;
+    min-width: 0 !important;
+    max-width: 100% !important;
+    box-sizing: border-box !important;
   }
 
   .digi-profile-label {
@@ -1996,6 +2046,90 @@ div[style*="overflow-x: auto"]::-webkit-scrollbar-thumb:hover {
 
   .digi-profile-value {
     font-size: 14px;
+    min-width: 0 !important;
+    max-width: 100% !important;
+    box-sizing: border-box !important;
+  }
+
+  .digi-sigpad-container {
+    max-width: 100% !important;
+    width: 100% !important;
+    box-sizing: border-box !important;
+    overflow: hidden !important;
+  }
+
+  .digi-sigpad-tabs {
+    padding: 3px !important;
+    gap: 4px !important;
+  }
+
+  .digi-sigpad-tab-btn {
+    padding: 7px 6px !important;
+    font-size: 11.5px !important;
+    white-space: nowrap !important;
+  }
+
+  .digi-sigpad-body {
+    padding: 12px 10px !important;
+  }
+
+  .digi-sigpad-canvas-wrapper {
+    height: 180px !important;
+    max-width: 100% !important;
+    width: 100% !important;
+    box-sizing: border-box !important;
+  }
+
+  .digi-sigpad-canvas {
+    height: 180px !important;
+    max-width: 100% !important;
+    width: 100% !important;
+    box-sizing: border-box !important;
+  }
+
+  .digi-sigpad-footer {
+    flex-direction: column !important;
+    align-items: stretch !important;
+    gap: 8px !important;
+  }
+
+  .digi-sigpad-footer .btn-digi {
+    width: 100% !important;
+    justify-content: center !important;
+    text-align: center !important;
+    padding: 9px 14px !important;
+  }
+
+  .digi-sigpad-footer > div {
+    display: flex !important;
+    flex-direction: column !important;
+    gap: 8px !important;
+    width: 100% !important;
+  }
+
+  .swal2-container.swal2-bottom,
+  .swal2-container.swal2-top-end {
+    pointer-events: none !important;
+    padding-bottom: 24px !important;
+  }
+
+  .digi-toast-popup {
+    margin-top: 0 !important;
+    margin-right: 0 !important;
+    margin-bottom: 16px !important;
+    max-width: calc(100vw - 32px) !important;
+    width: auto !important;
+    min-width: 280px !important;
+    border-radius: 14px !important;
+    box-shadow: 0 10px 28px rgba(0, 0, 0, 0.22) !important;
+    border: 1px solid #cbd5e1 !important;
+    pointer-events: auto !important;
+    padding: 12px 14px !important;
+  }
+
+  .digi-toast-popup .swal2-title {
+    font-size: 12.5px !important;
+    line-height: 1.4 !important;
   }
 
   .digi-stepper-scroll {
@@ -2174,6 +2308,7 @@ div[style*="overflow-x: auto"]::-webkit-scrollbar-thumb:hover {
   box-shadow: 0 2px 8px rgba(15, 23, 42, 0.05);
   max-width: 520px;
   width: 100%;
+  box-sizing: border-box;
 }
 
 .digi-sigpad-tabs {
@@ -2182,12 +2317,13 @@ div[style*="overflow-x: auto"]::-webkit-scrollbar-thumb:hover {
   border-bottom: 1.5px solid #e2e8f0;
   padding: 4px;
   gap: 4px;
+  box-sizing: border-box;
 }
 
 .digi-sigpad-tab-btn {
   flex: 1;
-  padding: 8px 14px;
-  font-size: 13px;
+  padding: 8px 12px;
+  font-size: 12.5px;
   font-weight: 600;
   border: none;
   background: transparent;
@@ -2199,6 +2335,7 @@ div[style*="overflow-x: auto"]::-webkit-scrollbar-thumb:hover {
   justify-content: center;
   gap: 6px;
   transition: all 0.2s ease;
+  box-sizing: border-box;
 }
 
 .digi-sigpad-tab-btn:hover {
@@ -2214,6 +2351,7 @@ div[style*="overflow-x: auto"]::-webkit-scrollbar-thumb:hover {
 
 .digi-sigpad-body {
   padding: 14px 16px;
+  box-sizing: border-box;
 }
 
 .digi-sigpad-canvas-wrapper {
@@ -2224,6 +2362,9 @@ div[style*="overflow-x: auto"]::-webkit-scrollbar-thumb:hover {
   cursor: crosshair;
   touch-action: none;
   overflow: hidden;
+  height: 190px;
+  width: 100%;
+  box-sizing: border-box;
   transition: border-color 0.2s ease, box-shadow 0.2s ease;
 }
 
@@ -2236,16 +2377,17 @@ div[style*="overflow-x: auto"]::-webkit-scrollbar-thumb:hover {
 .digi-sigpad-canvas {
   display: block;
   width: 100%;
-  height: 190px;
+  height: 100%;
   touch-action: none;
   background: #ffffff;
+  box-sizing: border-box;
 }
 
 .digi-sigpad-baseline {
   position: absolute;
   bottom: 38px;
-  left: 24px;
-  right: 24px;
+  left: 20px;
+  right: 20px;
   border-bottom: 1px dashed #cbd5e1;
   pointer-events: none;
 }
@@ -2278,4 +2420,154 @@ div[style*="overflow-x: auto"]::-webkit-scrollbar-thumb:hover {
   gap: 5px;
   font-weight: 500;
 }
+
+/* ==========================================================================
+   Evaluation Period Mode Switcher & Segmented Controls
+   ========================================================================== */
+.digi-segmented-wrapper {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  width: 100%;
+  margin-bottom: 14px;
+}
+
+.digi-segmented-label {
+  font-size: 13px;
+  font-weight: 700;
+  color: #334155;
+  white-space: nowrap;
+}
+
+.digi-segmented-group {
+  display: inline-flex;
+  background: #f1f5f9;
+  padding: 4px;
+  border-radius: 10px;
+  border: 1px solid #e2e8f0;
+  gap: 4px;
+}
+
+.digi-segmented-btn {
+  border: none;
+  background: transparent;
+  padding: 7px 18px;
+  font-size: 13px;
+  font-weight: 600;
+  color: #64748b;
+  border-radius: 7px;
+  cursor: pointer;
+  transition: all 0.18s ease-in-out;
+  white-space: nowrap;
+  text-align: center;
+  user-select: none;
+}
+
+.digi-segmented-btn:hover {
+  color: #1e293b;
+}
+
+.digi-segmented-btn.active {
+  background: #0284c7;
+  color: #ffffff;
+  box-shadow: 0 1px 4px rgba(2, 132, 199, 0.3);
+}
+
+.btn-period-mode {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: 6px 14px;
+  font-size: 12.5px;
+  font-weight: 600;
+  border-radius: 8px;
+  border: 1px solid #cbd5e1;
+  background: #ffffff;
+  color: #475569;
+  cursor: pointer;
+  transition: all 0.15s ease-in-out;
+  line-height: 1.4;
+  user-select: none;
+}
+
+.btn-period-mode:hover {
+  background: #f8fafc;
+  color: #1e293b;
+  border-color: #94a3b8;
+}
+
+.btn-period-mode.active {
+  background: #0284c7;
+  color: #ffffff;
+  border-color: #0284c7;
+  box-shadow: 0 1px 3px rgba(2, 132, 199, 0.25);
+}
+
+.digi-eval-filters-grid {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: flex-end;
+  gap: 12px;
+  width: 100%;
+}
+
+.digi-eval-filter-actions {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  margin-left: auto;
+  flex-wrap: wrap;
+}
+
+@media (max-width: 768px) {
+  .digi-segmented-wrapper {
+    flex-direction: column;
+    align-items: stretch;
+    gap: 6px;
+    margin-bottom: 12px;
+  }
+  .digi-segmented-group {
+    display: grid;
+    grid-template-columns: 1fr 1fr 1fr;
+    width: 100%;
+    padding: 3px;
+    gap: 3px;
+  }
+  .digi-segmented-btn {
+    padding: 8px 4px;
+    font-size: 12px;
+    white-space: normal;
+    line-height: 1.25;
+  }
+  .digi-eval-filters-grid {
+    display: grid;
+    grid-template-columns: 1fr;
+    gap: 10px;
+    width: 100%;
+  }
+  .digi-eval-filter-actions {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 8px;
+    width: 100%;
+    margin-left: 0;
+    margin-top: 6px;
+  }
+  .btn-eval-apply,
+  .btn-eval-calc {
+    width: 100%;
+    justify-content: center;
+    text-align: center;
+    padding: 9px 12px;
+  }
+  .btn-eval-export {
+    grid-column: span 2;
+    width: 100%;
+    text-align: center;
+    justify-content: center;
+    padding: 9px 12px;
+  }
+}
+
+
 

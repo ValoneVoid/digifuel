@@ -265,7 +265,7 @@ class ExcelExportService
         }
 
         // 8. Generate Sheet 1: Dashboard (Calculates and references unit sheets + Master_Kendaraan)
-        $zip->addFromString('xl/worksheets/sheet1.xml', $this->buildDashboardXml($masterVehicles, $unitSheets, $price));
+        $zip->addFromString('xl/worksheets/sheet1.xml', $this->buildDashboardXml($masterVehicles, $unitSheets, $price, $data['period_label'] ?? null));
 
         $zip->close();
 
@@ -470,7 +470,7 @@ class ExcelExportService
     /**
      * Sheet 1: Dashboard XML Builder
      */
-    protected function buildDashboardXml(array $masterVehicles, array $unitSheets, float $price): string
+    protected function buildDashboardXml(array $masterVehicles, array $unitSheets, float $price, ?string $periodLabel = null): string
     {
         $xml = '<?xml version="1.0" encoding="UTF-8" standalone="yes"?>' . "\n";
         $xml .= '<worksheet xmlns="http://schemas.openxmlformats.org/spreadsheetml/2006/main">' . "\n";
@@ -567,8 +567,9 @@ class ExcelExportService
         $xml .= "</row>\n";
 
         // Row 7: Section Title
+        $secTitle = 'Rangkuman Performa per Unit LV' . ($periodLabel ? " ({$periodLabel})" : '');
         $xml .= '<row r="7" ht="20" customHeight="1">';
-        $xml .= '<c r="A7" s="19" t="inlineStr"><is><t>Rangkuman Performa per Unit LV</t></is></c>';
+        $xml .= '<c r="A7" s="19" t="inlineStr"><is><t>' . htmlspecialchars($secTitle, ENT_XML1) . '</t></is></c>';
         $xml .= "</row>\n";
 
         // Row 8: Table Headers (A8:K8)

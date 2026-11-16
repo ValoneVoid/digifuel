@@ -15,6 +15,176 @@
     $hasProfileErrors = $errors->hasAny(['name', 'username', 'email', 'phone', 'nrp', 'jabatan', 'company', 'password']);
 @endphp
 
+<style>
+/* Defensive Responsive Rules for Profile & Canvas Signature Pad */
+.digi-sigpad-container {
+    width: 100% !important;
+    max-width: 520px;
+    box-sizing: border-box !important;
+    background: #ffffff;
+    border: 1.5px solid #cbd5e1;
+    border-radius: 12px;
+    overflow: hidden !important;
+    margin-top: 10px;
+}
+.digi-sigpad-tabs {
+    display: flex;
+    background: #f1f5f9;
+    border-bottom: 1.5px solid #e2e8f0;
+    padding: 4px;
+    gap: 4px;
+    box-sizing: border-box;
+}
+.digi-sigpad-tab-btn {
+    flex: 1;
+    padding: 8px 10px;
+    font-size: 12.5px;
+    font-weight: 600;
+    border: none;
+    background: transparent;
+    color: #64748b;
+    border-radius: 8px;
+    cursor: pointer;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 6px;
+    transition: all 0.2s ease;
+    box-sizing: border-box;
+}
+.digi-sigpad-tab-btn.active {
+    background: #ffffff;
+    color: #0284c7;
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.08);
+}
+.digi-sigpad-body {
+    padding: 14px 16px;
+    box-sizing: border-box;
+    width: 100%;
+}
+.digi-sigpad-canvas-wrapper {
+    position: relative;
+    background: #ffffff;
+    border: 1.5px dashed #cbd5e1;
+    border-radius: 10px;
+    cursor: crosshair;
+    touch-action: none;
+    overflow: hidden !important;
+    height: 185px !important;
+    width: 100% !important;
+    max-width: 100% !important;
+    box-sizing: border-box !important;
+    transition: border-color 0.2s ease, box-shadow 0.2s ease;
+}
+.digi-sigpad-canvas-wrapper.is-drawing {
+    border-color: #0284c7;
+    box-shadow: 0 0 0 3px rgba(2, 132, 199, 0.12);
+}
+.digi-sigpad-canvas {
+    display: block !important;
+    width: 100% !important;
+    height: 100% !important;
+    touch-action: none;
+    background: #ffffff;
+    box-sizing: border-box !important;
+}
+.digi-sigpad-baseline {
+    position: absolute;
+    bottom: 36px;
+    left: 16px;
+    right: 16px;
+    border-bottom: 1px dashed #cbd5e1;
+    pointer-events: none;
+}
+.digi-sigpad-baseline-hint {
+    position: absolute;
+    bottom: 8px;
+    left: 0;
+    right: 0;
+    text-align: center;
+    font-size: 11px;
+    color: #94a3b8;
+    pointer-events: none;
+    user-select: none;
+}
+.digi-sigpad-footer {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 10px;
+    margin-top: 12px;
+    flex-wrap: wrap;
+    box-sizing: border-box;
+}
+
+@media (max-width: 768px) {
+    .digi-profile-layout {
+        grid-template-columns: 1fr !important;
+        gap: 14px !important;
+        width: 100% !important;
+        max-width: 100% !important;
+        box-sizing: border-box !important;
+    }
+    .digi-profile-left, .digi-profile-right {
+        padding: 18px 14px !important;
+        border-radius: 14px !important;
+        width: 100% !important;
+        max-width: 100% !important;
+        box-sizing: border-box !important;
+        overflow: hidden !important;
+    }
+    .digi-profile-row {
+        grid-template-columns: 1fr !important;
+        gap: 4px !important;
+        padding: 10px 0 !important;
+        width: 100% !important;
+        max-width: 100% !important;
+        box-sizing: border-box !important;
+    }
+    .digi-profile-value {
+        width: 100% !important;
+        max-width: 100% !important;
+        box-sizing: border-box !important;
+    }
+    .digi-sigpad-container {
+        max-width: 100% !important;
+        width: 100% !important;
+    }
+    .digi-sigpad-tabs {
+        padding: 3px !important;
+        gap: 4px !important;
+    }
+    .digi-sigpad-tab-btn {
+        padding: 8px 6px !important;
+        font-size: 11.5px !important;
+        white-space: nowrap !important;
+    }
+    .digi-sigpad-body {
+        padding: 12px 10px !important;
+    }
+    .digi-sigpad-canvas-wrapper, .digi-sigpad-canvas {
+        height: 175px !important;
+    }
+    .digi-sigpad-footer {
+        flex-direction: column !important;
+        align-items: stretch !important;
+        gap: 8px !important;
+    }
+    .digi-sigpad-footer .btn-digi {
+        width: 100% !important;
+        justify-content: center !important;
+        text-align: center !important;
+        padding: 10px 14px !important;
+    }
+    .digi-sigpad-footer > div {
+        display: flex !important;
+        flex-direction: column !important;
+        gap: 8px !important;
+        width: 100% !important;
+    }
+}
+</style>
+
 <div class="digi-profile-layout">
     <!-- Panel Kiri: Foto Profil & Identitas Singkat -->
     <div class="digi-profile-left">
@@ -343,16 +513,16 @@
                 @endif
 
                 <!-- SIGNATURE CREATOR COMPONENT (CANVAS DRAW OR FILE UPLOAD) -->
-                <div id="signature-creator-container" class="digi-sigpad-container" style="{{ $user->signature_url ? 'display: none; margin-top: 10px;' : 'display: block;' }}">
+                <div id="signature-creator-container" class="digi-sigpad-container" style="{{ $user->signature_url ? 'display: none;' : 'display: block;' }}">
                     <!-- Segmented Tabs -->
                     <div class="digi-sigpad-tabs">
                         <button type="button" id="sigTabDraw" class="digi-sigpad-tab-btn active" onclick="switchSignatureTab('draw')">
                             <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 20h9"></path><path d="M16.5 3.5a2.121 2.121 0 0 1 3 3L7 19l-4 1 1-4L16.5 3.5z"></path></svg>
-                            Gores Langsung (Kanvas)
+                            <span>Gores Langsung (Kanvas)</span>
                         </button>
                         <button type="button" id="sigTabUpload" class="digi-sigpad-tab-btn" onclick="switchSignatureTab('upload')">
                             <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path><polyline points="17 8 12 3 7 8"></polyline><line x1="12" y1="3" x2="12" y2="15"></line></svg>
-                            Upload File Gambar
+                            <span>Upload File Gambar</span>
                         </button>
                     </div>
 
@@ -361,17 +531,17 @@
                         <div id="sigPanelDraw">
                             <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px; flex-wrap: wrap; gap: 6px;">
                                 <div style="font-size: 12.5px; color: #475569; font-weight: 500;">
-                                    Goreskan tanda tangan menggunakan mouse, trackpad, atau sentuhan jari:
+                                    Goreskan tanda tangan pada kanvas di bawah:
                                 </div>
                                 <div id="sigpadStatusBadge" class="digi-sigpad-status">
                                     <span style="color: #94a3b8; font-size: 11.5px;">Belum ada goresan</span>
                                 </div>
                             </div>
 
-                            <div class="digi-sigpad-canvas-wrapper" id="digiSigCanvasWrapper">
-                                <canvas id="digiSignatureCanvas" class="digi-sigpad-canvas" height="190"></canvas>
-                                <div class="digi-sigpad-baseline"></div>
-                                <div class="digi-sigpad-baseline-hint">Gores tanda tangan di atas garis ini</div>
+                            <div class="digi-sigpad-canvas-wrapper" id="digiSigCanvasWrapper" style="position: relative; width: 100%; height: 185px; max-width: 100%; box-sizing: border-box; touch-action: none; background: #ffffff; border: 1.5px dashed #cbd5e1; border-radius: 10px; overflow: hidden;">
+                                <canvas id="digiSignatureCanvas" class="digi-sigpad-canvas" style="display: block; width: 100%; height: 100%; touch-action: none; background: #ffffff;"></canvas>
+                                <div class="digi-sigpad-baseline" style="position: absolute; bottom: 36px; left: 16px; right: 16px; border-bottom: 1px dashed #cbd5e1; pointer-events: none;"></div>
+                                <div class="digi-sigpad-baseline-hint" style="position: absolute; bottom: 8px; left: 0; right: 0; text-align: center; font-size: 11px; color: #94a3b8; pointer-events: none; user-select: none;">Gores tanda tangan di atas garis ini</div>
                             </div>
 
                             <form id="canvasSignatureForm" action="{{ route('profile.signature') }}" method="POST" onsubmit="return prepareAndSubmitCanvasSignature();" style="margin: 0;">
@@ -379,18 +549,18 @@
                                 <input type="hidden" name="signature_base64" id="signature_base64_input">
                                 
                                 <div class="digi-sigpad-footer">
-                                    <button type="button" class="btn-digi btn-digi-gray" style="padding: 6px 14px; font-size: 12.5px;" onclick="clearSignaturePad()">
+                                    <button type="button" class="btn-digi btn-digi-gray" style="padding: 7px 14px; font-size: 12.5px;" onclick="clearSignaturePad()">
                                         <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="display:inline-block; vertical-align:-1px; margin-right:3px;"><path d="M21.5 2v6h-6M21.34 15.57a10 10 0 1 1-.57-8.38l5.67-5.67"/></svg>
                                         Bersihkan / Ulangi
                                     </button>
 
                                     <div style="display: flex; gap: 8px; align-items: center;">
                                         @if($user->signature_url)
-                                            <button type="button" class="btn-digi btn-digi-gray" style="padding: 6px 14px; font-size: 12.5px;" onclick="hideSignatureCreator()">
+                                            <button type="button" class="btn-digi btn-digi-gray" style="padding: 7px 14px; font-size: 12.5px;" onclick="hideSignatureCreator()">
                                                 Batal
                                             </button>
                                         @endif
-                                        <button type="submit" id="saveCanvasSignatureBtn" class="btn-digi btn-digi-blue" style="padding: 7px 18px; font-size: 13px; opacity: 0.5; cursor: not-allowed;" disabled>
+                                        <button type="submit" id="saveCanvasSignatureBtn" class="btn-digi btn-digi-blue" style="padding: 8px 18px; font-size: 13px; opacity: 0.5; cursor: not-allowed;" disabled>
                                             <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" style="display:inline-block; vertical-align:-1px; margin-right:4px;"><polyline points="20 6 9 17 4 12"></polyline></svg>
                                             Simpan Tanda Tangan
                                         </button>
@@ -609,6 +779,13 @@ function showSignatureCreator() {
     if (creatorBox) {
         creatorBox.style.display = 'block';
         switchSignatureTab('draw');
+        requestAnimationFrame(() => {
+            resizeSignaturePad();
+            setTimeout(() => {
+                resizeSignaturePad();
+                creatorBox.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+            }, 60);
+        });
     }
 }
 
@@ -632,7 +809,10 @@ function switchSignatureTab(mode) {
         uploadTab.classList.remove('active');
         drawPanel.style.display = 'block';
         uploadPanel.style.display = 'none';
-        setTimeout(resizeSignaturePad, 60);
+        requestAnimationFrame(() => {
+            resizeSignaturePad();
+            setTimeout(resizeSignaturePad, 50);
+        });
     } else {
         uploadTab.classList.add('active');
         drawTab.classList.remove('active');
@@ -658,10 +838,12 @@ function initSignaturePad() {
     sigPadCtx = sigPadCanvas.getContext('2d');
 
     resizeSignaturePad();
-    window.addEventListener('resize', resizeSignaturePad);
+    window.addEventListener('resize', () => {
+        requestAnimationFrame(resizeSignaturePad);
+    });
 
-    sigPadCanvas.addEventListener('pointerdown', startDrawing);
-    sigPadCanvas.addEventListener('pointermove', drawStroke);
+    sigPadCanvas.addEventListener('pointerdown', startDrawing, { passive: false });
+    sigPadCanvas.addEventListener('pointermove', drawStroke, { passive: false });
     sigPadCanvas.addEventListener('pointerup', stopDrawing);
     sigPadCanvas.addEventListener('pointercancel', stopDrawing);
     sigPadCanvas.addEventListener('pointerleave', stopDrawing);
@@ -669,39 +851,56 @@ function initSignaturePad() {
 
 function resizeSignaturePad() {
     if (!sigPadCanvas || !sigPadCtx) return;
-    const rect = sigPadCanvas.getBoundingClientRect();
+    const wrapper = document.getElementById('digiSigCanvasWrapper');
+    if (!wrapper) return;
+    const rect = wrapper.getBoundingClientRect();
     if (rect.width === 0 || rect.height === 0) return;
 
-    const dpr = window.devicePixelRatio || 1;
-    let tempImg = null;
+    const dpr = Math.min(window.devicePixelRatio || 1, 2.5);
+
+    // Save existing stroke image if any before resizing canvas buffer
+    let tempCanvas = null;
     if (hasStrokes && sigPadCanvas.width > 0 && sigPadCanvas.height > 0) {
-        tempImg = sigPadCtx.getImageData(0, 0, sigPadCanvas.width, sigPadCanvas.height);
+        tempCanvas = document.createElement('canvas');
+        tempCanvas.width = sigPadCanvas.width;
+        tempCanvas.height = sigPadCanvas.height;
+        const tempCtx = tempCanvas.getContext('2d');
+        tempCtx.drawImage(sigPadCanvas, 0, 0);
     }
 
-    sigPadCanvas.width = rect.width * dpr;
-    sigPadCanvas.height = rect.height * dpr;
-    sigPadCtx.scale(dpr, dpr);
+    const targetW = Math.round(rect.width);
+    const targetH = Math.round(rect.height) || 185;
 
+    sigPadCanvas.width = Math.round(targetW * dpr);
+    sigPadCanvas.height = Math.round(targetH * dpr);
+    sigPadCanvas.style.width = targetW + 'px';
+    sigPadCanvas.style.height = targetH + 'px';
+
+    sigPadCtx.scale(dpr, dpr);
     sigPadCtx.strokeStyle = '#0f172a'; // Deep slate / charcoal ink
     sigPadCtx.lineWidth = 2.8;
     sigPadCtx.lineCap = 'round';
     sigPadCtx.lineJoin = 'round';
 
-    if (tempImg) {
-        sigPadCtx.putImageData(tempImg, 0, 0);
+    if (tempCanvas) {
+        sigPadCtx.drawImage(tempCanvas, 0, 0, tempCanvas.width, tempCanvas.height, 0, 0, targetW, targetH);
     }
 }
 
 function getCanvasCoordinates(e) {
     const rect = sigPadCanvas.getBoundingClientRect();
     return {
-        x: e.clientX - rect.left,
-        y: e.clientY - rect.top
+        x: Math.max(0, Math.min(rect.width, e.clientX - rect.left)),
+        y: Math.max(0, Math.min(rect.height, e.clientY - rect.top))
     };
 }
 
 function startDrawing(e) {
     if (e.button !== undefined && e.button !== 0) return;
+    e.preventDefault();
+    if (e.target && e.target.setPointerCapture && e.pointerId) {
+        try { e.target.setPointerCapture(e.pointerId); } catch(err) {}
+    }
     isDrawing = true;
     const wrapper = document.getElementById('digiSigCanvasWrapper');
     if (wrapper) wrapper.classList.add('is-drawing');
@@ -721,6 +920,7 @@ function startDrawing(e) {
 
 function drawStroke(e) {
     if (!isDrawing) return;
+    e.preventDefault();
     const pos = getCanvasCoordinates(e);
 
     sigPadCtx.beginPath();
@@ -736,9 +936,12 @@ function drawStroke(e) {
     lastY = pos.y;
 }
 
-function stopDrawing() {
+function stopDrawing(e) {
     if (isDrawing) {
         isDrawing = false;
+        if (e && e.target && e.target.releasePointerCapture && e.pointerId) {
+            try { e.target.releasePointerCapture(e.pointerId); } catch(err) {}
+        }
         const wrapper = document.getElementById('digiSigCanvasWrapper');
         if (wrapper) wrapper.classList.remove('is-drawing');
     }
@@ -771,7 +974,7 @@ function markHasStrokes(state) {
 
 function clearSignaturePad() {
     if (!sigPadCanvas || !sigPadCtx) return;
-    const dpr = window.devicePixelRatio || 1;
+    const dpr = Math.min(window.devicePixelRatio || 1, 2.5);
     sigPadCtx.clearRect(0, 0, sigPadCanvas.width / dpr, sigPadCanvas.height / dpr);
     minX = Infinity; minY = Infinity; maxX = -Infinity; maxY = -Infinity;
     markHasStrokes(false);

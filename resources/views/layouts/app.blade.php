@@ -147,6 +147,10 @@
     <!-- MAIN CONTENT -->
     <main class="digi-main-container">
         @if(session('success'))
+            @php
+                $isWelcomeMsg = str_contains(strtolower(session('success')), 'selamat datang') || str_contains(strtolower(session('success')), 'login') || str_contains(strtolower(session('success')), 'beralih ke akun');
+            @endphp
+            @if(!$isWelcomeMsg)
             <div class="digi-alert digi-alert-success">
                 <span style="display:inline-flex; align-items:center; gap:6px;">
                     <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"></polyline></svg>
@@ -154,6 +158,7 @@
                 </span>
                 <button type="button" onclick="this.parentElement.remove()" style="background:none; border:none; cursor:pointer; font-size:16px;">&times;</button>
             </div>
+            @endif
         @endif
 
         @if(session('error'))
@@ -240,13 +245,15 @@
 
             if (successMsg) {
                 if (isLoginMsg) {
+                    const isMobile = window.innerWidth <= 768;
                     Swal.fire({
                         toast: true,
-                        position: 'top-end',
+                        position: isMobile ? 'bottom' : 'top-end',
                         icon: 'success',
                         title: successMsg,
                         showConfirmButton: false,
-                        timer: 3500,
+                        showCloseButton: true,
+                        timer: 4000,
                         timerProgressBar: true,
                         customClass: {
                             popup: 'digi-toast-popup'
@@ -254,6 +261,11 @@
                         didOpen: (toast) => {
                             toast.addEventListener('mouseenter', Swal.stopTimer);
                             toast.addEventListener('mouseleave', Swal.resumeTimer);
+                            toast.style.cursor = 'pointer';
+                            toast.title = 'Klik untuk menutup';
+                            toast.addEventListener('click', (e) => {
+                                Swal.close();
+                            });
                         }
                     });
                 } else {
