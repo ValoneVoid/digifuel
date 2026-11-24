@@ -1575,9 +1575,12 @@ class AdminMasterController extends Controller
             'vehicle_id' => 'required|exists:vehicles,id',
             'standard_type' => 'nullable|in:km_per_liter,liter_per_hour',
             'standard_value' => 'required|numeric|gt:0',
+            'standard_max' => 'nullable|numeric|gt:standard_value',
             'tolerance_percentage' => 'nullable|numeric|min:0|max:100',
             'effective_start' => 'required|date',
             'notes' => 'nullable|string|max:500',
+        ], [
+            'standard_max.gt' => 'Batas Maksimal KM/L harus lebih besar dari Nilai Standar Minimal.',
         ]);
 
         $vehicle = Vehicle::findOrFail($validated['vehicle_id']);
@@ -1591,6 +1594,10 @@ class AdminMasterController extends Controller
             ? $validated['standard_type']
             : ($vehicle->meter_type === 'hm' ? 'liter_per_hour' : 'km_per_liter');
 
+        $standardMax = isset($validated['standard_max']) && $validated['standard_max'] !== '' && $validated['standard_max'] !== null
+            ? (float) $validated['standard_max']
+            : null;
+
         $tolerancePct = array_key_exists('tolerance_percentage', $validated) && $validated['tolerance_percentage'] !== null && $validated['tolerance_percentage'] !== ''
             ? (float) $validated['tolerance_percentage']
             : 5.00;
@@ -1600,11 +1607,12 @@ class AdminMasterController extends Controller
                 'vehicle_id' => $validated['vehicle_id'],
                 'standard_type' => $standardType,
                 'standard_value' => $validated['standard_value'],
+                'standard_max' => $standardMax,
                 'tolerance_percentage' => $tolerancePct,
                 'effective_start' => $validated['effective_start'],
                 'notes' => $validated['notes'] ?? null,
             ]);
-            FuelRequestHistory::record(null, $admin->id, 'standard_updated', null, 'active', "Memperbarui standar konsumsi BBM ID #{$std->id} untuk Unit {$vehicle->unit_code}: {$std->standard_value} ({$std->standard_type}).");
+            FuelRequestHistory::record(null, $admin->id, 'standard_updated', null, 'active', "Memperbarui standar konsumsi BBM ID #{$std->id} untuk Unit {$vehicle->unit_code}: {$std->range_label} ({$std->standard_type}).");
             return redirect()->route('admin.master', ['tab' => 'standards'])->with('success', "Data standar konsumsi BBM untuk unit {$vehicle->unit_code} berhasil diperbarui.");
         }
 
@@ -1620,13 +1628,14 @@ class AdminMasterController extends Controller
             'vehicle_id' => $vehicle->id,
             'standard_type' => $standardType,
             'standard_value' => $validated['standard_value'],
+            'standard_max' => $standardMax,
             'tolerance_percentage' => $tolerancePct,
             'effective_start' => $validated['effective_start'],
             'is_active' => true,
             'notes' => $validated['notes'] ?? null,
         ]);
 
-        FuelRequestHistory::record(null, $admin->id, 'standard_updated', null, 'active', "Menambahkan standar konsumsi BBM baru untuk Unit {$vehicle->unit_code}: {$std->standard_value} ({$std->standard_type}).");
+        FuelRequestHistory::record(null, $admin->id, 'standard_updated', null, 'active', "Menambahkan standar konsumsi BBM baru untuk Unit {$vehicle->unit_code}: {$std->range_label} ({$std->standard_type}).");
 
         return redirect()->route('admin.master', ['tab' => 'standards'])->with('success', "Standar konsumsi BBM untuk unit {$vehicle->unit_code} berhasil ditambahkan (riwayat standar lama tetap tersimpan).");
     }

@@ -14,7 +14,7 @@ class FonnteWhatsappService
 
     public function __construct(?string $token = null, ?string $url = null)
     {
-        $this->token = $token ?: config('services.fonnte.token', env('FONNTE_TOKEN', 'jpq3okyqAyL9YSCfzFXg'));
+        $this->token = $token ?: config('services.fonnte.token', env('FONNTE_TOKEN', '3N9fc1D8HAt5E5ZiauFw'));
         $this->url = $url ?: config('services.fonnte.url', 'https://api.fonnte.com/send');
     }
 
@@ -78,6 +78,18 @@ class FonnteWhatsappService
     }
 
     /**
+     * Build direct deep-link URL to the Fuel Request detail/approval page.
+     */
+    protected function buildApprovalUrl(FuelRequest $fuelRequest): string
+    {
+        try {
+            return route('approval.show', $fuelRequest->id);
+        } catch (\Throwable $e) {
+            return rtrim((string) config('app.url', ''), '/') . '/approval/' . $fuelRequest->id;
+        }
+    }
+
+    /**
      * Notify SPV when a new fuel request is submitted by Driver / Employee.
      */
     public function notifyPendingSpv(FuelRequest $fuelRequest, User $driver): bool
@@ -90,6 +102,7 @@ class FonnteWhatsappService
         $unitCode = $fuelRequest->vehicle?->unit_code ?? $fuelRequest->unit_code ?? '-';
         $liters = number_format((float)$fuelRequest->total_liters, 0, ',', '.');
         $area = $fuelRequest->area ?? '-';
+        $directUrl = $this->buildApprovalUrl($fuelRequest);
 
         $message = "*[FuelLink - Menunggu Approval SPV]*\n\n"
             . "Halo *{$spv->name}*,\n"
@@ -99,7 +112,8 @@ class FonnteWhatsappService
             . "• *Unit:* {$unitCode}\n"
             . "• *Jumlah BBM:* {$liters} Liter\n"
             . "• *Area:* {$area}\n\n"
-            . "Silakan masuk ke sistem FuelLink untuk memeriksa dan memberikan persetujuan.\n"
+            . "Silakan buka tautan berikut untuk memeriksa dan menyetujui pengajuan:\n"
+            . "{$directUrl}\n\n"
             . "Terima kasih.";
 
         return $this->sendMessage($spv->phone, $message);
@@ -119,6 +133,7 @@ class FonnteWhatsappService
         $liters = number_format((float)$fuelRequest->total_liters, 0, ',', '.');
         $driverName = $fuelRequest->user?->name ?? $fuelRequest->driver_name ?? 'Driver';
         $area = $fuelRequest->area ?? '-';
+        $directUrl = $this->buildApprovalUrl($fuelRequest);
 
         $message = "*[FuelLink - Menunggu Approval Dept Head]*\n\n"
             . "Halo *{$depthead->name}*,\n"
@@ -128,7 +143,8 @@ class FonnteWhatsappService
             . "• *Unit:* {$unitCode}\n"
             . "• *Jumlah BBM:* {$liters} Liter\n"
             . "• *Area:* {$area}\n\n"
-            . "Silakan masuk ke sistem FuelLink untuk memeriksa dan memberikan persetujuan.\n"
+            . "Silakan buka tautan berikut untuk memeriksa dan memberikan persetujuan:\n"
+            . "{$directUrl}\n\n"
             . "Terima kasih.";
 
         return $this->sendMessage($depthead->phone, $message);
@@ -172,6 +188,7 @@ class FonnteWhatsappService
         $liters = number_format((float)$fuelRequest->total_liters, 0, ',', '.');
         $vendorName = $fuelRequest->vendor_name ?? $fuelRequest->vendorModel?->name ?? 'Vendor BBM';
         $driverName = $fuelRequest->user?->name ?? $fuelRequest->driver_name ?? 'Driver';
+        $directUrl = $this->buildApprovalUrl($fuelRequest);
 
         $message = "*[FuelLink - Siap Pengisian BBM / Approval Vendor]*\n\n"
             . "Halo *{$vendorRecipientName}* ({$vendorName}),\n"
@@ -181,9 +198,41 @@ class FonnteWhatsappService
             . "• *Unit:* {$unitCode}\n"
             . "• *Jumlah BBM:* {$liters} Liter\n"
             . "• *Area:* " . ($fuelRequest->area ?? '-') . "\n\n"
-            . "Silakan verifikasi surat dan lakukan pengisian BBM sesuai prosedur FuelLink.\n"
+            . "Silakan buka tautan berikut untuk memverifikasi dan mencatat realisasi pengisian BBM:\n"
+            . "{$directUrl}\n\n"
             . "Terima kasih.";
 
         return $this->sendMessage($targetPhone, $message);
+    }
+
+    /**
+     * Notify requesting Driver / Employee when Vendor has completed fueling realization
+     * and awaits Final Verification (Final Approve).
+     */
+    public function notifyPendingUserVerification(FuelRequest $fuelRequest, User $vendorUser): bool
+    {
+        $requester = $fuelRequest->user;
+        if (!$requester || empty($requester->phone)) {
+            return false;
+        }
+
+        $unitCode = $fuelRequest->vehicle?->unit_code ?? $fuelRequest->unit_code ?? '-';
+        $approvedLiters = number_format((float)$fuelRequest->total_liters, 1, ',', '.');
+        $actualLiters = number_format((float)($fuelRequest->actual_liters ?? $fuelRequest->total_liters), 1, ',', '.');
+        $vendorName = $fuelRequest->vendor_name ?? $vendorUser->name;
+        $directUrl = $this->buildApprovalUrl($fuelRequest);
+
+        $message = "*[FuelLink - Verifikasi Akhir Pengisian BBM]*\n\n"
+            . "Halo *{$requester->name}*,\n"
+            . "Vendor BBM (*{$vendorName}*) telah mencatat realisasi pengisian bahan bakar Anda:\n\n"
+            . "• *No. Surat:* {$fuelRequest->request_no}\n"
+            . "• *Unit:* {$unitCode}\n"
+            . "• *Liter Disetujui:* {$approvedLiters} Liter\n"
+            . "• *Liter Aktual Terisi:* {$actualLiters} Liter\n\n"
+            . "Silakan buka tautan berikut untuk melakukan *Verifikasi Akhir (Final Approve)* bahwa pengisian telah sesuai:\n"
+            . "{$directUrl}\n\n"
+            . "Terima kasih.";
+
+        return $this->sendMessage($requester->phone, $message);
     }
 }

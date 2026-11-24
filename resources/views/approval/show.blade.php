@@ -18,7 +18,9 @@
         $spvDone = $fuelRequest->status_spv === 'disetujui';
         $dhDone = $fuelRequest->status_depthead === 'disetujui';
         $vendorDone = $fuelRequest->isVendorApproved();
-        $fuelingDone = $fuelRequest->current_stage === 'completed' || $fuelRequest->transactions->count() > 0;
+        $pendingUserVerify = $fuelRequest->current_stage === 'pending_user_verification';
+        $isCompleted = $fuelRequest->current_stage === 'completed';
+        $isSpbu = $fuelRequest->isSpbu();
         $isRejected = $fuelRequest->overall_status === 'ditolak';
     @endphp
     <div class="digi-stepper-scroll" style="background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 10px; padding: 14px 16px; margin-bottom: 20px; text-align: center; font-size: 12px;">
@@ -42,11 +44,13 @@
             </span>
         </div>
         <div>
-            <div style="font-weight: 700; color: {{ ($vendorDone || $fuelingDone) ? '#15803d' : ($fuelRequest->status_vendor === 'ditolak' || $fuelRequest->status_fuelman === 'ditolak' ? '#b91c1c' : '#475569') }};">4. Persetujuan & Realisasi Vendor</div>
-            <div style="color: #475569;">{{ $fuelRequest->vendor_name }}</div>
-            <span class="digi-badge {{ ($vendorDone || $fuelingDone) ? 'digi-badge-green' : ($fuelRequest->status_vendor === 'ditolak' || $fuelRequest->status_fuelman === 'ditolak' ? 'digi-badge-red' : ($dhDone ? 'digi-badge-yellow' : 'digi-badge-gray')) }}" style="margin-top:4px;">
-                @if($fuelingDone || $vendorDone)
-                    Selesai ({{ (float)($fuelRequest->actual_liters ?? $fuelRequest->total_liters) }} L)
+            <div style="font-weight: 700; color: {{ $vendorDone ? '#15803d' : ($fuelRequest->status_vendor === 'ditolak' || $fuelRequest->status_fuelman === 'ditolak' ? '#b91c1c' : '#475569') }};">4. {{ $isSpbu ? 'Pengisian SPBU' : 'Realisasi Vendor' }}</div>
+            <div style="color: #475569;">{{ $isSpbu ? ($fuelRequest->spbu_location ?? 'SPBU') : $fuelRequest->vendor_name }}</div>
+            <span class="digi-badge {{ $vendorDone ? 'digi-badge-green' : ($fuelRequest->status_vendor === 'ditolak' || $fuelRequest->status_fuelman === 'ditolak' ? 'digi-badge-red' : ($dhDone ? 'digi-badge-yellow' : 'digi-badge-gray')) }}" style="margin-top:4px;">
+                @if($isSpbu)
+                    SPBU Full Approved ({{ (float)($fuelRequest->actual_liters ?? $fuelRequest->total_liters) }} L)
+                @elseif($vendorDone)
+                    Terisi ({{ (float)($fuelRequest->actual_liters ?? $fuelRequest->total_liters) }} L)
                 @elseif($dhDone)
                     Menunggu Vendor
                 @else
@@ -54,6 +58,21 @@
                 @endif
             </span>
         </div>
+        @if(!$isSpbu)
+        <div>
+            <div style="font-weight: 700; color: {{ $isCompleted ? '#15803d' : ($pendingUserVerify ? '#b45309' : '#475569') }};">5. Verifikasi Pemohon</div>
+            <div style="color: #475569;">{{ $fuelRequest->driver_name }}</div>
+            <span class="digi-badge {{ $isCompleted ? 'digi-badge-green' : ($pendingUserVerify ? 'digi-badge-yellow' : 'digi-badge-gray') }}" style="margin-top:4px;">
+                @if($isCompleted)
+                    Terverifikasi Selesai
+                @elseif($pendingUserVerify)
+                    Menunggu Final Approve
+                @else
+                    Menunggu Tahap 4
+                @endif
+            </span>
+        </div>
+        @endif
     </div>
 
     @php
@@ -61,16 +80,20 @@
         $canApprove = false;
         $activeStageLabel = '';
         $isVendorStage = false;
+        $canEditLiters = false;
+        $canVerifyUser = $currentUser && app(\App\Policies\FuelRequestPolicy::class)->verifyUser($currentUser, $fuelRequest);
 
-        if ($currentUser && !$isRejected && $fuelRequest->current_stage !== 'completed') {
+        if ($currentUser && !$isRejected && !in_array($fuelRequest->current_stage, ['completed', 'pending_user_verification'], true)) {
             // Stage 1 (Langkah 2): SPV
             if (($currentUser->isSpv() || $currentUser->isAdmin()) && $fuelRequest->status_spv === 'menunggu') {
                 $canApprove = true;
+                $canEditLiters = true;
                 $activeStageLabel = 'Tahap 2: SPV';
             }
             // Stage 2 (Langkah 3): Dept Head / Manager (only after SPV approved!)
             elseif (($currentUser->isManager() || $currentUser->isAdmin()) && $fuelRequest->status_spv === 'disetujui' && $fuelRequest->status_depthead !== 'disetujui') {
                 $canApprove = true;
+                $canEditLiters = true;
                 $activeStageLabel = 'Tahap 3: Dept Head/Manager';
             }
             // Stage 3 (Langkah 4): Vendor (only after SPV & Dept Head approved!)
@@ -116,7 +139,7 @@
             @endif
 
             @if($canApprove)
-                @if($fuelRequest->status_spv === 'menunggu' && ($currentUser->isSpv() || $currentUser->isAdmin()))
+                @if($canEditLiters)
                     <button type="button" class="btn-digi btn-digi-yellow" onclick="openUpdateLitersModal()">
                         <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
                             <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"></path>
@@ -216,7 +239,7 @@
                     <label class="digi-form-label" style="margin: 0;">
                         {{ $fuelRequest->status_spv === 'menunggu' ? 'Total Liter Diajukan Driver' : 'Total (Jumlah) Liter Disetujui' }} <span class="digi-required">*</span>
                     </label>
-                    @if($fuelRequest->status_spv === 'menunggu' && ($currentUser?->isSpv() || $currentUser?->isAdmin()))
+                    @if($canEditLiters)
                         <button type="button" onclick="openUpdateLitersModal()" class="btn-digi btn-digi-yellow" style="padding: 2px 10px; font-size: 11.5px; height: auto;">
                             <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" style="display:inline-block; vertical-align:middle; margin-right:4px;"><path d="M12 20h9"/><path d="M16.5 3.5a2.121 2.121 0 0 1 3 3L7 19l-4 1 1-4L16.5 3.5z"/></svg>Ubah Liter
                         </button>
@@ -311,15 +334,55 @@
         </div>
     </div>
 
+    <!-- SECTION: DETAIL PENGISIAN SPBU (KHUSUS DEPT HEAD / SM) -->
+    @if($isSpbu)
+        <div class="digi-form-box" style="border-color: #f59e0b; background: #fffbeb; margin-bottom: 18px;">
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px; flex-wrap: wrap; gap: 8px;">
+                <h3 class="digi-section-title" style="color: #92400e; margin: 0;">
+                    Detail Pengisian SPBU (Full Bypass — Dept Head / Site Manager)
+                </h3>
+                <span class="digi-badge digi-badge-green">SPBU — Full Approved</span>
+            </div>
+            <div class="digi-form-grid-3" style="margin-bottom: 10px;">
+                <div class="digi-form-group" style="margin-bottom: 0;">
+                    <label class="digi-form-label">Lokasi SPBU</label>
+                    <input type="text" class="digi-input" value="{{ $fuelRequest->spbu_location ?? '-' }}" readonly disabled>
+                </div>
+                <div class="digi-form-group" style="margin-bottom: 0;">
+                    <label class="digi-form-label">Harga Aktual per Liter</label>
+                    <input type="text" class="digi-input" value="{{ $fuelRequest->spbu_price_per_liter ? 'Rp ' . number_format((float)$fuelRequest->spbu_price_per_liter, 0, ',', '.') . ' / Liter' : '-' }}" readonly disabled style="font-weight: 700; color: #92400e;">
+                </div>
+                <div class="digi-form-group" style="margin-bottom: 0;">
+                    <label class="digi-form-label">Total Biaya Aktual SPBU</label>
+                    <input type="text" class="digi-input" value="{{ $fuelRequest->spbu_price_per_liter ? 'Rp ' . number_format((float)$fuelRequest->spbu_price_per_liter * (float)($fuelRequest->actual_liters ?? $fuelRequest->total_liters), 0, ',', '.') : '-' }}" readonly disabled style="font-weight: 700; color: #15803d;">
+                </div>
+            </div>
+            @if($fuelRequest->spbu_receipt_photo)
+                <div style="margin-top: 12px; padding-top: 12px; border-top: 1px dashed #fcd34d;">
+                    <div style="font-size: 12.5px; font-weight: 700; color: #92400e; margin-bottom: 8px;">Bukti Foto Nota / Struk SPBU:</div>
+                    <a href="{{ route('fuel.spbu.receipt', $fuelRequest->id) }}" target="_blank" title="Klik untuk memperbesar foto nota SPBU">
+                        <img src="{{ route('fuel.spbu.receipt', $fuelRequest->id) }}" alt="Nota SPBU" style="max-height: 220px; border-radius: 10px; border: 1px solid #f59e0b; box-shadow: 0 3px 10px rgba(0,0,0,0.08);">
+                    </a>
+                </div>
+            @endif
+        </div>
+    @endif
+
     <!-- SECTION: PENCATATAN REALISASI PENGISIAN BBM OLEH VENDOR BBM -->
     @if($fuelRequest->isVendorApproved())
         <div class="digi-form-box" style="border-color: #22c55e; background: #f0fdf4;">
             <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 14px; flex-wrap: wrap; gap: 8px;">
                 <h3 class="digi-section-title" style="color: #15803d; margin: 0;">
-                    <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="display:inline-block; vertical-align:-1px; margin-right:4px;"><rect x="3" y="2" width="12" height="20" rx="2"></rect><line x1="3" y1="10" x2="15" y2="10"></line><path d="M15 7h2a2 2 0 0 1 2 2v6a2 2 0 0 0 2 2v0a2 2 0 0 0 2-2V9.83a2 2 0 0 0-.59-1.42L20.5 6.5"></path></svg>Pencatatan Realisasi Pengisian BBM (Vendor BBM)
+                    <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="display:inline-block; vertical-align:-1px; margin-right:4px;"><rect x="3" y="2" width="12" height="20" rx="2"></rect><line x1="3" y1="10" x2="15" y2="10"></line><path d="M15 7h2a2 2 0 0 1 2 2v6a2 2 0 0 0 2 2v0a2 2 0 0 0 2-2V9.83a2 2 0 0 0-.59-1.42L20.5 6.5"></path></svg>Pencatatan Realisasi Pengisian BBM ({{ $isSpbu ? 'SPBU' : 'Vendor BBM' }})
                 </h3>
-                <span class="digi-badge digi-badge-green">
-                    {{ $fuelRequest->transactions->count() > 0 ? 'Realisasi Tercatat (Selesai)' : 'Approved - Ready for Fueling' }}
+                <span class="digi-badge {{ $isCompleted ? 'digi-badge-green' : ($pendingUserVerify ? 'digi-badge-yellow' : 'digi-badge-blue') }}">
+                    @if($isCompleted)
+                        Realisasi Terverifikasi (Selesai)
+                    @elseif($pendingUserVerify)
+                        Realisasi Tercatat — Menunggu Verifikasi Pemohon
+                    @else
+                        Approved - Ready for Fueling
+                    @endif
                 </span>
             </div>
 
@@ -344,13 +407,26 @@
                         <strong>Catatan Transaksi:</strong> {{ $trx->notes }}
                     </div>
                 @endif
-            @endif
 
-            @if($currentUser && ($currentUser->isVendor() || $currentUser->isFuelman() || $currentUser->isAdmin()))
+                @if($fuelRequest->user_verified_at)
+                    <div style="margin-top: 12px; background: #dcfce7; border: 1px solid #86efac; border-radius: 8px; padding: 10px 14px; font-size: 12.5px; color: #166534;">
+                        <strong>&#10003; Verifikasi Akhir (Final Approve) Selesai:</strong> Dikonfirmasi oleh pemohon pada <strong>{{ $fuelRequest->user_verified_at->format('d/m/Y H:i') }}</strong>.
+                        @if($fuelRequest->user_verification_note)
+                            <div style="margin-top: 4px; color: #15803d;">Catatan: {{ $fuelRequest->user_verification_note }}</div>
+                        @endif
+                    </div>
+                @endif
+
+                @if($currentUser && ($currentUser->isVendor() || $currentUser->isFuelman()) && !$currentUser->isAdmin())
+                    <div style="margin-top: 12px; background: #eff6ff; border: 1px solid #bfdbfe; border-radius: 8px; padding: 9px 12px; font-size: 12px; color: #1e40af;">
+                        <strong>Data Realisasi Terkunci:</strong> Jumlah liter aktual, odometer KM/HM, dan waktu pengisian telah dicatat & dikunci sehingga tidak dapat diubah kembali oleh Vendor.
+                    </div>
+                @endif
+            @elseif($currentUser && app(\App\Policies\FuelRequestPolicy::class)->recordRealization($currentUser, $fuelRequest))
                 <form action="{{ route('approval.realization', $fuelRequest->id) }}" method="POST" style="margin-top: 14px; padding-top: 14px; border-top: 1px dashed #86efac;">
                     @csrf
                     <div style="font-size: 13px; font-weight: 700; color: #166534; margin-bottom: 12px;">
-                        {{ $fuelRequest->transactions->count() > 0 ? 'Perbarui / Tambah Catatan Realisasi Pengisian:' : 'Input Realisasi Pengisian BBM Aktual:' }}
+                        Input Realisasi Pengisian BBM Aktual (KM & Waktu Pengisian Terkunci Otomatis):
                     </div>
                     <div class="realization-grid">
                         <div class="digi-form-group" style="margin-bottom: 0;">
@@ -361,16 +437,16 @@
                             </div>
                         </div>
                         <div class="digi-form-group" style="margin-bottom: 0;">
-                            <label class="digi-form-label">KM / HM Saat Pengisian <span class="digi-required">*</span></label>
+                            <label class="digi-form-label">KM / HM Saat Pengisian <span class="digi-badge digi-badge-gray" style="font-size:10px; margin-left:4px;">Terkunci</span></label>
                             <div class="digi-input-group">
-                                <input type="number" step="0.1" min="0" name="meter_at_fueling" class="digi-input" value="{{ old('meter_at_fueling', (float)($fuelRequest->actual_hm_km ?? $fuelRequest->hm_km)) }}" required style="font-weight: 700;">
+                                <input type="number" step="0.1" name="meter_at_fueling" class="digi-input" value="{{ (float)$fuelRequest->hm_km }}" {{ $currentUser->isAdmin() ? '' : 'readonly' }} style="font-weight: 700; {{ $currentUser->isAdmin() ? '' : 'background:#f1f5f9; color:#475569; cursor:not-allowed;' }}">
                                 <span class="digi-input-addon">{{ strtoupper($fuelRequest->vehicle?->meter_type ?? 'KM') }}</span>
                             </div>
                         </div>
                     </div>
                     <div class="digi-form-group" style="margin-top: 12px; margin-bottom: 12px;">
-                        <label class="digi-form-label">Tanggal & Waktu Pengisian Aktual <span class="digi-required">*</span></label>
-                        <input type="datetime-local" name="fueled_at" class="digi-input" value="{{ old('fueled_at', now()->format('Y-m-d\TH:i')) }}" required>
+                        <label class="digi-form-label">Tanggal & Waktu Pengisian Aktual <span class="digi-badge digi-badge-gray" style="font-size:10px; margin-left:4px;">Otomatis Waktu Server</span></label>
+                        <input type="datetime-local" name="fueled_at" class="digi-input" value="{{ now()->format('Y-m-d\TH:i') }}" {{ $currentUser->isAdmin() ? '' : 'readonly' }} style="{{ $currentUser->isAdmin() ? '' : 'background:#f1f5f9; color:#475569; cursor:not-allowed;' }}">
                     </div>
                     <div style="display: flex; gap: 12px; align-items: flex-end; justify-content: space-between; flex-wrap: wrap;">
                         <div class="digi-form-group" style="flex: 1; min-width: 240px; margin-bottom: 0;">
@@ -378,12 +454,79 @@
                             <input type="text" name="notes" class="digi-input" placeholder="Contoh: Pengisian penuh sesuai SOP stasiun BBM" value="{{ old('notes') }}">
                         </div>
                         <button type="submit" class="btn-digi btn-digi-green" style="font-weight: 700;">
-                            Simpan Realisasi Pengisian
+                            Simpan Realisasi & Kunci
                         </button>
                     </div>
                 </form>
             @endif
         </div>
+    @endif
+
+    <!-- SECTION: VERIFIKASI AKHIR (FINAL APPROVE) OLEH PEMOHON / DRIVER (Item 8) -->
+    @if($pendingUserVerify)
+        @if($canVerifyUser)
+            <div class="digi-form-box" style="border: 2px solid #f59e0b; background: #fffbeb; margin-top: 16px;">
+                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px; flex-wrap: wrap; gap: 8px;">
+                    <h3 class="digi-section-title" style="color: #92400e; margin: 0;">
+                        Tahap 5 — Verifikasi Akhir Pengisian (Final Approve Pemohon)
+                    </h3>
+                    <span class="digi-badge digi-badge-yellow">Menunggu Konfirmasi Anda</span>
+                </div>
+
+                <p style="font-size: 13px; color: #78350f; margin: 0 0 14px 0; line-height: 1.5;">
+                    Vendor BBM (<strong>{{ $fuelRequest->vendor_name }}</strong>) telah selesai mencatat realisasi pengisian bahan bakar. Harap periksa kecocokan jumlah liter aktual di bawah ini dan lakukan konfirmasi penyelesaian agar transaksi resmi ditutup.
+                </p>
+
+                @php
+                    $reqL = (float) $fuelRequest->total_liters;
+                    $actL = (float) ($fuelRequest->actual_liters ?? $fuelRequest->total_liters);
+                    $diffL = round($actL - $reqL, 2);
+                @endphp
+                <div class="digi-form-grid-3" style="margin-bottom: 14px;">
+                    <div style="background: #fff; border: 1px solid #fde68a; border-radius: 8px; padding: 10px 14px;">
+                        <div style="font-size: 11px; color: #64748b; text-transform: uppercase; font-weight: 700;">Liter Disetujui</div>
+                        <div style="font-size: 18px; font-weight: 800; color: #0284c7;">{{ $reqL }} Liter</div>
+                    </div>
+                    <div style="background: #fff; border: 1px solid #fde68a; border-radius: 8px; padding: 10px 14px;">
+                        <div style="font-size: 11px; color: #64748b; text-transform: uppercase; font-weight: 700;">Liter Aktual Vendor</div>
+                        <div style="font-size: 18px; font-weight: 800; color: #15803d;">{{ $actL }} Liter</div>
+                    </div>
+                    <div style="background: #fff; border: 1px solid #fde68a; border-radius: 8px; padding: 10px 14px;">
+                        <div style="font-size: 11px; color: #64748b; text-transform: uppercase; font-weight: 700;">Selisih Pengisian</div>
+                        <div style="font-size: 18px; font-weight: 800; color: {{ $diffL == 0 ? '#15803d' : ($diffL > 0 ? '#dc2626' : '#d97706') }};">
+                            {{ $diffL > 0 ? '+' . $diffL : $diffL }} Liter
+                        </div>
+                    </div>
+                </div>
+
+                <form action="{{ route('approval.verifyUser', $fuelRequest->id) }}" method="POST" onsubmit="this.querySelector('button[type=submit]').disabled=true;">
+                    @csrf
+                    <div style="background: #ffffff; border: 1px solid #fcd34d; border-radius: 8px; padding: 12px 14px; margin-bottom: 12px;">
+                        <label style="display: flex; align-items: flex-start; gap: 10px; cursor: pointer; font-size: 13px; color: #1e293b; line-height: 1.5;">
+                            <input type="checkbox" name="confirm_responsibility" value="1" required style="margin-top: 3px; width: 17px; height: 17px; accent-color: #16a34a;">
+                            <span>
+                                <strong>Pernyataan Pertanggungjawaban:</strong> Saya menyatakan bahwa pengisian BBM aktual sebesar <strong>{{ $actL }} Liter</strong> pada unit <strong>{{ $fuelRequest->unit_code }}</strong> ({{ $fuelRequest->police_no }}) telah sesuai dengan jumlah yang diterima di lokasi dan saya bertanggung jawab penuh atas konfirmasi penyelesaian ini.
+                            </span>
+                        </label>
+                    </div>
+
+                    <div style="display: flex; gap: 12px; align-items: flex-end; flex-wrap: wrap;">
+                        <div class="digi-form-group" style="flex: 1; min-width: 240px; margin-bottom: 0;">
+                            <label class="digi-form-label">Catatan Pemohon (Opsional)</label>
+                            <input type="text" name="note" class="digi-input" placeholder="Misal: Pengisian sesuai dispenser, terima kasih">
+                        </div>
+                        <button type="submit" class="btn-digi btn-digi-green" style="font-weight: 700; padding: 11px 22px;">
+                            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" style="margin-right: 6px;"><polyline points="20 6 9 17 4 12"></polyline></svg>
+                            Konfirmasi & Selesaikan Pengisian
+                        </button>
+                    </div>
+                </form>
+            </div>
+        @else
+            <div style="margin-top: 14px; background: #fffbeb; border: 1px solid #fcd34d; border-radius: 10px; padding: 12px 16px; font-size: 13px; color: #92400e;">
+                <strong>Menunggu Verifikasi Akhir Pemohon:</strong> Realisasi pengisian sebesar <strong>{{ (float)$fuelRequest->actual_liters }} L</strong> telah tercatat dan menunggu konfirmasi Final Approve dari pemohon (<strong>{{ $fuelRequest->driver_name }}</strong>).
+            </div>
+        @endif
     @endif
 
     <!-- SECTION: TIMELINE RIWAYAT AKTIVITAS (Requirement 9 & 16) -->
@@ -435,17 +578,17 @@
                     </div>
                 </div>
 
-                @if($fuelRequest->status_spv === 'menunggu' && ($currentUser?->isSpv() || $currentUser?->isAdmin()))
+                @if($canEditLiters)
                     <div style="background: #f0fdf4; border: 1px solid #bbf7d0; padding: 14px; border-radius: 10px; margin-bottom: 16px;">
                         <label class="digi-form-label" style="color: #166534; font-weight: 700; margin-bottom: 6px;">
-                            Pemeriksaan & Penyesuaian Jumlah Liter BBM
+                            Pemeriksaan & Penyesuaian Jumlah Liter BBM ({{ $fuelRequest->status_spv === 'menunggu' ? 'SPV' : 'Dept Head / Manager' }})
                         </label>
                         <div class="digi-input-group">
                             <input type="number" step="0.1" min="0.1" max="5000" name="total_liters" id="approve_total_liters" class="digi-input" value="{{ (float)$fuelRequest->total_liters }}" style="font-weight: 700; font-size: 15px;" required>
                             <span class="digi-input-addon">Liter</span>
                         </div>
                         <div style="font-size: 11.5px; color: #15803d; margin-top: 6px;">
-                            Kapasitas tangki unit: <strong>{{ (float)($fuelRequest->vehicle?->tank_capacity ?? 80) }} L</strong>. Anda dapat menyesuaikan kuota liter jika diperlukan sebelum diteruskan ke Manager.
+                            Kapasitas tangki unit: <strong>{{ (float)($fuelRequest->vehicle?->tank_capacity ?? 80) }} L</strong>. Anda dapat menyesuaikan kuota liter jika diperlukan sebelum diteruskan ke tahap berikutnya.
                         </div>
                     </div>
                 @endif
@@ -458,7 +601,7 @@
                             </div>
                             <div>
                                 <div class="realization-title">Data Fisik Realisasi Pengisian (Dispenser Vendor)</div>
-                                <div class="realization-subtitle">Catat data dispenser dan waktu saat bahan bakar solar diisikan ke unit</div>
+                                <div class="realization-subtitle">Hanya jumlah liter aktual yang dapat disesuaikan — KM & Waktu Pengisian terkunci otomatis</div>
                             </div>
                         </div>
 
@@ -471,22 +614,22 @@
                                 </div>
                             </div>
                             <div class="digi-form-group" style="margin-bottom: 0;">
-                                <label class="digi-form-label">KM / HM Saat Pengisian <span class="digi-required">*</span></label>
+                                <label class="digi-form-label">KM / HM Saat Pengisian <span class="digi-badge digi-badge-gray" style="font-size:10px; margin-left:4px;">Terkunci</span></label>
                                 <div class="digi-input-group">
-                                    <input type="number" step="0.1" min="0" name="meter_at_fueling" class="digi-input" value="{{ old('meter_at_fueling', (float)$fuelRequest->hm_km) }}" required style="font-weight: 700; font-size: 15px;">
+                                    <input type="number" step="0.1" min="0" name="meter_at_fueling" class="digi-input" value="{{ (float)$fuelRequest->hm_km }}" {{ $currentUser?->isAdmin() ? '' : 'readonly' }} style="font-weight: 700; font-size: 15px; {{ $currentUser?->isAdmin() ? '' : 'background:#f1f5f9; color:#475569; cursor:not-allowed;' }}">
                                     <span class="digi-input-addon">{{ strtoupper($fuelRequest->vehicle?->meter_type ?? 'KM') }}</span>
                                 </div>
                             </div>
                         </div>
 
                         <div class="digi-form-group" style="margin-top: 12px; margin-bottom: 0;">
-                            <label class="digi-form-label">Waktu Pengisian Selesai <span class="digi-required">*</span></label>
-                            <input type="datetime-local" name="fueled_at" class="digi-input" value="{{ old('fueled_at', now()->format('Y-m-d\TH:i')) }}" required style="font-size: 13.5px;">
+                            <label class="digi-form-label">Waktu Pengisian Selesai <span class="digi-badge digi-badge-gray" style="font-size:10px; margin-left:4px;">Otomatis Waktu Server</span></label>
+                            <input type="datetime-local" name="fueled_at" class="digi-input" value="{{ now()->format('Y-m-d\TH:i') }}" {{ $currentUser?->isAdmin() ? '' : 'readonly' }} style="font-size: 13.5px; {{ $currentUser?->isAdmin() ? '' : 'background:#f1f5f9; color:#475569; cursor:not-allowed;' }}">
                         </div>
 
                         <div class="realization-notice">
                             <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"></path><polyline points="22 4 12 14.01 9 11.01"></polyline></svg>
-                            <span>Dengan menekan setuju, persetujuan Vendor dan realisasi fisik dispenser langsung tercatat secara otomatis menjadi transaksi selesai 100%.</span>
+                            <span>Setelah disetujui, data realisasi <strong>dikunci permanen</strong> untuk Vendor dan notifikasi <strong>Verifikasi Akhir (Final Approve)</strong> otomatis dikirim ke Pemohon / Driver.</span>
                         </div>
                     </div>
                 @endif
@@ -507,8 +650,8 @@
     </div>
 </div>
 
-<!-- MODAL SESUAIKAN JUMLAH LITER OLEH SUPERVISOR -->
-@if($fuelRequest->status_spv === 'menunggu' && ($currentUser?->isSpv() || $currentUser?->isAdmin()))
+<!-- MODAL SESUAIKAN JUMLAH LITER OLEH SUPERVISOR / DEPT HEAD -->
+@if($canEditLiters)
 <div id="updateLitersModal" class="digi-modal-backdrop" style="display: none;">
     <div class="digi-modal digi-modal-lg">
         <div class="digi-modal-header" style="background: #f8fafc; border-bottom: 1px solid #e2e8f0;">
@@ -529,12 +672,12 @@
                     </div>
                     <div class="summary-badges">
                         <span class="digi-badge digi-badge-blue">{{ $fuelRequest->unit_code }}</span>
-                        <span class="digi-badge digi-badge-yellow">Diminta: {{ (float)$fuelRequest->total_liters }} L</span>
+                        <span class="digi-badge digi-badge-yellow">Saat Ini: {{ (float)$fuelRequest->total_liters }} L</span>
                     </div>
                 </div>
 
                 <div class="digi-form-group">
-                    <label class="digi-form-label">Jumlah Liter Baru (Disesuaikan SPV) <span class="digi-required">*</span></label>
+                    <label class="digi-form-label">Jumlah Liter Baru (Disesuaikan {{ $fuelRequest->status_spv === 'menunggu' ? 'SPV' : 'Dept Head' }}) <span class="digi-required">*</span></label>
                     <div class="digi-input-group">
                         <input type="number" step="0.1" min="0.1" max="5000" name="total_liters" class="digi-input" value="{{ (float)$fuelRequest->total_liters }}" style="font-weight: 700; font-size: 15px;" required>
                         <span class="digi-input-addon">Liter</span>

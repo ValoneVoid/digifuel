@@ -19,6 +19,8 @@ class StoreFuelRequest extends FormRequest
     public function rules(): array
     {
         $isDepthead = $this->user()?->isDepthead();
+        $isSpbu = strtoupper(trim((string) $this->input('vendor_name'))) === 'SPBU';
+        $isDraft = $this->input('action_type') === 'draft';
 
         return [
             'request_date' => ['required', 'date'],
@@ -28,10 +30,13 @@ class StoreFuelRequest extends FormRequest
             'total_liters' => ['required', 'numeric', 'gt:0', 'max:5000'],
             'hm_km' => ['required', 'numeric', 'min:0'],
             'area' => ['required', 'string'],
-            'spv_id' => [$isDepthead ? 'nullable' : 'required', 'exists:users,id'],
+            'spv_id' => [($isDepthead || $isSpbu) ? 'nullable' : 'required', 'exists:users,id'],
             'fuelman_id' => ['nullable', 'exists:users,id'],
-            'depthead_id' => [$isDepthead ? 'nullable' : 'required', 'exists:users,id'],
+            'depthead_id' => [($isDepthead || $isSpbu) ? 'nullable' : 'required', 'exists:users,id'],
             'vendor_name' => ['required', 'string'],
+            'spbu_location' => [$isSpbu ? 'required' : 'nullable', 'string', 'max:255'],
+            'spbu_price_per_liter' => [$isSpbu ? 'required' : 'nullable', 'numeric', 'gt:0', 'max:1000000'],
+            'spbu_receipt_photo' => [($isSpbu && !$isDraft) ? 'required' : 'nullable', 'file', 'image', 'mimes:jpg,jpeg,png,webp', 'max:8192'],
             'notes' => ['nullable', 'string', 'max:1000'],
             'action_type' => ['nullable', 'in:submit,draft'],
         ];
@@ -61,6 +66,13 @@ class StoreFuelRequest extends FormRequest
             'depthead_id.required' => 'Approver Dept Head / Manager wajib dipilih.',
             'depthead_id.exists' => 'Approver Dept Head / Manager yang dipilih tidak valid atau sedang nonaktif.',
             'vendor_name.required' => 'Vendor pengisian BBM wajib dipilih.',
+            'spbu_location.required' => 'Lokasi SPBU wajib diisi saat memilih pengisian SPBU.',
+            'spbu_price_per_liter.required' => 'Harga aktual per liter di SPBU wajib diisi.',
+            'spbu_price_per_liter.numeric' => 'Harga aktual per liter harus berupa angka.',
+            'spbu_price_per_liter.gt' => 'Harga aktual per liter harus lebih dari 0.',
+            'spbu_receipt_photo.required' => 'Foto nota / struk SPBU wajib diunggah.',
+            'spbu_receipt_photo.image' => 'Bukti nota SPBU harus berupa file gambar (JPG, PNG, WEBP).',
+            'spbu_receipt_photo.max' => 'Ukuran file foto nota maksimal 8 MB (sistem akan mengompres otomatis).',
             'notes.max' => 'Catatan keperluan BBM maksimal 1.000 karakter.',
         ];
     }
@@ -77,6 +89,9 @@ class StoreFuelRequest extends FormRequest
             'spv_id' => 'Pilihan Approval SPV',
             'depthead_id' => 'Pilihan Approval Dept Head / Manager',
             'vendor_name' => 'Perusahaan Vendor BBM',
+            'spbu_location' => 'Lokasi SPBU',
+            'spbu_price_per_liter' => 'Harga Aktual per Liter (SPBU)',
+            'spbu_receipt_photo' => 'Foto Nota SPBU',
             'notes' => 'Catatan Tambahan',
             'signature' => 'Tanda Tangan Digital',
         ];
@@ -117,14 +132,28 @@ class StoreFuelRequest extends FormRequest
                 }
             }
 
+            $isSpbu = strtoupper(trim((string) $this->input('vendor_name'))) === 'SPBU';
+
             if ($this->filled('vendor_name')) {
-                $vendor = Vendor::where('name', $this->input('vendor_name'))->where('is_active', true)->first();
-                if (!$vendor) {
-                    $validator->errors()->add('vendor_name', 'Vendor pengisian BBM tidak ditemukan atau sedang nonaktif.');
+                if ($isSpbu) {
+                    if (!$authUser?->canUseSpbu()) {
+                        $validator->errors()->add('vendor_name', 'Opsi pengisian SPBU hanya tersedia khusus untuk Dept Head / Site Manager (SM).');
+                    }
+                    if ($this->hasFile('spbu_receipt_photo')) {
+                        $imgInfo = @getimagesize($this->file('spbu_receipt_photo')->getRealPath());
+                        if ($imgInfo === false || !in_array($imgInfo['mime'] ?? '', ['image/jpeg', 'image/png', 'image/webp'], true)) {
+                            $validator->errors()->add('spbu_receipt_photo', 'File foto nota SPBU bukan gambar JPG, PNG, atau WEBP yang valid.');
+                        }
+                    }
+                } else {
+                    $vendor = Vendor::where('name', $this->input('vendor_name'))->where('is_active', true)->first();
+                    if (!$vendor) {
+                        $validator->errors()->add('vendor_name', 'Vendor pengisian BBM tidak ditemukan atau sedang nonaktif.');
+                    }
                 }
             }
 
-            if (!$authUser?->isDepthead()) {
+            if (!$authUser?->isDepthead() && !$isSpbu) {
                 if ($this->filled('spv_id')) {
                     $spv = User::find($this->input('spv_id'));
                     if (!$spv || !$spv->is_active) {

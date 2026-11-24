@@ -192,9 +192,6 @@ class AuthController extends Controller
         $notif->update(['is_read' => true]);
 
         if ($notif->fuel_request_id) {
-            if ($user->isDriver() && !$user->isAdmin()) {
-                return redirect()->route('history.index');
-            }
             return redirect()->route('approval.show', $notif->fuel_request_id);
         }
 
@@ -207,6 +204,6 @@ class AuthController extends Controller
 
     protected function redirectByRole(User $user, string $message)
     {
-        return redirect()->route('dashboard')->with('success', $message);
+        return redirect()->intended(route('dashboard'))->with('success', $message);
     }
 }

@@ -84,7 +84,7 @@
         </div>
     @endif
 
-    <form id="fuelRequestForm" action="{{ route('fuel.store') }}" method="POST">
+    <form id="fuelRequestForm" action="{{ route('fuel.store') }}" method="POST" enctype="multipart/form-data">
         @csrf
         <input type="hidden" name="action_type" id="action_type" value="submit">
 
@@ -109,8 +109,8 @@
                 </div>
             </div>
 
-            <!-- Row 2: Unit Code (with search filter), Police No (Auto-filled readonly), Company -->
-            <div class="digi-form-grid-3">
+            <!-- Row 2: Unit Code (with search filter), Police No & Vendor Rental Unit (Auto-filled readonly), Company -->
+            <div class="digi-form-grid-2">
                 <div class="digi-form-group">
                     <label class="digi-form-label" style="display:flex; justify-content:space-between; align-items:center;">
                         <span>Unit Code (Kode Unit) <span class="digi-required">*</span></span>
@@ -122,9 +122,9 @@
                             <option value="{{ $veh->unit_code }}"
                                 data-police="{{ $veh->police_no }}"
                                 data-type="{{ $veh->model ?? $veh->unit_type }}"
+                                data-unit-vendor="{{ $veh->unitVendor?->name ?? 'Internal UT' }}"
                                 data-meter="{{ strtoupper($veh->meter_type ?? 'km') }}"
                                 data-tank="{{ (float)($veh->tank_capacity ?? 80) }}"
-                                data-default-area="{{ $veh->defaultArea?->name ?? '' }}"
                                 {{ old('unit_code') === $veh->unit_code ? 'selected' : '' }}>
                                 {{ $veh->unit_code }} ({{ $veh->model ?? $veh->unit_type }}) — Tangki: {{ (float)($veh->tank_capacity ?? 80) }}L
                             </option>
@@ -147,6 +147,13 @@
                             {{ $message }}
                         </div>
                     @enderror
+                </div>
+            </div>
+
+            <div class="digi-form-grid-2">
+                <div class="digi-form-group">
+                    <label class="digi-form-label">Vendor Rental Unit / LV <span style="font-size:11px; color:#0284c7; font-weight:600;">(Otomatis dari Master Unit)</span></label>
+                    <input type="text" id="unit_vendor_display" class="digi-input" placeholder="Terisi otomatis saat memilih Unit Code" value="" readonly disabled style="background: #f1f5f9; color: #0369a1; font-weight: 600;">
                 </div>
                 <div class="digi-form-group">
                     <label class="digi-form-label">Company (Perusahaan)</label>
@@ -180,7 +187,7 @@
                         <label class="digi-form-label" id="hm_km_label" style="margin-bottom:0;">KM / HM Odometer <span class="digi-required">*</span></label>
                         <span id="meterTypeBadge" class="digi-badge digi-badge-gray" style="font-size: 11px;">KM</span>
                     </div>
-                    <input type="number" step="0.1" min="0" name="hm_km" id="hm_km" class="digi-input @error('hm_km') is-invalid @enderror" placeholder="Masukkan angka odometer terkini" value="{{ old('hm_km', 79) }}" required>
+                    <input type="number" step="0.1" min="0" name="hm_km" id="hm_km" class="digi-input @error('hm_km') is-invalid @enderror" placeholder="Masukkan angka odometer terkini (wajib diisi)" value="{{ old('hm_km') }}" required>
                     @error('hm_km')
                         <div class="digi-invalid-feedback">
                             <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><circle cx="12" cy="12" r="10"></circle><line x1="12" y1="8" x2="12" y2="12"></line><line x1="12" y1="16" x2="12.01" y2="16"></line></svg>
@@ -200,7 +207,7 @@
                     <select name="area" id="area_select" class="digi-select @error('area') is-invalid @enderror" required onchange="handleAreaChange(this.value)">
                         <option value="">- Pilih Area Operasional -</option>
                         @foreach($areas as $area)
-                            <option value="{{ $area->name }}" {{ old('area', 'SDU (Sungai Danau)') === $area->name ? 'selected' : '' }}>
+                            <option value="{{ $area->name }}" {{ old('area') === $area->name ? 'selected' : '' }}>
                                 {{ $area->name }}
                             </option>
                         @endforeach
@@ -268,13 +275,18 @@
 
                 <div class="digi-form-group" style="margin-bottom: 16px;">
                     <label class="digi-form-label">Pilih Perusahaan Vendor BBM <span class="digi-required">*</span></label>
-                    <select name="vendor_name" id="vendor_select" class="digi-select @error('vendor_name') is-invalid @enderror" required>
+                    <select name="vendor_name" id="vendor_select" class="digi-select @error('vendor_name') is-invalid @enderror" required onchange="handleVendorChange(this.value)">
                         <option value="">- Pilih Perusahaan Vendor BBM -</option>
                         @foreach($vendors as $ven)
-                            <option value="{{ $ven->name }}" {{ old('vendor_name', 'Cv. Sudan Mandiri') === $ven->name ? 'selected' : '' }}>
+                            <option value="{{ $ven->name }}" {{ old('vendor_name') === $ven->name ? 'selected' : '' }}>
                                 {{ $ven->name }}
                             </option>
                         @endforeach
+                        @if($user->canUseSpbu())
+                            <option value="SPBU" {{ old('vendor_name') === 'SPBU' ? 'selected' : '' }}>
+                                SPBU (Pengisian Luar / Dinas — Full Approved)
+                            </option>
+                        @endif
                     </select>
                     @error('vendor_name')
                         <div class="digi-invalid-feedback">
@@ -283,6 +295,53 @@
                         </div>
                     @enderror
                 </div>
+
+                @if($user->canUseSpbu())
+                <!-- Panel Khusus Pengisian SPBU (Dept Head / Site Manager) -->
+                <div id="spbuPanel" style="display: none; background: #fffbeb; border: 1.5px solid #f59e0b; border-radius: 12px; padding: 16px 18px; margin-bottom: 18px;">
+                    <div style="display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 8px; margin-bottom: 12px;">
+                        <div style="display: flex; align-items: center; gap: 8px; font-weight: 700; color: #92400e; font-size: 14px;">
+                            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.3"><path d="M3 22V6a2 2 0 0 1 2-2h8a2 2 0 0 1 2 2v16"></path><path d="M15 10h2a2 2 0 0 1 2 2v5a2 2 0 0 0 2 2v0a2 2 0 0 0 2-2V9.83a2 2 0 0 0-.59-1.42L20 6"></path><line x1="3" y1="10" x2="15" y2="10"></line></svg>
+                            Detail Pengisian SPBU (Khusus Dept Head / Site Manager)
+                        </div>
+                        <span class="digi-badge digi-badge-green" style="font-size: 11px;">Otomatis Full Approved (Tanpa SPV & Vendor)</span>
+                    </div>
+                    <p style="font-size: 12px; color: #b45309; margin: 0 0 14px 0; line-height: 1.5;">
+                        Pengisian di SPBU akan langsung berstatus <strong>Selesai (Full Approved)</strong> dan otomatis masuk ke laporan Evaluasi BBM dengan harga aktual nota. Wajib melampirkan lokasi SPBU, harga per liter, dan foto struk/nota.
+                    </p>
+
+                    <div class="digi-form-grid-2" style="margin-bottom: 12px;">
+                        <div class="digi-form-group" style="margin-bottom: 0;">
+                            <label class="digi-form-label">Lokasi SPBU <span class="digi-required">*</span></label>
+                            <input type="text" name="spbu_location" id="spbu_location" class="digi-input @error('spbu_location') is-invalid @enderror" placeholder="Contoh: SPBU Pertamina KM 171 Satui / Banjarmasin" value="{{ old('spbu_location') }}">
+                            @error('spbu_location')
+                                <div class="digi-invalid-feedback">{{ $message }}</div>
+                            @enderror
+                        </div>
+                        <div class="digi-form-group" style="margin-bottom: 0;">
+                            <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:6px;">
+                                <label class="digi-form-label" style="margin-bottom:0;">Harga Aktual per Liter (Rp) <span class="digi-required">*</span></label>
+                                <span id="spbuEstTotalBadge" style="font-size:11.5px; font-weight:700; color:#15803d; display:none;">Est: Rp 0</span>
+                            </div>
+                            <input type="number" step="1" min="1" name="spbu_price_per_liter" id="spbu_price_per_liter" class="digi-input @error('spbu_price_per_liter') is-invalid @enderror" placeholder="Contoh: 13900 atau 15500" value="{{ old('spbu_price_per_liter') }}" oninput="updateSpbuEstimate()">
+                            @error('spbu_price_per_liter')
+                                <div class="digi-invalid-feedback">{{ $message }}</div>
+                            @enderror
+                        </div>
+                    </div>
+
+                    <div class="digi-form-group" style="margin-bottom: 0;">
+                        <label class="digi-form-label">Upload Foto Nota / Struk SPBU <span class="digi-required">*</span> <span style="font-size:11px; color:#64748b; font-weight:400;">(JPG/PNG/WEBP, dikompres otomatis oleh sistem)</span></label>
+                        <input type="file" name="spbu_receipt_photo" id="spbu_receipt_photo" accept="image/jpeg,image/png,image/webp" class="digi-input @error('spbu_receipt_photo') is-invalid @enderror" style="padding: 8px; background: #fff;" onchange="previewSpbuReceipt(this)">
+                        @error('spbu_receipt_photo')
+                            <div class="digi-invalid-feedback">{{ $message }}</div>
+                        @enderror
+                        <div id="spbuPhotoPreviewWrap" style="display:none; margin-top: 10px;">
+                            <img id="spbuPhotoPreviewImg" src="" alt="Preview Nota SPBU" style="max-height: 170px; border-radius: 8px; border: 1px solid #fcd34d; box-shadow: 0 2px 6px rgba(0,0,0,0.08);">
+                        </div>
+                    </div>
+                </div>
+                @endif
 
                 <div class="digi-form-group" style="margin-bottom: 20px;">
                     <label class="digi-form-label">Catatan Tambahan (Opsional)</label>
@@ -330,11 +389,13 @@
                     <tr style="border-bottom: 1px solid #f1f5f9;"><td style="padding: 9px 14px; color:#64748b; width: 180px;">Employee (Pemohon)</td><td style="padding: 9px 14px; font-weight:700; color: #0f172a;">: {{ $user->name }} ({{ $user->nrp ?? '-' }})</td></tr>
                     <tr style="border-bottom: 1px solid #f1f5f9;"><td style="padding: 9px 14px; color:#64748b;">Perusahaan</td><td style="padding: 9px 14px; font-weight:600; color: #334155;">: PT UNITED TRACTORS Tbk - SITE SATUI</td></tr>
                     <tr style="border-bottom: 1px solid #f1f5f9;"><td style="padding: 9px 14px; color:#64748b;">Unit Code & No. Polisi</td><td style="padding: 9px 14px; font-weight:700; color: #0284c7;" id="prev_unit">: -</td></tr>
+                    <tr style="border-bottom: 1px solid #f1f5f9;"><td style="padding: 9px 14px; color:#64748b;">Vendor Rental Unit</td><td style="padding: 9px 14px; font-weight:600; color: #0369a1;" id="prev_unit_vendor">: -</td></tr>
                     <tr style="border-bottom: 1px solid #f1f5f9;"><td style="padding: 9px 14px; color:#64748b;">Odometer & Jumlah BBM</td><td style="padding: 9px 14px; font-weight:700; color: #166534;" id="prev_liters">: -</td></tr>
                     <tr style="border-bottom: 1px solid #f1f5f9;"><td style="padding: 9px 14px; color:#64748b;">Area Operasional</td><td style="padding: 9px 14px; font-weight:600; color: #334155;" id="prev_area">: -</td></tr>
                     <tr style="border-bottom: 1px solid #f1f5f9;"><td style="padding: 9px 14px; color:#64748b;">Verifikasi SPV (Tahap 2)</td><td style="padding: 9px 14px; font-weight:600; color: #334155;" id="prev_spv">: -</td></tr>
                     <tr style="border-bottom: 1px solid #f1f5f9;"><td style="padding: 9px 14px; color:#64748b;">Approval Dept Head (Tahap 3)</td><td style="padding: 9px 14px; font-weight:600; color: #334155;" id="prev_depthead">: -</td></tr>
-                    <tr><td style="padding: 9px 14px; color:#64748b;">Penyedia BBM (Tahap 4)</td><td style="padding: 9px 14px; font-weight:700; color: #15803d;" id="prev_vendor">: -</td></tr>
+                    <tr style="border-bottom: 1px solid #f1f5f9;"><td style="padding: 9px 14px; color:#64748b;">Penyedia BBM (Tahap 4)</td><td style="padding: 9px 14px; font-weight:700; color: #15803d;" id="prev_vendor">: -</td></tr>
+                    <tr id="prev_spbu_row" style="display:none;"><td style="padding: 9px 14px; color:#92400e; font-weight:600;">Info SPBU & Harga</td><td style="padding: 9px 14px; font-weight:700; color: #92400e;" id="prev_spbu_info">: -</td></tr>
                 </table>
             </div>
         </div>
@@ -353,10 +414,12 @@
 <script>
 const areaApproverMap = @json($areaApproverMap ?? []);
 const isDeptHead = {{ $user->isDepthead() ? 'true' : 'false' }};
+const canUseSpbu = {{ $user->canUseSpbu() ? 'true' : 'false' }};
 
 function handleUnitChange(select) {
     const selectedOption = select.options[select.selectedIndex];
     const policeInput = document.getElementById('police_no');
+    const unitVendorDisplay = document.getElementById('unit_vendor_display');
     const tankBadge = document.getElementById('tankCapacityBadge');
     const tankVal = document.getElementById('tankCapacityVal');
     const meterBadge = document.getElementById('meterTypeBadge');
@@ -367,6 +430,12 @@ function handleUnitChange(select) {
         policeInput.classList.remove('is-invalid');
     } else {
         policeInput.value = '';
+    }
+
+    if (unitVendorDisplay) {
+        unitVendorDisplay.value = (selectedOption && selectedOption.dataset.unitVendor)
+            ? selectedOption.dataset.unitVendor
+            : '';
     }
 
     if (select.value) {
@@ -392,19 +461,53 @@ function handleUnitChange(select) {
     }
 
     checkLiterWarning(document.getElementById('total_liters').value);
+    updateSpbuEstimate();
+}
 
-    // Auto-select Default Area if assigned to the Unit
-    if (selectedOption && selectedOption.dataset.defaultArea) {
-        const areaSelect = document.getElementById('area_select');
-        if (areaSelect) {
-            for (let i = 0; i < areaSelect.options.length; i++) {
-                if (areaSelect.options[i].value === selectedOption.dataset.defaultArea) {
-                    areaSelect.selectedIndex = i;
-                    handleAreaChange(selectedOption.dataset.defaultArea);
-                    break;
-                }
-            }
-        }
+function handleVendorChange(vendorName) {
+    const panel = document.getElementById('spbuPanel');
+    const locInput = document.getElementById('spbu_location');
+    const priceInput = document.getElementById('spbu_price_per_liter');
+    const photoInput = document.getElementById('spbu_receipt_photo');
+    const isSpbu = canUseSpbu && String(vendorName).toUpperCase() === 'SPBU';
+
+    if (panel) {
+        panel.style.display = isSpbu ? 'block' : 'none';
+    }
+    if (locInput) locInput.required = isSpbu;
+    if (priceInput) priceInput.required = isSpbu;
+    if (photoInput) photoInput.required = isSpbu;
+    updateSpbuEstimate();
+}
+
+function updateSpbuEstimate() {
+    const liters = parseFloat(document.getElementById('total_liters')?.value || '0');
+    const price = parseFloat(document.getElementById('spbu_price_per_liter')?.value || '0');
+    const badge = document.getElementById('spbuEstTotalBadge');
+    if (!badge) return;
+    if (liters > 0 && price > 0) {
+        const total = Math.round(liters * price);
+        badge.textContent = 'Est. Total: Rp ' + total.toLocaleString('id-ID');
+        badge.style.display = 'inline';
+    } else {
+        badge.style.display = 'none';
+    }
+}
+
+function previewSpbuReceipt(input) {
+    const wrap = document.getElementById('spbuPhotoPreviewWrap');
+    const img = document.getElementById('spbuPhotoPreviewImg');
+    if (!wrap || !img) return;
+    if (input.files && input.files[0]) {
+        const reader = new FileReader();
+        reader.onload = function(e) {
+            img.src = e.target.result;
+            wrap.style.display = 'block';
+        };
+        reader.readAsDataURL(input.files[0]);
+    } else {
+        wrap.style.display = 'none';
+        img.src = '';
     }
 }
 
@@ -450,7 +553,7 @@ function filterUnitOptions(keyword) {
     }
 }
 
-function populateSelect(selectId, items, valueKey, labelKey, placeholder) {
+function populateSelect(selectId, items, valueKey, labelKey, placeholder, appendSpbu = false) {
     const select = document.getElementById(selectId);
     if (!select) return;
     const prevValue = select.value;
@@ -468,7 +571,18 @@ function populateSelect(selectId, items, valueKey, labelKey, placeholder) {
         select.appendChild(opt);
     });
 
-    if (!stillValid && items.length === 1) {
+    if (appendSpbu && canUseSpbu) {
+        const spbuOpt = document.createElement('option');
+        spbuOpt.value = 'SPBU';
+        spbuOpt.textContent = 'SPBU (Pengisian Luar / Dinas — Full Approved)';
+        if (String(prevValue).toUpperCase() === 'SPBU') {
+            spbuOpt.selected = true;
+            stillValid = true;
+        }
+        select.appendChild(spbuOpt);
+    }
+
+    if (!stillValid && items.length === 1 && !appendSpbu) {
         select.selectedIndex = 1;
     }
 }
@@ -490,7 +604,7 @@ function handleAreaChange(areaName) {
             const dhMsg = document.getElementById('dhEmptyMsg');
             if (dhMsg) dhMsg.style.display = (!data.deptheads || data.deptheads.length === 0) ? 'block' : 'none';
         }
-        populateSelect('vendor_select', data.vendors, 'name', 'name', '- Pilih Perusahaan Vendor BBM -');
+        populateSelect('vendor_select', data.vendors, 'name', 'name', '- Pilih Perusahaan Vendor BBM -', true);
     }
 
     // Also synchronize dynamically via Fetch API
@@ -506,7 +620,7 @@ function handleAreaChange(areaName) {
                     const dhMsg = document.getElementById('dhEmptyMsg');
                     if (dhMsg) dhMsg.style.display = (!data.deptheads || data.deptheads.length === 0) ? 'block' : 'none';
                 }
-                populateSelect('vendor_select', data.vendors, 'name', 'name', '- Pilih Perusahaan Vendor BBM -');
+                populateSelect('vendor_select', data.vendors, 'name', 'name', '- Pilih Perusahaan Vendor BBM -', true);
             }
         })
         .catch(() => {});
@@ -550,24 +664,44 @@ function openPreviewModal() {
 
     const unitSel = document.getElementById('unit_code');
     const police = document.getElementById('police_no').value;
+    const unitVendor = document.getElementById('unit_vendor_display')?.value || '-';
     const liters = document.getElementById('total_liters').value;
     const hmKm = document.getElementById('hm_km').value;
     const area = document.getElementById('area_select').value;
     const spvSel = document.getElementById('spv_select');
     const dhSel = document.getElementById('depthead_select');
     const vendor = document.getElementById('vendor_select').value;
+    const isSpbu = String(vendor).toUpperCase() === 'SPBU';
 
     document.getElementById('prev_unit').textContent = ': ' + (unitSel.value || '-') + ' / ' + (police || '-');
+    const prevUv = document.getElementById('prev_unit_vendor');
+    if (prevUv) prevUv.textContent = ': ' + unitVendor;
     document.getElementById('prev_liters').textContent = ': ' + (hmKm ? hmKm + ' KM' : '-') + ' | ' + (liters || '0') + ' Liter';
     document.getElementById('prev_area').textContent = ': ' + (area || '-');
-    if (isDeptHead) {
-        document.getElementById('prev_spv').textContent = ': Bypassed (Pengajuan Langsung Dept Head)';
-        document.getElementById('prev_depthead').textContent = ': Otomatis Disetujui (Anda)';
+    if (isSpbu) {
+        document.getElementById('prev_spv').textContent = ': Full Bypass (Pengisian SPBU)';
+        document.getElementById('prev_depthead').textContent = ': Otomatis Full Approved (Anda)';
+        document.getElementById('prev_vendor').textContent = ': SPBU (Langsung Selesai tanpa Vendor)';
+        const spbuRow = document.getElementById('prev_spbu_row');
+        const spbuInfo = document.getElementById('prev_spbu_info');
+        const loc = document.getElementById('spbu_location')?.value || '-';
+        const price = parseFloat(document.getElementById('spbu_price_per_liter')?.value || '0');
+        if (spbuRow && spbuInfo) {
+            spbuInfo.textContent = ': ' + loc + (price > 0 ? ' | Rp ' + Math.round(price).toLocaleString('id-ID') + '/L' : '');
+            spbuRow.style.display = 'table-row';
+        }
     } else {
-        document.getElementById('prev_spv').textContent = ': ' + (spvSel?.options ? (spvSel.options[spvSel.selectedIndex]?.text || '-') : '-');
-        document.getElementById('prev_depthead').textContent = ': ' + (dhSel?.options ? (dhSel.options[dhSel.selectedIndex]?.text || '-') : '-');
+        const spbuRow = document.getElementById('prev_spbu_row');
+        if (spbuRow) spbuRow.style.display = 'none';
+        if (isDeptHead) {
+            document.getElementById('prev_spv').textContent = ': Bypassed (Pengajuan Langsung Dept Head)';
+            document.getElementById('prev_depthead').textContent = ': Otomatis Disetujui (Anda)';
+        } else {
+            document.getElementById('prev_spv').textContent = ': ' + (spvSel?.options ? (spvSel.options[spvSel.selectedIndex]?.text || '-') : '-');
+            document.getElementById('prev_depthead').textContent = ': ' + (dhSel?.options ? (dhSel.options[dhSel.selectedIndex]?.text || '-') : '-');
+        }
+        document.getElementById('prev_vendor').textContent = ': ' + (vendor || '-');
     }
-    document.getElementById('prev_vendor').textContent = ': ' + (vendor || '-');
 
     document.getElementById('previewModal').style.display = 'flex';
 }
@@ -591,6 +725,16 @@ document.addEventListener('DOMContentLoaded', function() {
     const unitSelect = document.getElementById('unit_code');
     if (unitSelect && unitSelect.value) {
         handleUnitChange(unitSelect);
+    }
+
+    const vendorSelect = document.getElementById('vendor_select');
+    if (vendorSelect && vendorSelect.value) {
+        handleVendorChange(vendorSelect.value);
+    }
+
+    const litersInput = document.getElementById('total_liters');
+    if (litersInput) {
+        litersInput.addEventListener('input', updateSpbuEstimate);
     }
 
     // Auto-scroll to first invalid element if any
@@ -622,6 +766,9 @@ document.addEventListener('DOMContentLoaded', function() {
             let hasClientError = false;
             let firstErrEl = null;
 
+            const vendorVal = document.getElementById('vendor_select')?.value || '';
+            const isSpbuSubmit = canUseSpbu && String(vendorVal).toUpperCase() === 'SPBU';
+
             const requiredFields = [
                 { id: 'request_date', name: 'Tanggal & Waktu' },
                 { id: 'unit_code', name: 'Unit Code' },
@@ -629,11 +776,16 @@ document.addEventListener('DOMContentLoaded', function() {
                 { id: 'total_liters', name: 'Total Liter' },
                 { id: 'hm_km', name: 'KM / HM' },
                 { id: 'area_select', name: 'Area Operasional' },
-                ...(!isDeptHead ? [
+                ...(!isDeptHead && !isSpbuSubmit ? [
                     { id: 'spv_select', name: 'Approval SPV' },
                     { id: 'depthead_select', name: 'Approval Dept Head' },
                 ] : []),
                 { id: 'vendor_select', name: 'Vendor BBM' },
+                ...(isSpbuSubmit ? [
+                    { id: 'spbu_location', name: 'Lokasi SPBU' },
+                    { id: 'spbu_price_per_liter', name: 'Harga Aktual SPBU' },
+                    ...(action === 'submit' ? [{ id: 'spbu_receipt_photo', name: 'Foto Nota SPBU' }] : []),
+                ] : []),
             ];
 
             requiredFields.forEach(field => {

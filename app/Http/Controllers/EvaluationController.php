@@ -220,9 +220,10 @@ class EvaluationController extends Controller
                     $status = $actRatio < ($stdRatio - 0.5) ? 'needs_review' : 'normal';
                 }
 
+                $latestRec = $records->sortByDesc('period')->first();
                 return (object)[
                     'id' => $first->id,
-                    'latest_id' => $records->sortByDesc('period')->first()->id,
+                    'latest_id' => $latestRec->id,
                     'vehicle' => $vehicle,
                     'period' => $records->pluck('period')->sort()->values()->implode(', '),
                     'period_count' => $records->count(),
@@ -231,7 +232,11 @@ class EvaluationController extends Controller
                     'total_standard_liters' => $stdLiters,
                     'actual_ratio' => $actRatio,
                     'standard_used' => $stdRatio,
+                    'standard_max_used' => $latestRec->standard_max_used,
                     'evaluation_status' => $status,
+                    'cumulative_ratio' => $latestRec->cumulative_ratio,
+                    'cumulative_status' => $latestRec->cumulative_status,
+                    'admin_notes' => $latestRec->admin_notes,
                     'total_actual_cost' => $actualCost,
                     'waste_liters' => $wasteLiters,
                     'estimated_cost_loss' => $costLoss,
@@ -366,12 +371,50 @@ class EvaluationController extends Controller
             ->with('success', "Kalkulasi ulang evaluasi konsumsi BBM untuk periode {$validated['period']} selesai ({$count} unit dievaluasi).");
     }
 
-    public function show($id)
+    public function show($id, FuelEvaluationService $service)
     {
         $user = $this->getActiveUser();
         $evaluation = FuelEvaluation::with(['vehicle.fuelStandards', 'calculator', 'transactions.fuelRequest', 'transactions.fuelman'])->findOrFail($id);
 
-        return view('evaluation.show', compact('evaluation', 'user'));
+        $perFillMetrics = $service->computePerFillMetrics(
+            $evaluation->transactions,
+            (float) $evaluation->standard_used,
+            $evaluation->standard_max_used !== null ? (float) $evaluation->standard_max_used : null
+        );
+
+        return view('evaluation.show', compact('evaluation', 'user', 'perFillMetrics'));
+    }
+
+    /**
+     * Save or update custom Admin notes on a FuelEvaluation record (Item 13)
+     */
+    public function updateNotes(Request $request, $id)
+    {
+        $user = $this->getActiveUser();
+        if (!$user->isAdmin()) {
+            abort(403, 'Hanya Administrator yang dapat mengubah catatan evaluasi.');
+        }
+
+        $evaluation = FuelEvaluation::with('vehicle')->findOrFail($id);
+        $validated = $request->validate([
+            'admin_notes' => ['nullable', 'string', 'max:2000'],
+        ]);
+
+        $evaluation->update([
+            'admin_notes' => trim((string)($validated['admin_notes'] ?? '')) ?: null,
+        ]);
+
+        FuelRequestHistory::record(
+            null,
+            $user->id,
+            'evaluation_notes_updated',
+            null,
+            $evaluation->evaluation_status,
+            "Admin ({$user->name}) memperbarui catatan evaluasi untuk {$evaluation->vehicle?->unit_code} periode {$evaluation->period}."
+        );
+
+        return redirect()->route('evaluation.show', $evaluation->id)
+            ->with('success', 'Catatan Admin pada evaluasi unit berhasil disimpan.');
     }
 
     public function export(Request $request, ExcelExportService $excel)
@@ -535,10 +578,13 @@ class EvaluationController extends Controller
                         $liters = (float)$tx->actual_liters;
                         $actRatio = $liters > 0 ? round($dist / $liters, 2) : 0;
                         $stdRatio = (float)$eval->standard_used;
-                        $fuelCost = round($liters * $pricePerLiter, 2);
+                        $txUnitPrice = ($fr && $fr->isSpbu() && (float)$fr->spbu_price_per_liter > 0)
+                            ? (float)$fr->spbu_price_per_liter
+                            : $pricePerLiter;
+                        $fuelCost = round($liters * $txUnitPrice, 2);
                         $isWajar = $actRatio >= ($stdRatio - 0.5);
                         $waste = ($actRatio < $stdRatio && $stdRatio > 0) ? round($liters - ($dist / $stdRatio), 2) : 0;
-                        $loss = round($waste * $pricePerLiter, 2);
+                        $loss = round($waste * $txUnitPrice, 2);
 
                         $txRows[] = [
                             'date' => $dateStr,

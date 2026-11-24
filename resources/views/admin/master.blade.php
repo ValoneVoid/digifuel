@@ -1718,17 +1718,19 @@
                     </div>
                 </div>
 
-                <!-- 2. Nilai Standar Konsumsi dengan Satuan Dinamis -->
+                <!-- 2. Nilai Standar Konsumsi (Rentang Min - Max) -->
                 <div class="digi-form-group">
-                    <label class="digi-form-label">Nilai Standar Konsumsi <span class="digi-required">*</span></label>
+                    <label class="digi-form-label">Rentang Standar Rasio (Min – Max Opsional) <span class="digi-required">*</span></label>
                     <div style="display: flex; align-items: center; gap: 6px;">
-                        <input type="number" step="0.01" min="0.01" name="standard_value" id="std_value" class="digi-input" placeholder="Contoh: 8.0" required>
-                        <span id="std_unit_badge" style="background: #f1f5f9; padding: 7px 14px; border-radius: 6px; font-weight: 700; color: #334155; font-size: 13px; border: 1px solid #cbd5e1; white-space: nowrap;">
+                        <input type="number" step="0.01" min="0.01" name="standard_value" id="std_value" class="digi-input" placeholder="Min (misal: 10)" required>
+                        <span style="color:#64748b; font-weight:700;">s/d</span>
+                        <input type="number" step="0.01" min="0.01" name="standard_max" id="std_max" class="digi-input" placeholder="Max (opsional, misal: 15)">
+                        <span id="std_unit_badge" style="background: #f1f5f9; padding: 7px 12px; border-radius: 6px; font-weight: 700; color: #334155; font-size: 13px; border: 1px solid #cbd5e1; white-space: nowrap;">
                             KM/L
                         </span>
                     </div>
                     <div id="std_type_hint" style="font-size: 11.5px; color: #64748b; margin-top: 4px;">
-                        Target efisiensi konsumsi BBM unit operasional.
+                        Isi batas minimal (wajib) dan batas maksimal (opsional) untuk evaluasi rentang rasio Wajar.
                     </div>
                 </div>
 
@@ -1789,7 +1791,7 @@
                                 {{ $std->vehicle?->unit_type ?? ($std->vehicle?->model ?? 'Light Vehicle') }}
                             </td>
                             <td style="text-align: right;">
-                                <span style="font-weight: 700; color: #0f172a; font-size: 13.5px;">{{ (float)$std->standard_value }}</span>
+                                <span style="font-weight: 700; color: #0f172a; font-size: 13.5px;">{{ $std->range_label }}</span>
                                 <span style="font-size: 12px; font-weight: 600; color: #64748b; margin-left: 2px;">
                                     KM/L
                                 </span>
@@ -3347,6 +3349,12 @@ function editStandard(std, startDate) {
         vehSelect.value = std.vehicle_id;
     }
     document.getElementById('std_value').value = parseFloat(std.standard_value);
+    const stdMaxInput = document.getElementById('std_max');
+    if (stdMaxInput) {
+        stdMaxInput.value = (std.standard_max !== null && std.standard_max !== undefined && std.standard_max !== '')
+            ? parseFloat(std.standard_max)
+            : '';
+    }
 
     const stdTypeInput = document.getElementById('std_type');
     if (stdTypeInput) {

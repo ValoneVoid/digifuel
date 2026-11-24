@@ -16,12 +16,18 @@ class FuelEvaluation extends Model
         'total_standard_liters' => 'decimal:2',
         'actual_ratio' => 'decimal:2',
         'standard_used' => 'decimal:2',
+        'standard_max_used' => 'decimal:2',
         'tolerance_used' => 'decimal:2',
         'price_used' => 'decimal:2',
         'total_actual_cost' => 'decimal:2',
         'variance_liters' => 'decimal:2',
         'waste_liters' => 'decimal:2',
         'estimated_cost_loss' => 'decimal:2',
+        'cumulative_meter_start' => 'decimal:2',
+        'cumulative_meter_end' => 'decimal:2',
+        'cumulative_distance' => 'decimal:2',
+        'cumulative_liters' => 'decimal:2',
+        'cumulative_ratio' => 'decimal:2',
         'calculated_at' => 'datetime',
     ];
 
@@ -52,8 +58,29 @@ class FuelEvaluation extends Model
             'needs_review' => 'Tidak Wajar',
             'incomplete' => 'Incomplete',
             'invalid_data' => 'Invalid Data',
-            default => ucfirst($this->evaluation_status),
+            default => ucfirst((string) $this->evaluation_status),
         };
+    }
+
+    public function getCumulativeStatusLabelAttribute(): string
+    {
+        return match ($this->cumulative_status) {
+            'normal' => 'Wajar',
+            'needs_review' => 'Tidak Wajar',
+            'incomplete' => 'Incomplete',
+            'invalid_data' => 'Invalid Data',
+            default => '-',
+        };
+    }
+
+    public function getStandardRangeLabelAttribute(): string
+    {
+        $min = (float) $this->standard_used;
+        $max = $this->standard_max_used !== null ? (float) $this->standard_max_used : null;
+        if ($max !== null && $max > $min) {
+            return "{$min} - {$max}";
+        }
+        return (string) $min;
     }
 }
 

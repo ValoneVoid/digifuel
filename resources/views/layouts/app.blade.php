@@ -31,6 +31,27 @@
             background-repeat: no-repeat !important;
             background-attachment: fixed !important;
         }
+        .digi-nav-count-badge {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            min-width: 19px;
+            height: 19px;
+            padding: 0 5px;
+            margin-left: 6px;
+            border-radius: 999px;
+            background: #ef4444;
+            color: #ffffff;
+            font-size: 11px;
+            font-weight: 800;
+            line-height: 1;
+            box-shadow: 0 2px 5px rgba(239, 68, 68, 0.35);
+            vertical-align: middle;
+        }
+        .digi-nav-count-badge.is-amber {
+            background: #f59e0b;
+            box-shadow: 0 2px 5px rgba(245, 158, 11, 0.35);
+        }
     </style>
 </head>
 <body>
@@ -56,8 +77,18 @@
             <a href="{{ route('dashboard') }}" class="digi-nav-link {{ request()->routeIs('dashboard') ? 'active' : '' }}">Dashboard</a>
             @if($isAdmin)
                 <a href="{{ route('fuel.create') }}" class="digi-nav-link {{ request()->routeIs('fuel.create') ? 'active' : '' }}">Form Request</a>
-                <a href="{{ route('approval.index') }}" class="digi-nav-link {{ request()->routeIs('approval.*') ? 'active' : '' }}">Pengajuan</a>
-                <a href="{{ route('history.index') }}" class="digi-nav-link {{ request()->routeIs('history.*') ? 'active' : '' }}">History</a>
+                <a href="{{ route('approval.index') }}" class="digi-nav-link {{ request()->routeIs('approval.*') ? 'active' : '' }}">
+                    Pengajuan
+                    @if(($pendingApprovalCount ?? 0) > 0)
+                        <span class="digi-nav-count-badge" title="{{ $pendingApprovalCount }} pengajuan menunggu persetujuan">{{ $pendingApprovalCount }}</span>
+                    @endif
+                </a>
+                <a href="{{ route('history.index') }}" class="digi-nav-link {{ request()->routeIs('history.*') ? 'active' : '' }}">
+                    History
+                    @if(($pendingUserVerifyCount ?? 0) > 0)
+                        <span class="digi-nav-count-badge is-amber" title="{{ $pendingUserVerifyCount }} pengisian menunggu verifikasi akhir Anda">{{ $pendingUserVerifyCount }}</span>
+                    @endif
+                </a>
                 <a href="{{ route('evaluation.index') }}" class="digi-nav-link {{ request()->routeIs('evaluation.*') ? 'active' : '' }}">Evaluasi BBM</a>
                 <a href="{{ route('admin.master') }}" class="digi-nav-link {{ request()->routeIs('admin.master*') ? 'active' : '' }}">Master Data</a>
                 <a href="{{ route('profile.index') }}" class="digi-nav-link {{ request()->routeIs('profile.*') ? 'active' : '' }}">Profil</a>
@@ -65,12 +96,27 @@
                 @if($currentUser?->isSpv() || $currentUser?->isDepthead())
                     <a href="{{ route('fuel.create') }}" class="digi-nav-link {{ request()->routeIs('fuel.create') ? 'active' : '' }}">Form Request</a>
                 @endif
-                <a href="{{ route('approval.index') }}" class="digi-nav-link {{ request()->routeIs('approval.*') ? 'active' : '' }}">Pengajuan</a>
-                <a href="{{ route('history.index') }}" class="digi-nav-link {{ request()->routeIs('history.*') ? 'active' : '' }}">History</a>
+                <a href="{{ route('approval.index') }}" class="digi-nav-link {{ request()->routeIs('approval.*') ? 'active' : '' }}">
+                    Pengajuan
+                    @if(($pendingApprovalCount ?? 0) > 0)
+                        <span class="digi-nav-count-badge" title="{{ $pendingApprovalCount }} pengajuan menunggu tindakan Anda">{{ $pendingApprovalCount }}</span>
+                    @endif
+                </a>
+                <a href="{{ route('history.index') }}" class="digi-nav-link {{ request()->routeIs('history.*') ? 'active' : '' }}">
+                    History
+                    @if(($pendingUserVerifyCount ?? 0) > 0)
+                        <span class="digi-nav-count-badge is-amber" title="{{ $pendingUserVerifyCount }} pengisian menunggu verifikasi akhir Anda">{{ $pendingUserVerifyCount }}</span>
+                    @endif
+                </a>
                 <a href="{{ route('profile.index') }}" class="digi-nav-link {{ request()->routeIs('profile.*') ? 'active' : '' }}">Profil</a>
             @else
                 <a href="{{ route('fuel.create') }}" class="digi-nav-link {{ request()->routeIs('fuel.create') ? 'active' : '' }}">Form Request</a>
-                <a href="{{ route('history.index') }}" class="digi-nav-link {{ request()->routeIs('history.*') ? 'active' : '' }}">History</a>
+                <a href="{{ route('history.index') }}" class="digi-nav-link {{ request()->routeIs('history.*') ? 'active' : '' }}">
+                    History
+                    @if(($pendingUserVerifyCount ?? 0) > 0)
+                        <span class="digi-nav-count-badge is-amber" title="{{ $pendingUserVerifyCount }} pengisian menunggu verifikasi akhir Anda">{{ $pendingUserVerifyCount }}</span>
+                    @endif
+                </a>
                 <a href="{{ route('profile.index') }}" class="digi-nav-link {{ request()->routeIs('profile.*') ? 'active' : '' }}">Profil</a>
             @endif
         </div>

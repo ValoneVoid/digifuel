@@ -72,6 +72,7 @@ class ApprovalController extends Controller
             'pending_spv' => (clone $baseStatsQuery)->where('status_spv', 'menunggu')->count(),
             'pending_depthead' => (clone $baseStatsQuery)->where('status_spv', 'disetujui')->where('status_depthead', 'menunggu')->count(),
             'pending_vendor' => (clone $baseStatsQuery)->where('status_spv', 'disetujui')->where('status_depthead', 'disetujui')->whereIn('current_stage', ['pending_vendor'])->count(),
+            'pending_user_verification' => (clone $baseStatsQuery)->where('current_stage', 'pending_user_verification')->count(),
             'ready_fueling' => (clone $baseStatsQuery)->whereIn('current_stage', ['approved', 'fueling'])->count(),
             'completed' => (clone $baseStatsQuery)->where('current_stage', 'completed')->count(),
             'approved_total' => (clone $baseStatsQuery)->where('overall_status', 'disetujui')->count(),
@@ -83,8 +84,9 @@ class ApprovalController extends Controller
             WHEN status_spv = 'menunggu' THEN 1 
             WHEN status_depthead = 'menunggu' THEN 2 
             WHEN status_vendor = 'menunggu' OR status_fuelman = 'menunggu' THEN 3 
-            WHEN current_stage IN ('approved', 'fueling') THEN 4
-            ELSE 5 END")
+            WHEN current_stage = 'pending_user_verification' THEN 4
+            WHEN current_stage IN ('approved', 'fueling') THEN 5
+            ELSE 6 END")
             ->orderBy('request_date', 'desc')
             ->paginate(10)
             ->withQueryString();
@@ -131,7 +133,10 @@ class ApprovalController extends Controller
         }
 
         $adjustedLiters = null;
-        if ($request->filled('total_liters') && ($user->isSpv() || $user->isAdmin()) && $fuelRequest->status_spv === 'menunggu') {
+        $canAdjustOnSpv = ($user->isSpv() || $user->isAdmin()) && $fuelRequest->status_spv === 'menunggu';
+        $canAdjustOnDepthead = ($user->isManager() || $user->isAdmin()) && $fuelRequest->status_spv === 'disetujui' && $fuelRequest->status_depthead === 'menunggu';
+
+        if ($request->filled('total_liters') && ($canAdjustOnSpv || $canAdjustOnDepthead)) {
             $request->validate([
                 'total_liters' => ['required', 'numeric', 'gt:0', 'max:5000'],
             ], [
@@ -144,27 +149,31 @@ class ApprovalController extends Controller
         }
 
         // Tangkap data realisasi pengisian BBM fisik dari pihak Vendor (Tahap 4)
+        // Catatan: meter_at_fueling dan fueled_at dikunci di server untuk non-Admin (Item 7)
         $realizationData = null;
         if (($user->isVendor() || $user->isFuelman() || $user->isAdmin()) && $fuelRequest->status_spv === 'disetujui' && $fuelRequest->status_depthead === 'disetujui') {
             if ($request->filled('actual_liters') || $request->filled('meter_at_fueling')) {
                 $request->validate([
                     'actual_liters' => ['required', 'numeric', 'gt:0', 'max:5000'],
-                    'meter_at_fueling' => ['required', 'numeric', 'min:0'],
+                    'meter_at_fueling' => ['nullable', 'numeric', 'min:0'],
                     'fueled_at' => ['nullable', 'date'],
                     'notes' => ['nullable', 'string', 'max:1000'],
                 ], [
                     'actual_liters.required' => 'Jumlah liter aktual wajib diisi.',
                     'actual_liters.numeric' => 'Jumlah liter aktual harus berupa angka.',
                     'actual_liters.gt' => 'Jumlah liter aktual harus lebih besar dari 0.',
-                    'meter_at_fueling.required' => 'KM/HM odometer saat pengisian wajib diisi.',
                     'meter_at_fueling.numeric' => 'KM/HM odometer harus berupa angka.',
                     'meter_at_fueling.min' => 'KM/HM odometer tidak boleh negatif.',
                 ]);
 
                 $realizationData = [
                     'actual_liters' => (float)$request->input('actual_liters'),
-                    'meter_at_fueling' => (float)$request->input('meter_at_fueling'),
-                    'fueled_at' => $request->input('fueled_at') ?: now(),
+                    'meter_at_fueling' => $user->isAdmin() && $request->filled('meter_at_fueling')
+                        ? (float)$request->input('meter_at_fueling')
+                        : (float)$fuelRequest->hm_km,
+                    'fueled_at' => $user->isAdmin() && $request->filled('fueled_at')
+                        ? $request->input('fueled_at')
+                        : now(),
                     'notes' => $request->input('notes') ?? $request->input('note'),
                 ];
             }
@@ -227,13 +236,15 @@ class ApprovalController extends Controller
         return redirect()->route('approval.show', $fuelRequest->id)->with('error', $result['message']);
     }
 
-    public function recordRealization(Request $request, $id, FuelRequestService $service)
+    public function recordRealization(Request $request, $id, FuelRequestService $service, FuelRequestPolicy $policy)
     {
         $user = $this->getActiveUser();
         $fuelRequest = FuelRequest::findOrFail($id);
 
-        if (!$user->isVendor() && !$user->isFuelman() && !$user->isAdmin()) {
-            return redirect()->back()->with('error', 'Hanya pihak Vendor atau Admin yang dapat mencatat realisasi pengisian BBM.');
+        if (!$policy->recordRealization($user, $fuelRequest)) {
+            throw \Illuminate\Validation\ValidationException::withMessages([
+                'status' => 'Realisasi pengisian BBM sudah tercatat & dikunci, atau pengajuan belum memperoleh persetujuan Dept Head / Vendor.',
+            ]);
         }
 
         if (!$user->hasActiveSignature()) {
@@ -242,24 +253,60 @@ class ApprovalController extends Controller
 
         $validated = $request->validate([
             'actual_liters' => ['required', 'numeric', 'gt:0', 'max:5000'],
-            'meter_at_fueling' => ['required', 'numeric', 'min:0'],
-            'fueled_at' => ['required', 'date'],
+            'meter_at_fueling' => ['nullable', 'numeric', 'min:0'],
+            'fueled_at' => ['nullable', 'date'],
             'notes' => ['nullable', 'string', 'max:1000'],
         ], [
             'actual_liters.required' => 'Jumlah liter aktual wajib diisi.',
             'actual_liters.numeric' => 'Jumlah liter aktual harus berupa angka numerik.',
             'actual_liters.gt' => 'Jumlah liter aktual harus lebih besar dari nol (0).',
             'actual_liters.max' => 'Jumlah liter aktual tidak boleh lebih dari 5.000 Liter.',
-            'meter_at_fueling.required' => 'HM / KM aktual saat pengisian wajib diisi.',
             'meter_at_fueling.numeric' => 'HM / KM aktual harus berupa angka numerik valid.',
             'meter_at_fueling.min' => 'HM / KM aktual tidak boleh negatif.',
-            'fueled_at.required' => 'Tanggal dan waktu pengisian aktual wajib diisi.',
             'fueled_at.date' => 'Format tanggal dan waktu pengisian tidak valid.',
         ]);
+
+        // Server-side lock untuk non-Admin
+        if (!$user->isAdmin()) {
+            $validated['meter_at_fueling'] = (float) $fuelRequest->hm_km;
+            $validated['fueled_at'] = now();
+        } else {
+            $validated['meter_at_fueling'] = isset($validated['meter_at_fueling']) ? (float) $validated['meter_at_fueling'] : (float) $fuelRequest->hm_km;
+            $validated['fueled_at'] = $validated['fueled_at'] ?? now();
+        }
 
         $transaction = $service->recordRealization($fuelRequest, $user, $validated);
 
         return redirect()->route('approval.show', $fuelRequest->id)
-            ->with('success', "Realisasi pengisian BBM berhasil dicatat! Nomor Transaksi: {$transaction->transaction_no} ({$transaction->actual_liters} Liter pada HM/KM {$transaction->meter_at_fueling}).");
+            ->with('success', "Realisasi pengisian BBM berhasil dicatat & dikunci! Nomor Transaksi: {$transaction->transaction_no} ({$transaction->actual_liters} Liter). Menunggu Verifikasi Akhir Pemohon.");
+    }
+
+    /**
+     * Final Verification (Final Approve) by requesting User / Driver
+     */
+    public function verifyUser(Request $request, $id, FuelRequestService $service, FuelRequestPolicy $policy)
+    {
+        $user = $this->getActiveUser();
+        $fuelRequest = FuelRequest::findOrFail($id);
+
+        if (!$policy->verifyUser($user, $fuelRequest)) {
+            abort(403, 'Akses Ditolak: Anda tidak memiliki izin melakukan Verifikasi Akhir pada pengajuan ini.');
+        }
+
+        $validated = $request->validate([
+            'confirm_responsibility' => ['required', 'accepted'],
+            'note' => ['nullable', 'string', 'max:1000'],
+        ], [
+            'confirm_responsibility.required' => 'Anda wajib mencentang pernyataan pertanggungjawaban sebelum menyelesaikan pengisian.',
+            'confirm_responsibility.accepted' => 'Anda wajib menyetujui pernyataan pertanggungjawaban sebelum menyelesaikan pengisian.',
+        ]);
+
+        $result = $service->verifyByUser($fuelRequest, $user, $validated['note'] ?? null);
+
+        if (!$result['ok']) {
+            return redirect()->back()->with('error', $result['message']);
+        }
+
+        return redirect()->route('approval.show', $fuelRequest->id)->with('success', $result['message']);
     }
 }

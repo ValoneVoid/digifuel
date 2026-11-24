@@ -240,8 +240,9 @@
                     <th style="color: #ffffff; background: #1e3a8a; text-align: right;">Total Jarak (Km)</th>
                     <th style="color: #ffffff; background: #1e3a8a; text-align: right;">Total Pengisian Fuel (L)</th>
                     <th style="color: #ffffff; background: #1e3a8a; text-align: right;">Rasio Aktual (Km/L)</th>
-                    <th style="color: #ffffff; background: #1e3a8a; text-align: right;">Rasio Standar (Km/L)</th>
-                    <th style="color: #ffffff; background: #1e3a8a; text-align: center;">Evaluasi per Unit</th>
+                    <th style="color: #ffffff; background: #1e3a8a; text-align: right;">Standar (Km/L)</th>
+                    <th style="color: #ffffff; background: #1e3a8a; text-align: center;">Evaluasi Periode</th>
+                    <th style="color: #ffffff; background: #1e3a8a; text-align: center;">Kumulatif (Sejak Awal)</th>
                     <th style="color: #ffffff; background: #1e3a8a; text-align: right;">Total Biaya (IDR)</th>
                     <th style="color: #ffffff; background: #1e3a8a; text-align: right;">Varian Pemborosan (L)</th>
                     <th style="color: #ffffff; background: #1e3a8a; text-align: right;">Biaya Kerugian (IDR)</th>
@@ -287,17 +288,42 @@
                         @endif
                         <td style="text-align: right;">{{ number_format($eval->total_distance_or_hours, 0, ',', '.') }}</td>
                         <td style="text-align: right;">{{ number_format($eval->total_actual_liters, 1, ',', '.') }}</td>
-                        <td style="text-align: right;">{{ number_format($eval->actual_ratio, 1, ',', '.') }}</td>
-                        <td style="text-align: right;">{{ number_format($eval->standard_used, 1, ',', '.') }}</td>
+                        <td style="text-align: right; font-weight: 700;">{{ number_format($eval->actual_ratio, 1, ',', '.') }}</td>
+                        <td style="text-align: right; white-space: nowrap;">
+                            @if(!empty($eval->standard_max_used) && (float)$eval->standard_max_used > (float)$eval->standard_used)
+                                {{ number_format($eval->standard_used, 1, ',', '.') }} – {{ number_format($eval->standard_max_used, 1, ',', '.') }}
+                            @else
+                                {{ number_format($eval->standard_used, 1, ',', '.') }}
+                            @endif
+                        </td>
                         <td style="text-align: center;">
                             @if($eval->evaluation_status === 'normal')
-                                <span class="digi-badge digi-badge-green" style="min-width: 96px; text-align: center;">Wajar</span>
+                                <span class="digi-badge digi-badge-green" style="min-width: 92px; text-align: center;">Wajar</span>
                             @elseif($eval->evaluation_status === 'needs_review')
-                                <span class="digi-badge digi-badge-red" style="min-width: 96px; text-align: center;">Tidak Wajar</span>
+                                <span class="digi-badge digi-badge-red" style="min-width: 92px; text-align: center;">Tidak Wajar</span>
                             @elseif($eval->evaluation_status === 'incomplete')
                                 <span class="digi-badge digi-badge-yellow">Incomplete</span>
                             @else
                                 <span class="digi-badge digi-badge-gray">Invalid Data</span>
+                            @endif
+                            @if(!empty($eval->admin_notes))
+                                <div style="font-size: 10.5px; color: #0369a1; margin-top: 3px; max-width: 140px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;" title="Catatan Admin: {{ $eval->admin_notes }}">
+                                    &#9998; {{ $eval->admin_notes }}
+                                </div>
+                            @endif
+                        </td>
+                        <td style="text-align: center; white-space: nowrap;">
+                            @if(!empty($eval->cumulative_ratio) && (float)$eval->cumulative_ratio > 0)
+                                <div style="font-weight: 700; font-size: 12.5px; color: #0f172a;">{{ number_format((float)$eval->cumulative_ratio, 1, ',', '.') }} Km/L</div>
+                                @if($eval->cumulative_status === 'normal')
+                                    <span class="digi-badge digi-badge-green" style="font-size: 10.5px; padding: 2px 7px;">Wajar</span>
+                                @elseif($eval->cumulative_status === 'needs_review')
+                                    <span class="digi-badge digi-badge-red" style="font-size: 10.5px; padding: 2px 7px;">Tidak Wajar</span>
+                                @else
+                                    <span class="digi-badge digi-badge-gray" style="font-size: 10.5px; padding: 2px 7px;">{{ ucfirst($eval->cumulative_status ?? '-') }}</span>
+                                @endif
+                            @else
+                                <span style="color: #94a3b8; font-size: 12px;">-</span>
                             @endif
                         </td>
                         <td style="text-align: right;">Rp {{ number_format($eval->total_actual_cost, 0, ',', '.') }}</td>
@@ -319,7 +345,7 @@
                     </tr>
                 @empty
                     <tr>
-                        <td colspan="{{ $mode !== 'monthly' ? 14 : 13 }}" style="text-align: center; color: #94a3b8; padding: 36px;">
+                        <td colspan="{{ $mode !== 'monthly' ? 15 : 14 }}" style="text-align: center; color: #94a3b8; padding: 36px;">
                             Belum ada data evaluasi pada {{ $periodLabel }}. Klik tombol <strong>Hitung Evaluasi</strong> untuk menjalankan kalkulasi otomatis dari transaksi BBM.
                         </td>
                     </tr>
@@ -334,6 +360,7 @@
                         <td style="text-align: right;">{{ number_format($summary['total_actual_liters'], 1, ',', '.') }}</td>
                         <td style="text-align: right;">{{ number_format($summary['avg_ratio'], 1, ',', '.') }}</td>
                         <td style="text-align: right;">{{ number_format($summary['avg_standard_ratio'] ?? 7.6, 1, ',', '.') }}</td>
+                        <td></td>
                         <td></td>
                         <td style="text-align: right;">Rp {{ number_format($summary['total_actual_cost'], 0, ',', '.') }}</td>
                         <td style="text-align: right; color: #dc2626;">{{ number_format($summary['total_waste_liters'], 1, ',', '.') }}</td>

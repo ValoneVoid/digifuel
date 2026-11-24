@@ -59,6 +59,9 @@
             <span class="digi-badge digi-badge-yellow">Menunggu SPV: {{ $stats['pending_spv'] }}</span>
             <span class="digi-badge digi-badge-yellow">Menunggu DeptHead: {{ $stats['pending_depthead'] }}</span>
             <span class="digi-badge digi-badge-yellow">Menunggu Vendor: {{ $stats['pending_vendor'] }}</span>
+            @if(($stats['pending_user_verification'] ?? 0) > 0)
+                <span class="digi-badge digi-badge-blue">Menunggu Verifikasi Pemohon: {{ $stats['pending_user_verification'] }}</span>
+            @endif
             @if(($stats['ready_fueling'] ?? 0) > 0)
                 <span class="digi-badge digi-badge-blue">Siap Diisi BBM: {{ $stats['ready_fueling'] }}</span>
             @endif
@@ -134,7 +137,11 @@
                             @endif
                         </td>
                         <td>
-                            @if($req->status_fuelman === 'disetujui' || $req->status_vendor === 'disetujui')
+                            @if($req->isSpbu())
+                                <span class="digi-badge digi-badge-green">SPBU (Selesai)</span>
+                            @elseif($req->current_stage === 'pending_user_verification')
+                                <span class="digi-badge digi-badge-yellow">Verifikasi Pemohon</span>
+                            @elseif($req->status_fuelman === 'disetujui' || $req->status_vendor === 'disetujui')
                                 <span class="digi-badge digi-badge-green">
                                     {{ $req->current_stage === 'completed' ? 'Selesai Isi' : 'Disetujui' }}
                                 </span>

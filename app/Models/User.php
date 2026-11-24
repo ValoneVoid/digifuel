@@ -132,6 +132,15 @@ class User extends Authenticatable
         return $this->isManager();
     }
 
+    public function canUseSpbu(): bool
+    {
+        if ($this->isDepthead() || $this->hasRole(['sm', 'site_manager'])) {
+            return true;
+        }
+        $jabatan = strtolower((string) $this->jabatan);
+        return str_contains($jabatan, 'site manager') || str_contains($jabatan, 'dept head');
+    }
+
     public function isVendor(): bool
     {
         return $this->role === 'vendor' || $this->roles()->where('name', 'vendor')->exists();

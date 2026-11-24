@@ -449,6 +449,23 @@
             <td class="colon-col">:</td>
             <td class="value-col">{{ $request['area'] }}</td>
         </tr>
+        @if(!empty($request['is_spbu']))
+        <tr>
+            <td class="label-col">Lokasi SPBU</td>
+            <td class="colon-col">:</td>
+            <td class="value-col highlight-value">{{ $request['spbu_location'] ?? 'SPBU' }}</td>
+            <td class="label-col">Harga Aktual SPBU</td>
+            <td class="colon-col">:</td>
+            <td class="value-col highlight-value">
+                @if(!empty($request['spbu_price_per_liter']))
+                    Rp {{ number_format($request['spbu_price_per_liter'], 0, ',', '.') }}/L
+                    (Total: Rp {{ number_format($request['spbu_price_per_liter'] * $request['total_liters'], 0, ',', '.') }})
+                @else
+                    -
+                @endif
+            </td>
+        </tr>
+        @endif
         @if(!empty($request['notes']))
         <tr>
             <td class="label-col">Catatan Tambahan</td>

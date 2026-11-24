@@ -12,6 +12,7 @@ class FuelRequest extends Model
         'request_date' => 'datetime',
         'planned_fuel_time' => 'datetime',
         'fueled_at' => 'datetime',
+        'user_verified_at' => 'datetime',
         'spv_action_at' => 'datetime',
         'manager_action_at' => 'datetime',
         'depthead_action_at' => 'datetime',
@@ -20,6 +21,8 @@ class FuelRequest extends Model
         'total_liters' => 'decimal:2',
         'actual_liters' => 'decimal:2',
         'actual_hm_km' => 'decimal:2',
+        'is_spbu' => 'boolean',
+        'spbu_price_per_liter' => 'decimal:2',
     ];
 
     public function user()
@@ -106,16 +109,29 @@ class FuelRequest extends Model
             'pending_vendor' => 'Menunggu Persetujuan Vendor',
             'approved' => 'Approved - Ready for Fueling',
             'fueling' => 'Sedang Pengisian BBM (Fueling)',
-            'completed' => 'Selesai ( Pengisian BBM Tercatat )',
+            'pending_user_verification' => 'Menunggu Verifikasi Akhir Pemohon',
+            'completed' => $this->is_spbu
+                ? 'Selesai (Pengisian SPBU — Full Approved)'
+                : 'Selesai (Pengisian BBM Terverifikasi)',
             'rejected' => 'Ditolak',
             'cancelled' => 'Dibatalkan',
             default => ucfirst(str_replace('_', ' ', $this->current_stage ?? 'pending_spv')),
         };
     }
 
+    public function isSpbu(): bool
+    {
+        return (bool) $this->is_spbu || strtoupper(trim((string) $this->vendor_name)) === 'SPBU';
+    }
+
+    public function isPendingUserVerification(): bool
+    {
+        return $this->current_stage === 'pending_user_verification';
+    }
+
     public function isVendorApproved(): bool
     {
-        return in_array($this->current_stage, ['approved', 'fueling', 'completed'])
+        return in_array($this->current_stage, ['approved', 'fueling', 'pending_user_verification', 'completed'])
             || $this->status_vendor === 'disetujui'
             || ($this->status_spv === 'disetujui' && $this->status_depthead === 'disetujui' && $this->status_fuelman === 'disetujui');
     }

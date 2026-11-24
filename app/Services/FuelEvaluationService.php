@@ -27,14 +27,15 @@ class FuelEvaluationService
     ): FuelEvaluation {
         return DB::transaction(function () use ($vehicle, $period, $userId, $overrideMeterStart, $overrideMeterEnd, $overrideActualLiters) {
             // Find transactions in this period for this vehicle
-            $transactions = FuelTransaction::whereHas('fuelRequest', function ($q) use ($vehicle) {
-                $q->where('vehicle_id', $vehicle->id)
-                  ->orWhere('unit_code', $vehicle->unit_code);
-            })
-            ->where('fueled_at', 'like', "{$period}%")
-            ->orderBy('fueled_at', 'asc')
-            ->orderBy('meter_at_fueling', 'asc')
-            ->get();
+            $transactions = FuelTransaction::with('fuelRequest')
+                ->whereHas('fuelRequest', function ($q) use ($vehicle) {
+                    $q->where('vehicle_id', $vehicle->id)
+                      ->orWhere('unit_code', $vehicle->unit_code);
+                })
+                ->where('fueled_at', 'like', "{$period}%")
+                ->orderBy('fueled_at', 'asc')
+                ->orderBy('meter_at_fueling', 'asc')
+                ->get();
 
             // Determine active standard for this vehicle
             $standard = FuelStandard::where('vehicle_id', $vehicle->id)
@@ -49,6 +50,7 @@ class FuelEvaluationService
             $meterStart = $overrideMeterStart;
             $meterEnd = $overrideMeterEnd;
             $totalActualLiters = $overrideActualLiters;
+            $computedActualCost = null;
 
             if ($transactions->count() > 0) {
                 if ($meterStart === null) {
@@ -63,11 +65,24 @@ class FuelEvaluationService
                 }
                 if ($totalActualLiters === null) {
                     $totalActualLiters = (float)$transactions->sum('actual_liters');
+                    // Support actual SPBU price per liter when transaction came from SPBU
+                    $computedActualCost = 0.0;
+                    foreach ($transactions as $tx) {
+                        $txFr = $tx->fuelRequest;
+                        $unitPrice = ($txFr && $txFr->isSpbu() && (float)$txFr->spbu_price_per_liter > 0)
+                            ? (float)$txFr->spbu_price_per_liter
+                            : $pricePerLiter;
+                        $computedActualCost += ((float)$tx->actual_liters * $unitPrice);
+                    }
+                    $computedActualCost = round($computedActualCost, 2);
                 }
             }
 
             $standardType = $standard ? $standard->standard_type : ($vehicle->meter_type === 'hm' ? 'liter_per_hour' : 'km_per_liter');
             $standardValue = $standard ? (float)$standard->standard_value : 0.0;
+            $standardMax = ($standard && $standard->standard_max !== null && (float)$standard->standard_max > $standardValue)
+                ? (float)$standard->standard_max
+                : null;
             $tolerancePct = $standard ? (float)$standard->tolerance_percentage : 5.0;
 
             // Default evaluation outputs
@@ -77,7 +92,7 @@ class FuelEvaluationService
             $varianceLiters = 0.0;
             $wasteLiters = 0.0;
             $estimatedCostLoss = 0.0;
-            $totalActualCost = round(($totalActualLiters ?? 0) * $pricePerLiter, 2);
+            $totalActualCost = $computedActualCost !== null ? $computedActualCost : round(($totalActualLiters ?? 0) * $pricePerLiter, 2);
             $status = 'normal';
             $notes = null;
 
@@ -105,13 +120,18 @@ class FuelEvaluationService
                     $wasteLiters = ($actualRatio < $standardValue) ? max(round($totalActualLiters - ($distanceOrHours / $standardValue), 2), 0.0) : 0.0;
                     $estimatedCostLoss = round($wasteLiters * $pricePerLiter, 2);
 
-                    // Evaluasi per Unit sesuai Excel Perusahaan: IF(Rasio Aktual < (Rasio Standar - 0.5), "Tidak Wajar", "Wajar")
+                    $rangeLabel = $standardMax !== null ? "{$standardValue} - {$standardMax} Km/L" : "{$standardValue} Km/L";
+
+                    // Evaluasi per Unit mendukung Rentang Standar (Min - Max)
                     if ($actualRatio < ($standardValue - 0.5)) {
                         $status = 'needs_review';
-                        $notes = "Tidak Wajar: Rasio aktual ({$actualRatio} Km/L) di bawah batas toleransi (" . ($standardValue - 0.5) . " Km/L). Varian pemborosan {$wasteLiters} L.";
+                        $notes = "Tidak Wajar (Boros): Rasio aktual ({$actualRatio} Km/L) di bawah batas toleransi minimal (" . ($standardValue - 0.5) . " Km/L dari standar {$rangeLabel}). Varian pemborosan {$wasteLiters} L.";
+                    } elseif ($standardMax !== null && $actualRatio > $standardMax) {
+                        $status = 'needs_review';
+                        $notes = "Tidak Wajar (Di Atas Batas Maksimal): Rasio aktual ({$actualRatio} Km/L) melebihi rentang standar ({$rangeLabel}). Periksa kemungkinan pengisian belum tercatat atau salah input odometer.";
                     } else {
                         $status = 'normal';
-                        $notes = "Wajar: Rasio aktual ({$actualRatio} Km/L) memenuhi standar operasional ({$standardValue} Km/L).";
+                        $notes = "Wajar: Rasio aktual ({$actualRatio} Km/L) berada dalam rentang standar operasional ({$rangeLabel}).";
                     }
                 } else {
                     // Rule C: Standar liter per jam -> BBM standar = Jam operasi * Standar L/jam
@@ -132,6 +152,66 @@ class FuelEvaluationService
                 }
             }
 
+            // =========================================================================
+            // EVALUASI KESELURUHAN / KUMULATIF SEJAK AWAL TERCATAT (Item 12)
+            // Rumus: (Odometer Terakhir - Odometer Awal Pertama) / Total Liter Keseluruhan
+            // =========================================================================
+            $allHistoryTx = FuelTransaction::with('fuelRequest')
+                ->whereHas('fuelRequest', function ($q) use ($vehicle) {
+                    $q->where('vehicle_id', $vehicle->id)
+                      ->orWhere('unit_code', $vehicle->unit_code);
+                })
+                ->orderBy('fueled_at', 'asc')
+                ->orderBy('id', 'asc')
+                ->get();
+
+            $cumMeterStart = null;
+            $cumMeterEnd = null;
+            $cumDistance = 0.0;
+            $cumLiters = 0.0;
+            $cumRatio = 0.0;
+            $cumStatus = 'incomplete';
+
+            if ($allHistoryTx->count() > 0) {
+                $firstTx = $allHistoryTx->first();
+                $lastTx = $allHistoryTx->last();
+                $firstReqOdo = (float) ($firstTx->fuelRequest->hm_km ?? 0);
+                $firstTxOdo = (float) $firstTx->meter_at_fueling;
+                $cumMeterStart = ($firstReqOdo > 0 && $firstReqOdo < $firstTxOdo) ? $firstReqOdo : $firstTxOdo;
+                $cumMeterEnd = (float) $lastTx->meter_at_fueling;
+                $cumLiters = round((float) $allHistoryTx->sum('actual_liters'), 2);
+
+                if ($cumMeterEnd < $cumMeterStart) {
+                    $cumStatus = 'invalid_data';
+                } elseif ($cumMeterEnd == $cumMeterStart || $cumLiters <= 0 || $standardValue <= 0) {
+                    $cumStatus = 'incomplete';
+                } else {
+                    $cumDistance = round($cumMeterEnd - $cumMeterStart, 2);
+                    if ($standardType === 'km_per_liter') {
+                        $cumRatio = round($cumDistance / $cumLiters, 2);
+                        if ($cumRatio < ($standardValue - 0.5)) {
+                            $cumStatus = 'needs_review';
+                        } elseif ($standardMax !== null && $cumRatio > $standardMax) {
+                            $cumStatus = 'needs_review';
+                        } else {
+                            $cumStatus = 'normal';
+                        }
+                    } else {
+                        $cumRatio = round($cumLiters / $cumDistance, 2);
+                        $cumAllowed = round(($cumDistance * $standardValue) * (1 + ($tolerancePct / 100.0)), 2);
+                        $cumStatus = $cumLiters > $cumAllowed ? 'needs_review' : 'normal';
+                    }
+                }
+            } elseif ($meterStart !== null && $meterEnd !== null && $totalActualLiters !== null && $totalActualLiters > 0) {
+                // Fallback when evaluated from manual meter overrides without FuelTransaction rows
+                $cumMeterStart = $meterStart;
+                $cumMeterEnd = $meterEnd;
+                $cumDistance = $distanceOrHours;
+                $cumLiters = (float) $totalActualLiters;
+                $cumRatio = $actualRatio;
+                $cumStatus = $status;
+            }
+
             $evalNo = sprintf('EVAL-%s-%s', str_replace('-', '', $period), preg_replace('/[^A-Za-z0-9]/', '', $vehicle->unit_code));
 
             $evaluation = FuelEvaluation::updateOrCreate(
@@ -149,6 +229,7 @@ class FuelEvaluationService
                     'actual_ratio' => $actualRatio,
                     'standard_type' => $standardType,
                     'standard_used' => $standardValue,
+                    'standard_max_used' => $standardMax,
                     'tolerance_used' => $tolerancePct,
                     'price_used' => $pricePerLiter,
                     'total_actual_cost' => $totalActualCost,
@@ -156,6 +237,12 @@ class FuelEvaluationService
                     'waste_liters' => $wasteLiters,
                     'estimated_cost_loss' => $estimatedCostLoss,
                     'evaluation_status' => $status,
+                    'cumulative_meter_start' => $cumMeterStart,
+                    'cumulative_meter_end' => $cumMeterEnd,
+                    'cumulative_distance' => $cumDistance,
+                    'cumulative_liters' => $cumLiters,
+                    'cumulative_ratio' => $cumRatio,
+                    'cumulative_status' => $cumStatus,
                     'notes' => $notes,
                     'calculated_by' => $userId,
                     'calculated_at' => now(),
@@ -219,6 +306,57 @@ class FuelEvaluationService
         );
 
         return $count;
+    }
+
+    /**
+     * Compute per-refueling (per pengisian) distance, ratio, and Wajar/Tidak Wajar status
+     * using consecutive odometer deltas across sorted transactions.
+     */
+    public function computePerFillMetrics($transactions, float $stdMin, ?float $stdMax = null): array
+    {
+        $sorted = $transactions->sortBy('fueled_at')->values();
+        $metrics = [];
+        $prevOdo = null;
+
+        foreach ($sorted as $tx) {
+            $currOdo = (float) $tx->meter_at_fueling;
+            $liters = (float) $tx->actual_liters;
+            $distance = null;
+            $ratio = null;
+            $status = 'baseline';
+
+            if ($prevOdo !== null && $currOdo > $prevOdo && $liters > 0) {
+                $distance = round($currOdo - $prevOdo, 2);
+                $ratio = round($distance / $liters, 2);
+
+                if ($stdMin > 0) {
+                    if ($ratio < ($stdMin - 0.5)) {
+                        $status = 'needs_review';
+                    } elseif ($stdMax !== null && $stdMax > $stdMin && $ratio > $stdMax) {
+                        $status = 'needs_review';
+                    } else {
+                        $status = 'normal';
+                    }
+                } else {
+                    $status = 'normal';
+                }
+            } elseif ($prevOdo !== null && $currOdo < $prevOdo) {
+                $status = 'invalid_data';
+            }
+
+            $metrics[$tx->id] = [
+                'prev_odo' => $prevOdo,
+                'distance' => $distance,
+                'ratio' => $ratio,
+                'status' => $status,
+            ];
+
+            if ($currOdo > 0) {
+                $prevOdo = $currOdo;
+            }
+        }
+
+        return $metrics;
     }
 }
 

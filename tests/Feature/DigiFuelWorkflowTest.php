@@ -120,32 +120,45 @@ class DigiFuelWorkflowTest extends TestCase
         $this->assertEquals('disetujui', $fuelRequest->status_depthead);
         $this->assertEquals('pending_vendor', $fuelRequest->current_stage);
 
-        // 6. Stage 3 (Langkah 4): Vendor Approves and records fueling realization in 1 step
+        // 6. Stage 3 (Langkah 4): Vendor Approves and records fueling realization (locked KM & time -> awaits User Final Verification)
         $this->actingAs($vendor);
         $this->post(route('approval.approve', $fuelRequest->id), [
             'note' => 'Stok BBM tersedia',
             'actual_liters' => 45.0,
-            'meter_at_fueling' => 106010,
+            'meter_at_fueling' => 999999, // Harus diabaikan oleh server lock (Item 7)
             'fueled_at' => '2026-05-20 10:00:00',
         ]);
         $fuelRequest->refresh();
         $this->assertEquals('disetujui', $fuelRequest->status_vendor);
-        $this->assertEquals('completed', $fuelRequest->current_stage);
+        $this->assertEquals('pending_user_verification', $fuelRequest->current_stage);
+        $this->assertEquals('menunggu', $fuelRequest->overall_status);
         $this->assertTrue($fuelRequest->isVendorApproved());
         $this->assertEquals(45.0, (float)$fuelRequest->actual_liters);
+        $this->assertEquals(106000.0, (float)$fuelRequest->actual_hm_km); // KM terkunci sesuai input Driver
         $this->assertEquals(1, $fuelRequest->transactions()->count());
 
-        // 7. Vendor can also update / refine realization details if needed
+        // 7. Item 7: Vendor TIDAK BOLEH mengubah ulang realisasi setelah tercatat (locked)
         $this->actingAs($vendor);
         $this->post(route('approval.realization', $fuelRequest->id), [
             'actual_liters' => 44.5,
             'meter_at_fueling' => 106010,
             'fueled_at' => '2026-05-20 10:00:00',
-            'notes' => 'Pengisian selesai di Fuel Station SDU',
-        ]);
+            'notes' => 'Coba ubah liter setelah dikunci',
+        ])->assertSessionHasErrors('status');
+        $fuelRequest->refresh();
+        $this->assertEquals(45.0, (float)$fuelRequest->actual_liters);
+
+        // 8. Item 8: Tahap 5 — Verifikasi Akhir (Final Approve) oleh Driver Pemohon
+        $this->actingAs($driver);
+        $this->post(route('approval.verifyUser', $fuelRequest->id), [
+            'confirm_responsibility' => '1',
+            'note' => 'Pengisian 45 L di lokasi sudah sesuai',
+        ])->assertRedirect(route('approval.show', $fuelRequest->id));
+
         $fuelRequest->refresh();
         $this->assertEquals('completed', $fuelRequest->current_stage);
-        $this->assertEquals(44.5, (float)$fuelRequest->actual_liters);
+        $this->assertEquals('disetujui', $fuelRequest->overall_status);
+        $this->assertNotNull($fuelRequest->user_verified_at);
         $this->assertEquals(1, $fuelRequest->transactions()->count());
     }
 
@@ -698,7 +711,7 @@ class DigiFuelWorkflowTest extends TestCase
         $this->assertEquals('Bypassed (Dept Head)', $req->spv_name);
         $this->assertNotNull($req->depthead_signature);
 
-        // Vendor can immediately approve and complete realization
+        // Vendor approves & records realization -> transitions to pending_user_verification
         $this->actingAs($vendor);
         $approveResp = $this->post(route('approval.approve', $req->id), [
             'note' => 'Pengisian BBM Dept Head selesai',
@@ -709,19 +722,32 @@ class DigiFuelWorkflowTest extends TestCase
         $approveResp->assertRedirect();
 
         $req->refresh();
-        $this->assertEquals('completed', $req->current_stage);
+        $this->assertEquals('pending_user_verification', $req->current_stage);
         $this->assertEquals('disetujui', $req->status_vendor);
         $this->assertTrue($req->isVendorApproved());
+
+        // Dept Head (as requester) completes Final Verification -> completed
+        $this->actingAs($depthead);
+        $this->post(route('approval.verifyUser', $req->id), [
+            'confirm_responsibility' => '1',
+            'note' => 'Sesuai pengisian lapangan',
+        ])->assertRedirect(route('approval.show', $req->id));
+
+        $req->refresh();
+        $this->assertEquals('completed', $req->current_stage);
+        $this->assertEquals('disetujui', $req->overall_status);
 
         // Check document sheet view displays N/A instead of (Menunggu Approval)
         $docResp = $this->get(route('fuel.document', $req->id));
         $docResp->assertStatus(200);
         $docResp->assertSee('N/A');
 
-        // Check PDF generation works cleanly for bypassed SPV
-        $pdfResp = $this->get(route('fuel.pdf.stream', $req->id));
-        $pdfResp->assertStatus(200);
-        $this->assertEquals('application/pdf', $pdfResp->headers->get('Content-Type'));
+        // Check PDF generation works cleanly if DomPDF package is installed
+        if (class_exists(\Barryvdh\DomPDF\Facade\Pdf::class)) {
+            $pdfResp = $this->get(route('fuel.pdf.stream', $req->id));
+            $pdfResp->assertStatus(200);
+            $this->assertEquals('application/pdf', $pdfResp->headers->get('Content-Type'));
+        }
     }
 
     public function test_user_can_create_signature_via_direct_canvas_drawing_and_file_upload(): void

@@ -92,42 +92,65 @@ class FuelRequestPolicy
     }
 
     /**
-     * Determine whether the user can inspect and update requested fuel liters (SPV on pending_spv stage or Admin).
+     * Determine whether the user can inspect and update requested fuel liters
+     * (SPV on pending_spv stage, Dept Head/Manager on pending_manager stage, or Admin).
      */
     public function updateLiters(User $user, FuelRequest $fuelRequest): bool
     {
         if ($user->isAdmin()) {
-            return true;
+            return $fuelRequest->status_spv === 'menunggu'
+                || ($fuelRequest->status_spv === 'disetujui' && $fuelRequest->status_depthead === 'menunggu');
         }
 
-        if ($user->isSpv()) {
-            return (empty($fuelRequest->spv_id) || (int) $fuelRequest->spv_id === (int) $user->id)
-                && $fuelRequest->status_spv === 'menunggu';
+        if ($user->isSpv() && $fuelRequest->status_spv === 'menunggu') {
+            return empty($fuelRequest->spv_id) || (int) $fuelRequest->spv_id === (int) $user->id;
+        }
+
+        if ($user->isManager() && $fuelRequest->status_spv === 'disetujui' && $fuelRequest->status_depthead === 'menunggu') {
+            return empty($fuelRequest->depthead_id) || (int) $fuelRequest->depthead_id === (int) $user->id;
         }
 
         return false;
     }
 
     /**
+     * Determine whether the requesting user / driver can perform Final Verification (Final Approve).
+     */
+    public function verifyUser(User $user, FuelRequest $fuelRequest): bool
+    {
+        if ($fuelRequest->current_stage !== 'pending_user_verification') {
+            return false;
+        }
+
+        return (int) $fuelRequest->user_id === (int) $user->id || $user->isAdmin();
+    }
+
+    /**
      * Determine whether the user can record fueling realization.
+     * Once realized, Vendor/Fuelman cannot re-edit (locked).
      */
     public function recordRealization(User $user, FuelRequest $fuelRequest): bool
     {
-        return ($user->isVendor() || $user->isFuelman() || $user->isAdmin()) && ($fuelRequest->status_depthead === 'disetujui' || $fuelRequest->isVendorApproved());
+        if (!$user->isAdmin() && ($fuelRequest->transactions()->exists() || in_array($fuelRequest->current_stage, ['pending_user_verification', 'completed'], true))) {
+            return false;
+        }
+
+        return ($user->isVendor() || $user->isFuelman() || $user->isAdmin())
+            && ($fuelRequest->status_depthead === 'disetujui' || $fuelRequest->isVendorApproved());
     }
 
     /**
      * Determine whether the user can delete a Fuel Request (Trial/Junk/Cancelled/Draft cleanup).
      *
      * Rules:
-     * 1. Cannot delete if physical fueling transaction already recorded (current_stage === 'completed' or transactions exist).
+     * 1. Cannot delete if physical fueling transaction already recorded (current_stage === 'completed'/'pending_user_verification' or transactions exist).
      * 2. Administrator can delete requests that have no physical fueling transactions.
      * 3. Driver (the requester) can delete their own request IF it is still a 'draft', 'cancelled',
      *    or 'pending_spv' (stage 1) before SPV approval.
      */
     public function delete(User $user, FuelRequest $fuelRequest): bool
     {
-        if ($fuelRequest->transactions()->exists() || $fuelRequest->current_stage === 'completed') {
+        if ($fuelRequest->transactions()->exists() || in_array($fuelRequest->current_stage, ['pending_user_verification', 'completed'], true)) {
             return false;
         }
 

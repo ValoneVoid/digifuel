@@ -151,7 +151,11 @@
                             @endif
                         </td>
                         <td>
-                            @if($req->status_fuelman === 'disetujui' || $req->status_vendor === 'disetujui')
+                            @if($req->isSpbu())
+                                <span class="digi-badge digi-badge-green">SPBU (Selesai)</span>
+                            @elseif($req->current_stage === 'pending_user_verification')
+                                <span class="digi-badge digi-badge-yellow">Verifikasi Pemohon</span>
+                            @elseif($req->status_fuelman === 'disetujui' || $req->status_vendor === 'disetujui')
                                 <span class="digi-badge digi-badge-green">
                                     {{ $req->current_stage === 'completed' ? 'Selesai Isi' : 'Disetujui' }}
                                 </span>
@@ -164,7 +168,12 @@
                             @endif
                         </td>
                         <td>
-                            <div style="display:flex; align-items:center; gap: 6px;">
+                            <div style="display:flex; align-items:center; gap: 6px; flex-wrap: wrap;">
+                                @if($req->current_stage === 'pending_user_verification' && ((int)$req->user_id === (int)$user->id || $user->isAdmin()))
+                                    <a href="{{ route('approval.show', $req->id) }}" class="btn-digi btn-digi-yellow" style="padding: 4px 10px; font-size: 11.5px; font-weight: 700;" title="Lakukan Verifikasi Akhir Pengisian">
+                                        Verifikasi Akhir
+                                    </a>
+                                @endif
                                 <!-- Purple Document View Modal -->
                                 <button type="button" class="digi-action-btn digi-action-purple" title="Pratinjau Surat Fuel Request" onclick="openDocModal({{ $req->id }})">
                                     <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">

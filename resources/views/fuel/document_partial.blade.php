@@ -54,12 +54,25 @@
             <td class="lbl">KM</td>
             <td class="col">:</td>
             <td class="val">
-                {{ $fuelRequest->hm_km ?? 79 }} KM
+                {{ $fuelRequest->hm_km !== null ? $fuelRequest->hm_km : '-' }} KM
                 @if($fuelRequest->actual_hm_km !== null)
                     (Aktual Saat Pengisian: {{ (float)$fuelRequest->actual_hm_km }} KM)
                 @endif
             </td>
         </tr>
+        @if($fuelRequest->isSpbu())
+        <tr>
+            <td class="lbl">PENGISIAN SPBU</td>
+            <td class="col">:</td>
+            <td class="val">
+                <strong>{{ $fuelRequest->spbu_location ?? 'SPBU' }}</strong>
+                @if($fuelRequest->spbu_price_per_liter)
+                    — Rp {{ number_format((float)$fuelRequest->spbu_price_per_liter, 0, ',', '.') }}/L
+                    (Total: <strong>Rp {{ number_format((float)$fuelRequest->spbu_price_per_liter * (float)($fuelRequest->actual_liters ?? $fuelRequest->total_liters), 0, ',', '.') }}</strong>)
+                @endif
+            </td>
+        </tr>
+        @endif
         <tr>
             <td class="lbl">DATE & TIME <em>(Tgl & Waktu)</em></td>
             <td class="col">:</td>

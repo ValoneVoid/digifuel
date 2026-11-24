@@ -44,6 +44,7 @@ Route::middleware(['auth'])->group(function () {
         // Printable Fuel Request Document & Modal Preview (Protected by FuelRequestPolicy)
         Route::get('/fuel/{id}/document', [FuelRequestController::class, 'document'])->name('fuel.document');
         Route::get('/fuel/{id}/document-partial', [FuelRequestController::class, 'documentPartial'])->name('fuel.document.partial');
+        Route::get('/fuel/{id}/spbu-receipt', [FuelRequestController::class, 'serveSpbuReceipt'])->name('fuel.spbu.receipt');
         Route::get('/fuel/{id}/pdf', [FuelRequestPdfController::class, 'download'])->name('fuel.pdf');
         Route::get('/fuel/{id}/pdf/stream', [FuelRequestPdfController::class, 'stream'])->name('fuel.pdf.stream');
 
@@ -72,6 +73,8 @@ Route::middleware(['auth'])->group(function () {
 
     // Detail Pengajuan Fuel Request (Dapat diakses oleh Driver pemilik pengajuan, SPV, Dept Head, Vendor, Fuel Man, Admin sesuai Policy)
     Route::get('/approval/{id}', [ApprovalController::class, 'show'])->name('approval.show');
+    // Verifikasi Akhir Pengisian oleh Pemohon / Driver (Final Approve)
+    Route::post('/approval/{id}/verify-user', [ApprovalController::class, 'verifyUser'])->name('approval.verifyUser');
 
     // Sequential Approval (SPV, Dept Head/Manager, Vendor) & Fuel Man Module
     Route::middleware(['role:spv,depthead,vendor,fuelman,admin'])->group(function () {
@@ -92,6 +95,7 @@ Route::middleware(['auth'])->group(function () {
         Route::post('/evaluation/calculate', [EvaluationController::class, 'calculate'])->name('evaluation.calculate');
         Route::get('/evaluation/export', [EvaluationController::class, 'export'])->name('evaluation.export');
         Route::get('/evaluation/{id}', [EvaluationController::class, 'show'])->name('evaluation.show');
+        Route::post('/evaluation/{id}/notes', [EvaluationController::class, 'updateNotes'])->name('evaluation.notes');
 
         // Master Data & Audit Trail Management (Admin)
         Route::get('/admin/master', [AdminMasterController::class, 'index'])->name('admin.master');
