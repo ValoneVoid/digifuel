@@ -255,7 +255,9 @@
                 </div>
                 <span style="font-size: 11.5px; color: #64748b; margin-top: 4px; display: block;">
                     @if($fuelRequest->status_spv === 'menunggu')
-                        Jumlah liter BBM yang diajukan oleh driver. Supervisor berhak memeriksa dan menyesuaikan jumlah liter sebelum persetujuan.
+                        Jumlah liter BBM yang diajukan oleh pemohon. Supervisor berwenang memeriksa dan menyesuaikan jumlah liter sebelum menyetujui.
+                    @elseif($fuelRequest->status_depthead === 'menunggu')
+                        Supervisor telah menyetujui kuota ini. Dept Head memiliki wewenang penyesuaian (adjustment) jumlah liter pada tahap persetujuannya.
                     @else
                         Jumlah liter BBM yang telah disetujui untuk pengisian unit ini.
                     @endif
