@@ -235,4 +235,38 @@ class FonnteWhatsappService
 
         return $this->sendMessage($requester->phone, $message);
     }
+
+    /**
+     * Notify requesting Driver / Employee when their Fuel Request is rejected at any stage.
+     */
+    public function notifyRejected(FuelRequest $fuelRequest, User $rejector, string $stage, string $note): bool
+    {
+        $requester = $fuelRequest->user;
+        if (!$requester || empty($requester->phone)) {
+            return false;
+        }
+
+        $unitCode = $fuelRequest->vehicle?->unit_code ?? $fuelRequest->unit_code ?? '-';
+        $liters = number_format((float)$fuelRequest->total_liters, 0, ',', '.');
+        $stageLabel = match ($stage) {
+            'spv' => 'SPV',
+            'manager', 'depthead' => 'Dept Head / Manager',
+            'vendor', 'fuelman' => 'Vendor BBM',
+            default => strtoupper($stage),
+        };
+        $directUrl = $this->buildApprovalUrl($fuelRequest);
+
+        $message = "*[FuelLink - Pengajuan BBM Ditolak]*\n\n"
+            . "Halo *{$requester->name}*,\n"
+            . "Pengajuan BBM Anda ditolak pada tahap *{$stageLabel}* oleh *{$rejector->name}*:\n\n"
+            . "• *No. Surat:* {$fuelRequest->request_no}\n"
+            . "• *Unit:* {$unitCode}\n"
+            . "• *Jumlah BBM:* {$liters} Liter\n"
+            . "• *Alasan Penolakan:* {$note}\n\n"
+            . "Silakan buka tautan berikut untuk melihat detail pengajuan:\n"
+            . "{$directUrl}\n\n"
+            . "Terima kasih.";
+
+        return $this->sendMessage($requester->phone, $message);
+    }
 }

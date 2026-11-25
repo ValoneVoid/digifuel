@@ -211,16 +211,25 @@ class EvaluationController extends Controller
                 $stdRatio = (float)$first->standard_used;
                 $tolerance = (float)$first->tolerance_used;
 
+                $latestRec = $records->sortByDesc('period')->first();
+                $stdMax = ($latestRec->standard_max_used !== null && (float)$latestRec->standard_max_used > $stdRatio)
+                    ? (float)$latestRec->standard_max_used
+                    : null;
+
                 if ($actualLiters <= 0 || $dist <= 0) {
                     $status = 'incomplete';
                 } elseif ($first->standard_type === 'liter_per_hour') {
                     $allowed = $stdLiters * (1 + ($tolerance / 100));
                     $status = $actualLiters > $allowed ? 'needs_review' : 'normal';
                 } else {
-                    $status = $actRatio < ($stdRatio - 0.5) ? 'needs_review' : 'normal';
+                    if ($actRatio < ($stdRatio - 0.5)) {
+                        $status = 'needs_review';
+                    } elseif ($stdMax !== null && $actRatio > $stdMax) {
+                        $status = 'needs_review';
+                    } else {
+                        $status = 'normal';
+                    }
                 }
-
-                $latestRec = $records->sortByDesc('period')->first();
                 return (object)[
                     'id' => $first->id,
                     'latest_id' => $latestRec->id,

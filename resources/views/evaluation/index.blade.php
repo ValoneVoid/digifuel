@@ -307,8 +307,8 @@
                                 <span class="digi-badge digi-badge-gray">Invalid Data</span>
                             @endif
                             @if(!empty($eval->admin_notes))
-                                <div style="font-size: 10.5px; color: #0369a1; margin-top: 3px; max-width: 140px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;" title="Catatan Admin: {{ $eval->admin_notes }}">
-                                    &#9998; {{ $eval->admin_notes }}
+                                <div style="font-size: 10.5px; color: #0369a1; margin-top: 3px; max-width: 150px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;" title="Catatan Admin: {{ $eval->admin_notes }}">
+                                    <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" style="display:inline-block; vertical-align:-1px; margin-right:3px;"><path d="M12 20h9"></path><path d="M16.5 3.5a2.121 2.121 0 0 1 3 3L7 19l-4 1 1-4L16.5 3.5z"></path></svg>{{ $eval->admin_notes }}
                                 </div>
                             @endif
                         </td>

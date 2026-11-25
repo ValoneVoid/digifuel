@@ -58,6 +58,8 @@ class FuelRequestService
                 ]);
             }
 
+            $isSpbu = strtoupper(trim((string) ($data['vendor_name'] ?? ''))) === 'SPBU';
+
             $area = null;
             if (!$isSpbu) {
                 $area = Area::where('name', $data['area'] ?? '')->where('is_active', true)->first();
@@ -71,7 +73,6 @@ class FuelRequestService
                 $area = Area::where('name', $areaName)->where('is_active', true)->first();
             }
 
-            $isSpbu = strtoupper(trim((string) ($data['vendor_name'] ?? ''))) === 'SPBU';
             $vendor = null;
 
             if ($isSpbu) {
@@ -840,17 +841,18 @@ class FuelRequestService
 
                 $fromStage = $locked->current_stage;
                 $requestedLiters = (float) $locked->total_liters;
-                $actualLiters = isset($realizationData['actual_liters']) ? (float)$realizationData['actual_liters'] : $requestedLiters;
-                $varianceLiters = round($actualLiters - $requestedLiters, 2);
 
-                // LOCK SERVER-SIDE (Item 7): Vendor/Fuelman tidak boleh mengubah KM/HM maupun Waktu Pengisian
+                // LOCK SERVER-SIDE: Vendor/Fuelman tidak boleh mengubah data apapun (Liter, KM/HM, maupun Waktu Pengisian)
                 if ($user->isAdmin()) {
+                    $actualLiters = isset($realizationData['actual_liters']) ? (float)$realizationData['actual_liters'] : $requestedLiters;
                     $meterAtFueling = isset($realizationData['meter_at_fueling']) ? (float)$realizationData['meter_at_fueling'] : (float)$locked->hm_km;
                     $fueledAt = !empty($realizationData['fueled_at']) ? Carbon::parse($realizationData['fueled_at']) : now();
                 } else {
+                    $actualLiters = $requestedLiters;
                     $meterAtFueling = (float) $locked->hm_km;
                     $fueledAt = now();
                 }
+                $varianceLiters = round($actualLiters - $requestedLiters, 2);
 
                 $realizationNote = !empty($realizationData['notes']) ? $realizationData['notes'] : ($note ?: 'Disetujui dan pengisian BBM telah direalisasikan oleh Vendor.');
 
@@ -1018,6 +1020,8 @@ class FuelRequestService
                 'danger'
             );
 
+            $this->whatsappService->notifyRejected($locked, $user, $stage, $note);
+
             return [
                 'ok' => true,
                 'message' => "Pengajuan {$locked->request_no} telah ditolak.",
@@ -1054,17 +1058,18 @@ class FuelRequestService
             }
 
             $requestedLiters = (float)$locked->total_liters;
-            $actualLiters = (float)$data['actual_liters'];
-            $varianceLiters = round($actualLiters - $requestedLiters, 2);
 
-            // Item 7: Server-side lock untuk KM/HM dan waktu pengisian pada non-Admin
+            // Server-side lock penuh: Vendor/Fuelman tidak boleh mengubah Liter, KM/HM, maupun Waktu Pengisian
             if ($user->isAdmin()) {
+                $actualLiters = (float)$data['actual_liters'];
                 $meterAtFueling = isset($data['meter_at_fueling']) ? (float)$data['meter_at_fueling'] : (float)$locked->hm_km;
                 $fueledAt = !empty($data['fueled_at']) ? Carbon::parse($data['fueled_at']) : now();
             } else {
+                $actualLiters = $requestedLiters;
                 $meterAtFueling = (float)$locked->hm_km;
                 $fueledAt = now();
             }
+            $varianceLiters = round($actualLiters - $requestedLiters, 2);
 
             $signature = $user->signature_url ?? $locked->fuelman_signature ?? 'images/sig_fuelman.png';
 

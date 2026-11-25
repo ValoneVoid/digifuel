@@ -167,7 +167,9 @@ class ApprovalController extends Controller
                 ]);
 
                 $realizationData = [
-                    'actual_liters' => (float)$request->input('actual_liters'),
+                    'actual_liters' => $user->isAdmin() && $request->filled('actual_liters')
+                        ? (float)$request->input('actual_liters')
+                        : (float)$fuelRequest->total_liters,
                     'meter_at_fueling' => $user->isAdmin() && $request->filled('meter_at_fueling')
                         ? (float)$request->input('meter_at_fueling')
                         : (float)$fuelRequest->hm_km,
@@ -266,8 +268,9 @@ class ApprovalController extends Controller
             'fueled_at.date' => 'Format tanggal dan waktu pengisian tidak valid.',
         ]);
 
-        // Server-side lock untuk non-Admin
+        // Server-side lock penuh untuk non-Admin (Vendor tidak boleh mengubah data apapun)
         if (!$user->isAdmin()) {
+            $validated['actual_liters'] = (float) $fuelRequest->total_liters;
             $validated['meter_at_fueling'] = (float) $fuelRequest->hm_km;
             $validated['fueled_at'] = now();
         } else {

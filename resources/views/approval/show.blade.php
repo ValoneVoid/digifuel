@@ -419,13 +419,13 @@
                 <form id="vendorRealizationForm" action="{{ route('approval.realization', $fuelRequest->id) }}" method="POST" style="margin-top: 14px; padding-top: 14px; border-top: 1px dashed #86efac;">
                     @csrf
                     <div style="font-size: 13px; font-weight: 700; color: #166534; margin-bottom: 12px;">
-                        Input Realisasi Pengisian BBM Aktual (KM & Waktu Pengisian Terkunci Otomatis):
+                        Konfirmasi Realisasi Pengisian BBM (Seluruh Data Terkunci Otomatis):
                     </div>
                     <div class="realization-grid">
                         <div class="digi-form-group" style="margin-bottom: 0;">
-                            <label class="digi-form-label">Jumlah Liter Aktual <span class="digi-required">*</span></label>
+                            <label class="digi-form-label">Jumlah Liter Aktual <span class="digi-badge digi-badge-gray" style="font-size:10px; margin-left:4px;">Terkunci</span></label>
                             <div class="digi-input-group">
-                                <input type="number" step="0.1" min="0.1" max="5000" name="actual_liters" class="digi-input" value="{{ old('actual_liters', (float)($fuelRequest->actual_liters ?? $fuelRequest->total_liters)) }}" required style="font-weight: 700;">
+                                <input type="number" step="0.1" min="0.1" max="5000" name="actual_liters" class="digi-input" value="{{ (float)$fuelRequest->total_liters }}" {{ $currentUser->isAdmin() ? '' : 'readonly' }} required style="font-weight: 700; {{ $currentUser->isAdmin() ? '' : 'background:#f1f5f9; color:#475569; cursor:not-allowed;' }}">
                                 <span class="digi-input-addon">Liter</span>
                             </div>
                         </div>
@@ -609,18 +609,78 @@
     <!-- SECTION: TIMELINE RIWAYAT AKTIVITAS (Requirement 9 & 16) -->
     @if($fuelRequest->histories && $fuelRequest->histories->count() > 0)
         <div style="margin-top: 24px; padding-top: 20px; border-top: 1px solid #e2e8f0;">
-            <h3 class="digi-section-title" style="margin-bottom: 12px;">Riwayat Aktivitas & Audit Trail Pengajuan</h3>
-            <div style="border-left: 2px solid #0284c7; margin-left: 10px; padding-left: 18px; display: flex; flex-direction: column; gap: 12px;">
+            <h3 class="digi-section-title" style="margin-bottom: 14px;">Riwayat Aktivitas &amp; Audit Trail Pengajuan</h3>
+            <div style="border-left: 2px solid #cbd5e1; margin-left: 10px; padding-left: 18px; display: flex; flex-direction: column; gap: 14px;">
                 @foreach($fuelRequest->histories as $hist)
+                    @php
+                        $rawNote = (string) ($hist->note ?? '');
+                        $auditText = $rawNote;
+                        $remarkLabel = null;
+                        $remarkText = null;
+
+                        if (preg_match('/^(.*?)\s*(Alasan|Catatan)\s*:\s*(.+)$/is', $rawNote, $matches)) {
+                            $auditText = trim($matches[1]);
+                            $remarkLabel = ucfirst(strtolower(trim($matches[2])));
+                            $remarkText = trim($matches[3]);
+                        }
+
+                        $actionKey = strtolower((string) $hist->action);
+                        $dotColor = '#0284c7';
+                        $badgeBg = '#e0f2fe';
+                        $badgeColor = '#0369a1';
+                        $remarkBg = '#f8fafc';
+                        $remarkBorder = '#94a3b8';
+                        $remarkTitleColor = '#334155';
+
+                        if ($actionKey === 'rejected') {
+                            $dotColor = '#dc2626';
+                            $badgeBg = '#fee2e2';
+                            $badgeColor = '#b91c1c';
+                            $remarkBg = '#fef2f2';
+                            $remarkBorder = '#ef4444';
+                            $remarkTitleColor = '#991b1b';
+                        } elseif ($actionKey === 'adjusted_liters') {
+                            $dotColor = '#d97706';
+                            $badgeBg = '#fef3c7';
+                            $badgeColor = '#92400e';
+                            $remarkBg = '#fffbeb';
+                            $remarkBorder = '#f59e0b';
+                            $remarkTitleColor = '#92400e';
+                        } elseif (in_array($actionKey, ['approved_spv', 'approved_manager', 'vendor_realized', 'user_verified', 'completed', 'spbu_completed'], true)) {
+                            $dotColor = '#16a34a';
+                            $badgeBg = '#dcfce7';
+                            $badgeColor = '#15803d';
+                            $remarkBg = '#f0fdf4';
+                            $remarkBorder = '#22c55e';
+                            $remarkTitleColor = '#166534';
+                        }
+                    @endphp
                     <div style="position: relative; font-size: 13px;">
-                        <span style="position: absolute; left: -24px; top: 4px; width: 10px; height: 10px; border-radius: 50%; background: #0284c7;"></span>
-                        <div style="font-weight: 700; color: #1e293b;">
-                            {{ strtoupper(str_replace('_', ' ', $hist->action)) }}
-                            <span style="font-weight: 400; color: #64748b; font-size: 12px; margin-left: 6px;">
-                                — {{ $hist->created_at?->format('d/m/Y H:i:s') }} oleh <strong>{{ $hist->user?->name ?? 'Sistem' }}</strong>
+                        <span style="position: absolute; left: -24px; top: 5px; width: 10px; height: 10px; border-radius: 50%; background: {{ $dotColor }}; box-shadow: 0 0 0 3px #ffffff;"></span>
+
+                        <div style="display: flex; align-items: center; flex-wrap: wrap; gap: 6px; margin-bottom: 4px;">
+                            <span style="display: inline-block; padding: 2px 8px; border-radius: 999px; font-size: 11px; font-weight: 700; letter-spacing: 0.3px; background: {{ $badgeBg }}; color: {{ $badgeColor }};">
+                                {{ strtoupper(str_replace('_', ' ', $hist->action)) }}
+                            </span>
+                            <span style="font-weight: 400; color: #64748b; font-size: 12px;">
+                                {{ $hist->created_at?->format('d/m/Y H:i:s') }} &middot; oleh <strong style="color: #1e293b;">{{ $hist->user?->name ?? 'Sistem' }}</strong>
                             </span>
                         </div>
-                        <div style="color: #475569; margin-top: 2px;">{{ $hist->note }}</div>
+
+                        @if($auditText !== '')
+                            <div style="color: #475569; line-height: 1.55;">
+                                {{ $auditText }}
+                            </div>
+                        @endif
+
+                        @if($remarkText !== null && $remarkText !== '')
+                            <div style="margin-top: 6px; padding: 8px 12px; background: {{ $remarkBg }}; border-left: 3px solid {{ $remarkBorder }}; border-radius: 0 6px 6px 0; font-size: 12.5px; line-height: 1.5;">
+                                <span style="display: inline-block; font-size: 10.5px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.4px; color: {{ $remarkTitleColor }}; margin-right: 6px;">
+                                    {{ $remarkLabel }}:
+                                </span>
+                                <span style="color: #1e293b; font-weight: 500;">{{ $remarkText }}</span>
+                            </div>
+                        @endif
                     </div>
                 @endforeach
             </div>
@@ -678,15 +738,15 @@
                             </div>
                             <div>
                                 <div class="realization-title">Data Fisik Realisasi Pengisian (Dispenser Vendor)</div>
-                                <div class="realization-subtitle">Hanya jumlah liter aktual yang dapat disesuaikan — KM & Waktu Pengisian terkunci otomatis</div>
+                                <div class="realization-subtitle">{{ $currentUser?->isAdmin() ? 'Data realisasi pengisian BBM pada dispenser vendor' : 'Seluruh data pengisian (Liter, KM/HM, dan Waktu) terkunci otomatis — Vendor hanya melakukan approval' }}</div>
                             </div>
                         </div>
 
                         <div class="realization-grid">
                             <div class="digi-form-group" style="margin-bottom: 0;">
-                                <label class="digi-form-label">Liter Aktual Terisi <span class="digi-required">*</span></label>
+                                <label class="digi-form-label">Liter Aktual Terisi <span class="digi-badge digi-badge-gray" style="font-size:10px; margin-left:4px;">Terkunci</span></label>
                                 <div class="digi-input-group">
-                                    <input type="number" step="0.1" min="0.1" max="5000" name="actual_liters" class="digi-input" value="{{ old('actual_liters', (float)$fuelRequest->total_liters) }}" required style="font-weight: 700; font-size: 15px;">
+                                    <input type="number" step="0.1" min="0.1" max="5000" name="actual_liters" class="digi-input" value="{{ (float)$fuelRequest->total_liters }}" {{ $currentUser?->isAdmin() ? '' : 'readonly' }} required style="font-weight: 700; font-size: 15px; {{ $currentUser?->isAdmin() ? '' : 'background:#f1f5f9; color:#475569; cursor:not-allowed;' }}">
                                     <span class="digi-input-addon">Liter</span>
                                 </div>
                             </div>

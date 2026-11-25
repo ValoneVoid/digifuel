@@ -76,7 +76,7 @@
 
     <!-- SECTION 2: EVALUASI KESELURUHAN / KUMULATIF SEJAK AWAL (Item 12) -->
     <div class="digi-form-box" style="margin-top: 18px; border-color: #7dd3fc; background: #f0f9ff;">
-        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px; flex-wrap: wrap; gap: 8px;">
+        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px; flex-wrap: wrap; gap: 8px;">
             <h3 class="digi-section-title" style="color: #0369a1; margin: 0;">
                 2. Evaluasi Keseluruhan / Kumulatif (Sejak Pengisian Pertama di Aplikasi)
             </h3>
@@ -84,9 +84,12 @@
                 Kumulatif: {{ $evaluation->cumulative_status_label }}
             </span>
         </div>
-        <div class="digi-form-grid-4" style="margin-bottom: 0;">
+        <p style="font-size: 12px; color: #0369a1; margin: 0 0 12px 0; line-height: 1.5;">
+            Rumus efisiensi riil: <strong>(Odometer Terakhir &minus; Odometer Awal) &divide; Total Liter Terisi</strong>. Digunakan untuk memantau performa jangka panjang tanpa bias pengisian tangki setengah.
+        </p>
+        <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(175px, 1fr)); gap: 12px; margin-bottom: 0;">
             <div class="digi-form-group" style="margin-bottom: 0;">
-                <label class="digi-form-label">Odometer Awal Pertama → Terakhir</label>
+                <label class="digi-form-label">Odometer Awal Pertama &rarr; Terakhir</label>
                 <input type="text" class="digi-input" value="{{ $evaluation->cumulative_meter_start !== null ? number_format((float)$evaluation->cumulative_meter_start, 0, ',', '.') : '-' }} → {{ $evaluation->cumulative_meter_end !== null ? number_format((float)$evaluation->cumulative_meter_end, 0, ',', '.') : '-' }}" readonly disabled>
             </div>
             <div class="digi-form-group" style="margin-bottom: 0;">
@@ -106,24 +109,56 @@
 
     <!-- SECTION 3: CATATAN KHUSUS ADMIN / JUSTIFIKASI MAINTENANCE (Item 13) -->
     <div class="digi-form-box" style="margin-top: 18px; border-color: #fde68a; background: #fffbeb;">
-        <h3 class="digi-section-title" style="color: #92400e; margin-bottom: 8px;">3. Catatan Evaluasi Admin (Keterangan Maintenance / Kondisi Lapangan)</h3>
-        <p style="font-size: 12.5px; color: #78350f; margin: 0 0 10px 0;">
-            Tambahkan catatan khusus jika terdapat faktor teknis penyebab anomali konsumsi BBM (misal: ganti injektor, maintenance 2x sebulan, medan berlumpur, atau unit dinas luar).
+        <div style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 6px; margin-bottom: 8px;">
+            <h3 class="digi-section-title" style="color: #92400e; margin: 0;">3. Catatan Evaluasi Admin (Faktor Teknis Lapangan)</h3>
+            <span class="digi-badge digi-badge-yellow">{{ ($user && $user->isAdmin()) ? 'Dapat Diedit Admin' : 'Hanya Baca' }}</span>
+        </div>
+        <p style="font-size: 12.5px; color: #78350f; margin: 0 0 10px 0; line-height: 1.5;">
+            Catatan khusus untuk mendokumentasikan faktor teknis penyebab anomali konsumsi BBM (misal: servis injektor, medan jalan berlumpur, penggunaan solar B40/B50, atau dinas luar).
         </p>
-        <form action="{{ route('evaluation.notes', $evaluation->id) }}" method="POST" style="margin: 0;">
-            @csrf
-            <div style="display: flex; gap: 10px; align-items: flex-end; flex-wrap: wrap;">
-                <div class="digi-form-group" style="flex: 1; min-width: 260px; margin-bottom: 0;">
-                    <textarea name="admin_notes" rows="2" class="digi-input" placeholder="Contoh: Unit baru ganti injektor dan servis berkala pada minggu ke-2...">{{ old('admin_notes', $evaluation->admin_notes) }}</textarea>
-                </div>
-                <button type="submit" class="btn-digi btn-digi-blue" style="font-weight: 700;">
-                    Simpan Catatan Admin
-                </button>
+
+        @if($user && $user->isAdmin())
+            <div style="display: flex; flex-wrap: wrap; gap: 6px; margin-bottom: 10px;">
+                <span style="font-size: 11.5px; color: #92400e; font-weight: 600; align-self: center; margin-right: 2px;">Tag Cepat:</span>
+                @foreach(['Servis injektor', 'Jalan berlumpur / medan berat', 'Penggunaan solar B40/B50', 'Maintenance berkala', 'Operasional dinas luar'] as $quickTag)
+                    <button type="button" onclick="appendAdminNoteTag('{{ $quickTag }}')" style="background: #ffffff; border: 1px solid #fcd34d; color: #92400e; border-radius: 999px; padding: 3px 10px; font-size: 11.5px; font-weight: 600; cursor: pointer;">
+                        + {{ $quickTag }}
+                    </button>
+                @endforeach
             </div>
-        </form>
+            <form action="{{ route('evaluation.notes', $evaluation->id) }}" method="POST" style="margin: 0;">
+                @csrf
+                <div style="display: flex; flex-direction: column; gap: 10px;">
+                    <div class="digi-form-group" style="margin-bottom: 0;">
+                        <textarea name="admin_notes" id="admin_notes_input" rows="2" class="digi-input" placeholder="Contoh: Unit baru ganti injektor, medan jalan berlumpur, atau penggunaan solar B40/B50...">{{ old('admin_notes', $evaluation->admin_notes) }}</textarea>
+                    </div>
+                    <div style="display: flex; justify-content: flex-end;">
+                        <button type="submit" class="btn-digi btn-digi-blue" style="font-weight: 700;">
+                            Simpan Catatan Admin
+                        </button>
+                    </div>
+                </div>
+            </form>
+        @else
+            <div style="background: #ffffff; border: 1px solid #fcd34d; border-radius: 8px; padding: 10px 14px; font-size: 13px; color: {{ $evaluation->admin_notes ? '#1e293b' : '#94a3b8' }}; line-height: 1.5;">
+                {{ $evaluation->admin_notes ?: 'Belum ada catatan teknis dari Administrator untuk periode ini.' }}
+            </div>
+        @endif
     </div>
 
-    <h3 class="digi-section-title" style="margin-top: 24px;">Transaksi Pengisian BBM Sumber & Evaluasi Per Pengisian ({{ $evaluation->transactions->count() }})</h3>
+    @php
+        $anomalyEventCount = collect($perFillMetrics)->where('status', 'needs_review')->count();
+    @endphp
+    <div style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 8px; margin-top: 24px; margin-bottom: 10px;">
+        <h3 class="digi-section-title" style="margin: 0;">
+            4. Evaluasi Per Pengisian / Per Event ({{ $evaluation->transactions->count() }} Transaksi)
+        </h3>
+        @if($anomalyEventCount > 0)
+            <span class="digi-badge digi-badge-red">Terdeteksi {{ $anomalyEventCount }} Pengisian Anomali</span>
+        @elseif($evaluation->transactions->count() > 1)
+            <span class="digi-badge digi-badge-green">Semua Pengisian Wajar</span>
+        @endif
+    </div>
     <div class="digi-mobile-swipe-hint">
         <span><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="display:inline-block; vertical-align:middle; margin-right:4px;"><line x1="5" y1="12" x2="19" y2="12"></line><polyline points="12 5 19 12 12 19"></polyline></svg>Geser tabel ke samping untuk melihat detail transaksi & rasio per pengisian</span>
     </div>
@@ -195,5 +230,21 @@
         </table>
     </div>
 </div>
+@endsection
+
+@section('scripts')
+<script>
+function appendAdminNoteTag(tag) {
+    const el = document.getElementById('admin_notes_input');
+    if (!el) return;
+    const current = el.value.trim();
+    if (current.toLowerCase().includes(tag.toLowerCase())) {
+        el.focus();
+        return;
+    }
+    el.value = current ? (current + '; ' + tag) : tag;
+    el.focus();
+}
+</script>
 @endsection
 

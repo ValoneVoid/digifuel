@@ -1272,11 +1272,21 @@ body {
   width: 100%;
   max-width: 480px;
   max-height: calc(100vh - 48px);
+  max-height: calc(100dvh - 48px);
   display: flex;
   flex-direction: column;
   overflow: hidden;
   animation: modalFadeIn 0.2s ease-out;
   position: relative;
+}
+
+.digi-modal > form {
+  display: flex;
+  flex-direction: column;
+  flex: 1 1 auto;
+  min-height: 0;
+  overflow: hidden;
+  margin: 0;
 }
 
 @keyframes modalFadeIn {
@@ -1324,7 +1334,9 @@ body {
   color: #334155;
   line-height: 1.5;
   overflow-y: auto;
-  flex: 1;
+  -webkit-overflow-scrolling: touch;
+  flex: 1 1 auto;
+  min-height: 0;
 }
 
 .digi-modal-footer {
@@ -1496,7 +1508,8 @@ body {
   }
   .digi-modal {
     max-width: 100% !important;
-    max-height: calc(100vh - 24px) !important;
+    max-height: calc(100vh - 20px) !important;
+    max-height: calc(100dvh - 20px) !important;
     border-radius: 14px !important;
   }
   .digi-modal-header {
