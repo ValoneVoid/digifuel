@@ -28,18 +28,39 @@ class HistoryController extends Controller
     {
         $query = FuelRequest::with(['latestTransaction', 'unitVendor', 'vehicle.unitVendor']);
 
-        // Role-based access isolation
-        if ($user->isDriver() && !$user->isAdmin()) {
-            $query->where('user_id', $user->id);
-        } elseif ($user->isVendor() && !$user->isAdmin()) {
-            $query->where(function ($q) use ($user) {
-                if ($user->vendor_id) {
-                    $q->where('vendor_id', $user->vendor_id);
-                }
-                if ($user->vendor) {
-                    $q->orWhere('vendor_name', $user->vendor->name);
-                }
-            });
+        // Role-based access isolation (Admin melihat semua; approver hanya melihat yang ditujukan kepadanya atau miliknya sendiri)
+        if (!$user->isAdmin()) {
+            if ($user->isDriver()) {
+                $query->where('user_id', $user->id);
+            } elseif ($user->isSpv()) {
+                $query->where(function ($q) use ($user) {
+                    $q->where('spv_id', $user->id)
+                      ->orWhere('user_id', $user->id);
+                });
+            } elseif ($user->isManager()) {
+                $query->where(function ($q) use ($user) {
+                    $q->where('depthead_id', $user->id)
+                      ->orWhere('manager_id', $user->id)
+                      ->orWhere('user_id', $user->id);
+                });
+            } elseif ($user->isVendor()) {
+                $query->where(function ($q) use ($user) {
+                    $q->where('vendor_user_id', $user->id);
+                    if ($user->vendor_id) {
+                        $q->orWhere('vendor_id', $user->vendor_id);
+                    }
+                    if ($user->vendor) {
+                        $q->orWhere('vendor_name', $user->vendor->name);
+                    }
+                });
+            } elseif ($user->isFuelman()) {
+                $query->where(function ($q) use ($user) {
+                    $q->where('fuelman_id', $user->id);
+                    if ($user->vendor_id) {
+                        $q->orWhere('vendor_id', $user->vendor_id);
+                    }
+                });
+            }
         }
 
         // Filter Month

@@ -8,15 +8,32 @@ use App\Models\User;
 class FuelRequestPolicy
 {
     /**
-     * Determine whether the user can view a specific Fuel Request (prevents IDOR across Employees & Vendors).
+     * Determine whether the user can view a specific Fuel Request (prevents IDOR across Employees, Approvers & Vendors).
      */
     public function view(User $user, FuelRequest $fuelRequest): bool
     {
-        if ($user->isAdmin() || $user->isSpv() || $user->isManager() || $user->isFuelman()) {
+        if ($user->isAdmin()) {
             return true;
         }
 
+        // Pemohon (siapa pun rolenya) selalu boleh melihat pengajuan miliknya sendiri
+        if ((int) $fuelRequest->user_id === (int) $user->id) {
+            return true;
+        }
+
+        if ($user->isSpv()) {
+            return (int) $fuelRequest->spv_id === (int) $user->id;
+        }
+
+        if ($user->isManager()) {
+            return (int) $fuelRequest->depthead_id === (int) $user->id
+                || (int) $fuelRequest->manager_id === (int) $user->id;
+        }
+
         if ($user->isVendor()) {
+            if ($fuelRequest->vendor_user_id && (int) $fuelRequest->vendor_user_id === (int) $user->id) {
+                return true;
+            }
             if ($user->vendor_id && $fuelRequest->vendor_id) {
                 return (int) $user->vendor_id === (int) $fuelRequest->vendor_id;
             }
@@ -26,8 +43,17 @@ class FuelRequestPolicy
             return false;
         }
 
-        // Employee / Driver can only view their own requests
-        return (int) $fuelRequest->user_id === (int) $user->id;
+        if ($user->isFuelman()) {
+            if ($fuelRequest->fuelman_id && (int) $fuelRequest->fuelman_id === (int) $user->id) {
+                return true;
+            }
+            if ($user->vendor_id && $fuelRequest->vendor_id) {
+                return (int) $user->vendor_id === (int) $fuelRequest->vendor_id;
+            }
+            return false;
+        }
+
+        return false;
     }
 
     /**
@@ -84,11 +110,20 @@ class FuelRequestPolicy
             return true;
         }
 
-        if ($user->isVendor()) {
+        if ($user->isSpv()) {
+            return (int) $fuelRequest->spv_id === (int) $user->id;
+        }
+
+        if ($user->isManager()) {
+            return (int) $fuelRequest->depthead_id === (int) $user->id
+                || (int) $fuelRequest->manager_id === (int) $user->id;
+        }
+
+        if ($user->isVendor() || $user->isFuelman()) {
             return $this->view($user, $fuelRequest);
         }
 
-        return $user->isSpv() || $user->isManager() || $user->isFuelman();
+        return false;
     }
 
     /**

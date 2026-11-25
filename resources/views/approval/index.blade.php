@@ -29,18 +29,23 @@
             @endif
 
             <div class="digi-filter-group">
-                <label class="digi-filter-label">Status</label>
-                <select name="status" class="digi-select" style="padding: 7px 12px; font-size: 13px; min-width: 130px;">
-                    <option value="">Semua Status</option>
-                    <option value="menunggu" {{ request('status') === 'menunggu' ? 'selected' : '' }}>Menunggu..</option>
-                    <option value="disetujui" {{ request('status') === 'disetujui' ? 'selected' : '' }}>Disetujui</option>
-                    <option value="ditolak" {{ request('status') === 'ditolak' ? 'selected' : '' }}>Ditolak</option>
+                <label class="digi-filter-label">Tahap Aktif</label>
+                <select name="stage" class="digi-select" style="padding: 7px 12px; font-size: 13px; min-width: 165px;">
+                    <option value="">Semua Tahap Aktif</option>
+                    <option value="pending_spv" {{ request('stage') === 'pending_spv' ? 'selected' : '' }}>Menunggu SPV</option>
+                    <option value="pending_manager" {{ request('stage') === 'pending_manager' ? 'selected' : '' }}>Menunggu Dept Head</option>
+                    <option value="pending_vendor" {{ request('stage') === 'pending_vendor' ? 'selected' : '' }}>Menunggu Vendor</option>
+                    <option value="pending_user_verification" {{ request('stage') === 'pending_user_verification' ? 'selected' : '' }}>Verifikasi Pemohon</option>
                 </select>
             </div>
 
             <button type="submit" class="btn-digi btn-digi-blue" style="padding: 7px 16px; font-size: 13px;">
                 Filter
             </button>
+
+            <a href="{{ route('history.index') }}" class="btn-digi btn-digi-gray" style="padding: 7px 14px; font-size: 13px;">
+                Lihat Riwayat Selesai
+            </a>
 
             <a href="{{ route('history.export', request()->query()) }}" class="btn-digi btn-digi-green" style="padding: 7px 18px; font-size: 13px;">
                 <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
@@ -54,21 +59,22 @@
 
     <!-- Compact Role-Aware Summary Strip -->
     @if(isset($stats))
-        <div style="display: flex; align-items: center; gap: 10px; flex-wrap: wrap; background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 10px; padding: 10px 16px; margin-bottom: 18px; font-size: 12.5px;">
-            <span style="font-weight: 700; color: #334155;">Status Antrean:</span>
-            <span class="digi-badge digi-badge-yellow">Menunggu SPV: {{ $stats['pending_spv'] }}</span>
-            <span class="digi-badge digi-badge-yellow">Menunggu DeptHead: {{ $stats['pending_depthead'] }}</span>
-            <span class="digi-badge digi-badge-yellow">Menunggu Vendor: {{ $stats['pending_vendor'] }}</span>
-            @if(($stats['pending_user_verification'] ?? 0) > 0)
-                <span class="digi-badge digi-badge-blue">Menunggu Verifikasi Pemohon: {{ $stats['pending_user_verification'] }}</span>
-            @endif
-            @if(($stats['ready_fueling'] ?? 0) > 0)
-                <span class="digi-badge digi-badge-blue">Siap Diisi BBM: {{ $stats['ready_fueling'] }}</span>
-            @endif
-            <span class="digi-badge digi-badge-green">Disetujui / Selesai: {{ $stats['approved_total'] }}</span>
-            @if($stats['rejected_total'] > 0)
-                <span class="digi-badge digi-badge-red">Ditolak: {{ $stats['rejected_total'] }}</span>
-            @endif
+        <div style="display: flex; align-items: center; justify-content: space-between; gap: 10px; flex-wrap: wrap; background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 10px; padding: 10px 16px; margin-bottom: 18px; font-size: 12.5px;">
+            <div style="display: flex; align-items: center; gap: 8px; flex-wrap: wrap;">
+                <span style="font-weight: 700; color: #334155;">Antrean Aktif:</span>
+                <span class="digi-badge digi-badge-yellow">Menunggu SPV: {{ $stats['pending_spv'] }}</span>
+                <span class="digi-badge digi-badge-yellow">Menunggu DeptHead: {{ $stats['pending_depthead'] }}</span>
+                <span class="digi-badge digi-badge-yellow">Menunggu Vendor: {{ $stats['pending_vendor'] }}</span>
+                @if(($stats['pending_user_verification'] ?? 0) > 0)
+                    <span class="digi-badge digi-badge-blue">Menunggu Verifikasi Pemohon: {{ $stats['pending_user_verification'] }}</span>
+                @endif
+                @if(($stats['ready_fueling'] ?? 0) > 0)
+                    <span class="digi-badge digi-badge-blue">Siap Diisi BBM: {{ $stats['ready_fueling'] }}</span>
+                @endif
+            </div>
+            <span style="font-size: 11.5px; color: #64748b;">
+                Pengajuan selesai/ditolak otomatis dipindahkan ke <a href="{{ route('history.index') }}" style="color: #0284c7; font-weight: 600; text-decoration: none;">Halaman History</a>.
+            </span>
         </div>
     @endif
 
