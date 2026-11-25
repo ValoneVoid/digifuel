@@ -410,15 +410,6 @@
                     </div>
                 @endif
 
-                @if($fuelRequest->user_verified_at)
-                    <div style="margin-top: 12px; background: #dcfce7; border: 1px solid #86efac; border-radius: 8px; padding: 10px 14px; font-size: 12.5px; color: #166534;">
-                        <strong>&#10003; Verifikasi Akhir (Final Approve) Selesai:</strong> Dikonfirmasi oleh pemohon pada <strong>{{ $fuelRequest->user_verified_at->format('d/m/Y H:i') }}</strong>.
-                        @if($fuelRequest->user_verification_note)
-                            <div style="margin-top: 4px; color: #15803d;">Catatan: {{ $fuelRequest->user_verification_note }}</div>
-                        @endif
-                    </div>
-                @endif
-
                 @if($currentUser && ($currentUser->isVendor() || $currentUser->isFuelman()) && !$currentUser->isAdmin())
                     <div style="margin-top: 12px; background: #eff6ff; border: 1px solid #bfdbfe; border-radius: 8px; padding: 9px 12px; font-size: 12px; color: #1e40af;">
                         <strong>Data Realisasi Terkunci:</strong> Jumlah liter aktual, odometer KM/HM, dan waktu pengisian telah dicatat & dikunci sehingga tidak dapat diubah kembali oleh Vendor.
@@ -465,69 +456,153 @@
     @endif
 
     <!-- SECTION: VERIFIKASI AKHIR (FINAL APPROVE) OLEH PEMOHON / DRIVER (Item 8) -->
-    @if($pendingUserVerify)
-        @if($canVerifyUser)
+    @if($pendingUserVerify || ($isCompleted && $fuelRequest->user_verified_at))
+        @php
+            $verifyTrx = $fuelRequest->transactions->first();
+            $reqLv = (float) $fuelRequest->total_liters;
+            $actLv = (float) ($fuelRequest->actual_liters ?? $fuelRequest->total_liters);
+            $diffLv = round($actLv - $reqLv, 2);
+        @endphp
+        @if($isCompleted && $fuelRequest->user_verified_at)
+            {{-- Panel konfirmasi selesai --}}
+            <div style="margin-top: 16px; background: #f0fdf4; border: 2px solid #86efac; border-radius: 12px; padding: 16px 18px;">
+                <div style="display: flex; align-items: center; gap: 10px; margin-bottom: 12px; flex-wrap: wrap;">
+                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#15803d" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"></path><polyline points="22 4 12 14.01 9 11.01"></polyline></svg>
+                    <span style="font-weight: 700; color: #15803d; font-size: 14px;">Tahap 5 — Verifikasi Akhir Selesai</span>
+                    <span class="digi-badge digi-badge-green">Transaksi Ditutup</span>
+                </div>
+                <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: 8px; margin-bottom: 10px;">
+                    <div style="background: #fff; border: 1px solid #bbf7d0; border-radius: 8px; padding: 9px 12px;">
+                        <div style="font-size: 10px; color: #64748b; text-transform: uppercase; font-weight: 700; margin-bottom: 2px;">Dikonfirmasi Oleh</div>
+                        <div style="font-weight: 700; color: #15803d; font-size: 13px;">{{ $fuelRequest->driver_name }}</div>
+                    </div>
+                    <div style="background: #fff; border: 1px solid #bbf7d0; border-radius: 8px; padding: 9px 12px;">
+                        <div style="font-size: 10px; color: #64748b; text-transform: uppercase; font-weight: 700; margin-bottom: 2px;">Waktu Verifikasi</div>
+                        <div style="font-weight: 700; color: #166534; font-size: 13px;">{{ $fuelRequest->user_verified_at->format('d/m/Y H:i') }}</div>
+                    </div>
+                    <div style="background: #fff; border: 1px solid #bbf7d0; border-radius: 8px; padding: 9px 12px;">
+                        <div style="font-size: 10px; color: #64748b; text-transform: uppercase; font-weight: 700; margin-bottom: 2px;">Liter Terisi Aktual</div>
+                        <div style="font-weight: 800; color: #15803d; font-size: 16px;">{{ $actLv }} L</div>
+                    </div>
+                    <div style="background: #fff; border: 1px solid #bbf7d0; border-radius: 8px; padding: 9px 12px;">
+                        <div style="font-size: 10px; color: #64748b; text-transform: uppercase; font-weight: 700; margin-bottom: 2px;">Selisih dari Pengajuan</div>
+                        <div style="font-weight: 800; color: {{ $diffLv == 0 ? '#15803d' : ($diffLv > 0 ? '#dc2626' : '#d97706') }}; font-size: 16px;">
+                            {{ $diffLv == 0 ? 'Sesuai (0 L)' : ($diffLv > 0 ? '+' . $diffLv . ' L' : $diffLv . ' L') }}
+                        </div>
+                    </div>
+                </div>
+                @if($fuelRequest->user_verification_note)
+                    <div style="font-size: 12.5px; color: #166534; padding: 8px 10px; background: #dcfce7; border-radius: 6px;">
+                        <strong>Catatan Pemohon:</strong> {{ $fuelRequest->user_verification_note }}
+                    </div>
+                @endif
+            </div>
+        @elseif($pendingUserVerify)
+            @if($canVerifyUser)
+            {{-- Form verifikasi untuk Driver/Pemohon --}}
             <div class="digi-form-box" style="border: 2px solid #f59e0b; background: #fffbeb; margin-top: 16px;">
-                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px; flex-wrap: wrap; gap: 8px;">
-                    <h3 class="digi-section-title" style="color: #92400e; margin: 0;">
-                        Tahap 5 — Verifikasi Akhir Pengisian (Final Approve Pemohon)
+                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px; flex-wrap: wrap; gap: 8px;">
+                    <h3 class="digi-section-title" style="color: #92400e; margin: 0; font-size: 14px;">
+                        Tahap 5 — Verifikasi Akhir Pengisian
                     </h3>
                     <span class="digi-badge digi-badge-yellow">Menunggu Konfirmasi Anda</span>
                 </div>
 
-                <p style="font-size: 13px; color: #78350f; margin: 0 0 14px 0; line-height: 1.5;">
-                    Vendor BBM (<strong>{{ $fuelRequest->vendor_name }}</strong>) telah selesai mencatat realisasi pengisian bahan bakar. Harap periksa kecocokan jumlah liter aktual di bawah ini dan lakukan konfirmasi penyelesaian agar transaksi resmi ditutup.
-                </p>
+                <div style="font-size: 13px; color: #78350f; margin: 0 0 14px 0; line-height: 1.6; background: #fef3c7; border-left: 3px solid #f59e0b; padding: 10px 12px; border-radius: 0 6px 6px 0;">
+                    Vendor BBM (<strong>{{ $fuelRequest->vendor_name }}</strong>) telah selesai mencatat realisasi pengisian. Periksa ringkasan data di bawah ini, centang pernyataan pertanggungjawaban, lalu klik tombol konfirmasi untuk menutup transaksi secara resmi.
+                </div>
 
-                @php
-                    $reqL = (float) $fuelRequest->total_liters;
-                    $actL = (float) ($fuelRequest->actual_liters ?? $fuelRequest->total_liters);
-                    $diffL = round($actL - $reqL, 2);
-                @endphp
-                <div class="digi-form-grid-3" style="margin-bottom: 14px;">
-                    <div style="background: #fff; border: 1px solid #fde68a; border-radius: 8px; padding: 10px 14px;">
-                        <div style="font-size: 11px; color: #64748b; text-transform: uppercase; font-weight: 700;">Liter Disetujui</div>
-                        <div style="font-size: 18px; font-weight: 800; color: #0284c7;">{{ $reqL }} Liter</div>
-                    </div>
-                    <div style="background: #fff; border: 1px solid #fde68a; border-radius: 8px; padding: 10px 14px;">
-                        <div style="font-size: 11px; color: #64748b; text-transform: uppercase; font-weight: 700;">Liter Aktual Vendor</div>
-                        <div style="font-size: 18px; font-weight: 800; color: #15803d;">{{ $actL }} Liter</div>
-                    </div>
-                    <div style="background: #fff; border: 1px solid #fde68a; border-radius: 8px; padding: 10px 14px;">
-                        <div style="font-size: 11px; color: #64748b; text-transform: uppercase; font-weight: 700;">Selisih Pengisian</div>
-                        <div style="font-size: 18px; font-weight: 800; color: {{ $diffL == 0 ? '#15803d' : ($diffL > 0 ? '#dc2626' : '#d97706') }};">
-                            {{ $diffL > 0 ? '+' . $diffL : $diffL }} Liter
+                {{-- Ringkasan data realisasi vendor --}}
+                <div style="margin-bottom: 14px;">
+                    <div style="font-size: 11px; font-weight: 700; color: #92400e; text-transform: uppercase; letter-spacing: 0.5px; margin-bottom: 8px;">Ringkasan Realisasi Vendor BBM</div>
+                    <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(130px, 1fr)); gap: 8px;">
+                        <div style="background: #fff; border: 1px solid #fde68a; border-radius: 8px; padding: 10px 12px;">
+                            <div style="font-size: 10px; color: #64748b; text-transform: uppercase; font-weight: 700; margin-bottom: 3px;">Liter Disetujui</div>
+                            <div style="font-size: 17px; font-weight: 800; color: #0284c7;">{{ $reqLv }} L</div>
                         </div>
+                        <div style="background: #fff; border: 1px solid #fde68a; border-radius: 8px; padding: 10px 12px;">
+                            <div style="font-size: 10px; color: #64748b; text-transform: uppercase; font-weight: 700; margin-bottom: 3px;">Liter Aktual Vendor</div>
+                            <div style="font-size: 17px; font-weight: 800; color: #15803d;">{{ $actLv }} L</div>
+                        </div>
+                        <div style="background: #fff; border: 1px solid #fde68a; border-radius: 8px; padding: 10px 12px;">
+                            <div style="font-size: 10px; color: #64748b; text-transform: uppercase; font-weight: 700; margin-bottom: 3px;">Selisih</div>
+                            <div style="font-size: 17px; font-weight: 800; color: {{ $diffLv == 0 ? '#15803d' : ($diffLv > 0 ? '#dc2626' : '#d97706') }};">
+                                {{ $diffLv == 0 ? '= 0 L' : ($diffLv > 0 ? '+' . $diffLv . ' L' : $diffLv . ' L') }}
+                            </div>
+                        </div>
+                        @if($verifyTrx)
+                        <div style="background: #fff; border: 1px solid #fde68a; border-radius: 8px; padding: 10px 12px;">
+                            <div style="font-size: 10px; color: #64748b; text-transform: uppercase; font-weight: 700; margin-bottom: 3px;">KM / HM Pengisian</div>
+                            <div style="font-size: 15px; font-weight: 700; color: #334155;">{{ (float)$verifyTrx->meter_at_fueling }} {{ strtoupper($fuelRequest->vehicle?->meter_type ?? 'KM') }}</div>
+                        </div>
+                        <div style="background: #fff; border: 1px solid #fde68a; border-radius: 8px; padding: 10px 12px;">
+                            <div style="font-size: 10px; color: #64748b; text-transform: uppercase; font-weight: 700; margin-bottom: 3px;">Waktu Pengisian</div>
+                            <div style="font-size: 13px; font-weight: 700; color: #334155;">{{ $verifyTrx->fueled_at?->format('d/m/Y H:i') ?? '-' }}</div>
+                        </div>
+                        <div style="background: #fff; border: 1px solid #fde68a; border-radius: 8px; padding: 10px 12px;">
+                            <div style="font-size: 10px; color: #64748b; text-transform: uppercase; font-weight: 700; margin-bottom: 3px;">Dicatat Oleh</div>
+                            <div style="font-size: 13px; font-weight: 700; color: #334155;">{{ $verifyTrx->fuelman?->name ?? $fuelRequest->vendor_name ?? 'Vendor' }}</div>
+                        </div>
+                        @endif
                     </div>
                 </div>
 
-                <form action="{{ route('approval.verifyUser', $fuelRequest->id) }}" method="POST" onsubmit="this.querySelector('button[type=submit]').disabled=true;">
+                <form action="{{ route('approval.verifyUser', $fuelRequest->id) }}" method="POST" onsubmit="return handleVerifySubmit(this);">
                     @csrf
-                    <div style="background: #ffffff; border: 1px solid #fcd34d; border-radius: 8px; padding: 12px 14px; margin-bottom: 12px;">
-                        <label style="display: flex; align-items: flex-start; gap: 10px; cursor: pointer; font-size: 13px; color: #1e293b; line-height: 1.5;">
-                            <input type="checkbox" name="confirm_responsibility" value="1" required style="margin-top: 3px; width: 17px; height: 17px; accent-color: #16a34a;">
-                            <span>
-                                <strong>Pernyataan Pertanggungjawaban:</strong> Saya menyatakan bahwa pengisian BBM aktual sebesar <strong>{{ $actL }} Liter</strong> pada unit <strong>{{ $fuelRequest->unit_code }}</strong> ({{ $fuelRequest->police_no }}) telah sesuai dengan jumlah yang diterima di lokasi dan saya bertanggung jawab penuh atas konfirmasi penyelesaian ini.
+                    {{-- Pernyataan pertanggungjawaban --}}
+                    <div style="background: #ffffff; border: 1.5px solid #fcd34d; border-radius: 8px; padding: 14px; margin-bottom: 14px;">
+                        <label style="display: flex; align-items: flex-start; gap: 10px; cursor: pointer;">
+                            <input type="checkbox" name="confirm_responsibility" value="1" id="checkResponsibility" required
+                                style="margin-top: 3px; flex-shrink: 0; width: 18px; height: 18px; accent-color: #16a34a; cursor: pointer;">
+                            <span style="font-size: 13px; color: #1e293b; line-height: 1.65;">
+                                <strong style="color: #92400e;">Pernyataan Pertanggungjawaban:</strong>
+                                Saya, <strong>{{ $fuelRequest->driver_name }}</strong>, menyatakan bahwa pengisian BBM aktual sebesar <strong>{{ $actLv }} Liter</strong> pada unit <strong>{{ $fuelRequest->unit_code }}</strong> (Nopol: {{ $fuelRequest->police_no }}) telah diterima dan sesuai dengan jumlah yang tercatat oleh Vendor BBM. Saya bertanggung jawab penuh atas kebenaran konfirmasi penyelesaian pengisian ini.
                             </span>
                         </label>
                     </div>
 
-                    <div style="display: flex; gap: 12px; align-items: flex-end; flex-wrap: wrap;">
-                        <div class="digi-form-group" style="flex: 1; min-width: 240px; margin-bottom: 0;">
-                            <label class="digi-form-label">Catatan Pemohon (Opsional)</label>
+                    {{-- Catatan + Tombol submit (mobile-stacked) --}}
+                    <div style="display: flex; flex-direction: column; gap: 10px;">
+                        <div class="digi-form-group" style="margin-bottom: 0;">
+                            <label class="digi-form-label">Catatan Pemohon <span style="font-weight: 400; color: #64748b;">(Opsional)</span></label>
                             <input type="text" name="note" class="digi-input" placeholder="Misal: Pengisian sesuai dispenser, terima kasih">
                         </div>
-                        <button type="submit" class="btn-digi btn-digi-green" style="font-weight: 700; padding: 11px 22px;">
-                            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" style="margin-right: 6px;"><polyline points="20 6 9 17 4 12"></polyline></svg>
-                            Konfirmasi & Selesaikan Pengisian
+                        <button type="submit" id="btnVerifySubmit" class="btn-digi btn-digi-green" style="font-weight: 700; width: 100%; justify-content: center; padding: 13px 20px; font-size: 14px;">
+                            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" style="margin-right: 6px; flex-shrink: 0;"><polyline points="20 6 9 17 4 12"></polyline></svg>
+                            Konfirmasi &amp; Selesaikan Pengisian
                         </button>
                     </div>
                 </form>
             </div>
-        @else
-            <div style="margin-top: 14px; background: #fffbeb; border: 1px solid #fcd34d; border-radius: 10px; padding: 12px 16px; font-size: 13px; color: #92400e;">
-                <strong>Menunggu Verifikasi Akhir Pemohon:</strong> Realisasi pengisian sebesar <strong>{{ (float)$fuelRequest->actual_liters }} L</strong> telah tercatat dan menunggu konfirmasi Final Approve dari pemohon (<strong>{{ $fuelRequest->driver_name }}</strong>).
+            @else
+            {{-- Pemberitahuan untuk pihak lain (non-driver) --}}
+            <div style="margin-top: 16px; background: #fffbeb; border: 1.5px solid #fcd34d; border-radius: 10px; padding: 14px 16px;">
+                <div style="display: flex; align-items: center; gap: 8px; margin-bottom: 8px; flex-wrap: wrap;">
+                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#b45309" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"></circle><line x1="12" y1="8" x2="12" y2="12"></line><line x1="12" y1="16" x2="12.01" y2="16"></line></svg>
+                    <span style="font-weight: 700; color: #92400e; font-size: 13px;">Tahap 5 — Menunggu Verifikasi Akhir Pemohon</span>
+                    <span class="digi-badge digi-badge-yellow">Pending</span>
+                </div>
+                <div style="font-size: 13px; color: #78350f; line-height: 1.6;">
+                    Realisasi pengisian sebesar <strong>{{ $actLv }} L</strong> (dari pengajuan {{ $reqLv }} L) telah tercatat oleh Vendor BBM dan sedang menunggu konfirmasi Final Approve dari pemohon <strong>{{ $fuelRequest->driver_name }}</strong>.
+                </div>
+                @if($verifyTrx)
+                <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(130px, 1fr)); gap: 7px; margin-top: 10px;">
+                    <div style="background: #fff; border: 1px solid #fde68a; border-radius: 7px; padding: 8px 10px; font-size: 12px;">
+                        <div style="color: #64748b; font-weight: 700; text-transform: uppercase; font-size: 10px; margin-bottom: 2px;">Liter Aktual</div>
+                        <div style="font-weight: 800; color: #15803d;">{{ $actLv }} L</div>
+                    </div>
+                    <div style="background: #fff; border: 1px solid #fde68a; border-radius: 7px; padding: 8px 10px; font-size: 12px;">
+                        <div style="color: #64748b; font-weight: 700; text-transform: uppercase; font-size: 10px; margin-bottom: 2px;">KM / HM</div>
+                        <div style="font-weight: 700; color: #334155;">{{ (float)$verifyTrx->meter_at_fueling }} {{ strtoupper($fuelRequest->vehicle?->meter_type ?? 'KM') }}</div>
+                    </div>
+                    <div style="background: #fff; border: 1px solid #fde68a; border-radius: 7px; padding: 8px 10px; font-size: 12px;">
+                        <div style="color: #64748b; font-weight: 700; text-transform: uppercase; font-size: 10px; margin-bottom: 2px;">Waktu Pengisian</div>
+                        <div style="font-weight: 700; color: #334155;">{{ $verifyTrx->fueled_at?->format('d/m/Y H:i') ?? '-' }}</div>
+                    </div>
+                </div>
+                @endif
             </div>
+            @endif
         @endif
     @endif
 
@@ -886,6 +961,21 @@ function confirmDeleteRequest(id, reqNo) {
             });
         }
     });
+}
+
+function handleVerifySubmit(form) {
+    const checkbox = form.querySelector('#checkResponsibility');
+    if (checkbox && !checkbox.checked) {
+        checkbox.focus();
+        return false;
+    }
+    const btn = form.querySelector('#btnVerifySubmit');
+    if (btn) {
+        btn.disabled = true;
+        btn.style.opacity = '0.75';
+        btn.innerHTML = 'Memproses Verifikasi...';
+    }
+    return true;
 }
 
 document.addEventListener('DOMContentLoaded', function() {
