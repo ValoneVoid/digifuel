@@ -71,7 +71,8 @@
                 </div>
             </div>
             <a href="{{ route('profile.index') }}" class="digi-signature-alert-btn">
-                Unggah Tanda Tangan Sekarang &rarr;
+                <span>Unggah Tanda Tangan Sekarang</span>
+                <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><line x1="5" y1="12" x2="19" y2="12"></line><polyline points="12 5 19 12 12 19"></polyline></svg>
             </a>
         </div>
     @endif
@@ -79,7 +80,7 @@
     <!-- KARTU STATISTIK (Menyesuaikan Role Pengguna) -->
     @if($user->isAdmin())
         <!-- Statistik Lengkap Admin -->
-        <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(210px, 1fr)); gap: 14px; margin-bottom: 24px;">
+        <div class="digi-stats-grid" style="display: grid; grid-template-columns: repeat(auto-fit, minmax(210px, 1fr)); gap: 14px; margin-bottom: 24px;">
             <div style="background: #f8fafc; border: 1px solid #cbd5e1; border-radius: 12px; padding: 16px 18px;">
                 <div style="font-size: 12px; font-weight: 700; color: #475569;">TOTAL FUEL REQUEST</div>
                 <div style="font-size: 26px; font-weight: 800; color: #0284c7; margin-top: 6px;">{{ $stats['total_requests'] }}</div>
@@ -120,7 +121,7 @@
         </div>
     @elseif($user->isApprover())
         <!-- Statistik Approver (SPV, Dept Head/Manager, Vendor, Fuel Man) -->
-        <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(210px, 1fr)); gap: 14px; margin-bottom: 24px;">
+        <div class="digi-stats-grid" style="display: grid; grid-template-columns: repeat(auto-fit, minmax(210px, 1fr)); gap: 14px; margin-bottom: 24px;">
             <div style="background: #fefce8; border: 1.5px solid #facc15; border-radius: 12px; padding: 16px 18px;">
                 <div style="font-size: 12px; font-weight: 700; color: #854d0e;">MENUNGGU TINDAKAN ANDA</div>
                 <div style="font-size: 28px; font-weight: 800; color: #ca8a04; margin-top: 6px;">{{ $stats['waiting_my_action'] }}</div>
@@ -149,7 +150,7 @@
         </div>
     @else
         <!-- Statistik Employee / Driver -->
-        <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(210px, 1fr)); gap: 14px; margin-bottom: 24px;">
+        <div class="digi-stats-grid" style="display: grid; grid-template-columns: repeat(auto-fit, minmax(210px, 1fr)); gap: 14px; margin-bottom: 24px;">
             <div style="background: #f8fafc; border: 1px solid #cbd5e1; border-radius: 12px; padding: 16px 18px;">
                 <div style="font-size: 12px; font-weight: 700; color: #475569;">TOTAL PENGAJUAN SAYA</div>
                 <div style="font-size: 28px; font-weight: 800; color: #0284c7; margin-top: 6px;">{{ $stats['total_requests'] }}</div>
@@ -231,7 +232,10 @@
         <div style="min-width: 0; max-width: 100%; width: 100%;">
             <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px;">
                 <h2 class="digi-section-title" style="margin: 0;">Permintaan Fuel Request Terbaru</h2>
-                <a href="{{ route('history.index') }}" style="font-size: 13px; color: #0284c7; font-weight: 600; text-decoration: none;">Lihat Semua →</a>
+                <a href="{{ route('history.index') }}" style="display: inline-flex; align-items: center; gap: 5px; font-size: 13px; color: #0284c7; font-weight: 600; text-decoration: none;">
+                    <span>Lihat Semua</span>
+                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><line x1="5" y1="12" x2="19" y2="12"></line><polyline points="12 5 19 12 12 19"></polyline></svg>
+                </a>
             </div>
 
             <div class="digi-mobile-swipe-hint">

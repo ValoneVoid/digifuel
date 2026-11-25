@@ -26,7 +26,10 @@
 </head>
 <body>
     <div class="no-print" style="width: 100%; max-width: 760px; margin: 0 auto 24px auto; display: flex; justify-content: space-between; align-items: center; gap: 16px;">
-        <a href="{{ route('history.index') }}" class="btn-digi btn-digi-gray">Kembali ke History</a>
+        <a href="{{ route('history.index') }}" class="btn-digi btn-digi-gray">
+            <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.3" stroke-linecap="round" stroke-linejoin="round"><line x1="19" y1="12" x2="5" y2="12"></line><polyline points="12 19 5 12 12 5"></polyline></svg>
+            <span>Kembali ke History</span>
+        </a>
         <div style="display: flex; gap: 8px;">
             @if($fuelRequest->isVendorApproved())
                 <a href="{{ route('fuel.pdf', $fuelRequest->id) }}" class="btn-digi btn-digi-green" style="display: inline-flex; align-items: center; gap: 6px; text-decoration: none;">

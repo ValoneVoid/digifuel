@@ -4,6 +4,9 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Lupa Password - FuelLink PT United Tractors Tbk Site Satui</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="{{ asset('css/digifuel.css') }}?v={{ file_exists(public_path('css/digifuel.css')) ? filemtime(public_path('css/digifuel.css')) : time() }}">
     @if(file_exists(public_path('css/digifuel.css')))
         <style id="digifuel-core-css">{!! file_get_contents(public_path('css/digifuel.css')) !!}</style>
@@ -67,8 +70,9 @@
         </form>
 
         <div style="text-align: center;">
-            <a href="{{ route('login') }}" style="font-size: 13px; font-weight: 600; color: #0284c7; text-decoration: none;">
-                &larr; Kembali ke Halaman Login
+            <a href="{{ route('login') }}" style="display: inline-flex; align-items: center; gap: 6px; font-size: 13px; font-weight: 600; color: #0284c7; text-decoration: none;">
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.3" stroke-linecap="round" stroke-linejoin="round"><line x1="19" y1="12" x2="5" y2="12"></line><polyline points="12 19 5 12 12 5"></polyline></svg>
+                <span>Kembali ke Halaman Login</span>
             </a>
         </div>
     </div>

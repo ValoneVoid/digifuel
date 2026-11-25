@@ -5,6 +5,9 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>@yield('title', 'Fuel Request') - FuelLink PT United Tractors Tbk Site Satui</title>
     <meta name="description" content="Sistem Pengajuan, Persetujuan Digital, dan Evaluasi Konsumsi BBM PT United Tractors Tbk Site Satui">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="{{ asset('css/digifuel.css') }}?v={{ file_exists(public_path('css/digifuel.css')) ? filemtime(public_path('css/digifuel.css')) : time() }}">
     @if(file_exists(public_path('css/digifuel.css')))
         <style id="digifuel-core-css">{!! file_get_contents(public_path('css/digifuel.css')) !!}</style>
@@ -66,58 +69,117 @@
     <nav class="digi-navbar">
         <div class="digi-brand-left">
             <a href="{{ route('dashboard') }}" class="digi-logo-badge" title="FuelLink - PT United Tractors Tbk Site Satui">
-                <img src="{{ asset('images/fuellink_logo.png') }}" alt="FuelLink" style="height: 30px; width: 30px; border-radius: 6px; object-fit: contain;">
+                <img src="{{ asset('images/fuellink_logo.png') }}" alt="FuelLink" style="height: 28px; width: 28px; border-radius: 6px; object-fit: contain;">
                 <span style="font-weight: 800; font-size: 16px; letter-spacing: -0.3px;"><span style="color: #0284c7;">Fuel</span><span style="color: #16a34a;">Link</span></span>
             </a>
-            <span class="digi-status-indicator"><span class="digi-status-dot"></span> online</span>
         </div>
 
         <div class="digi-nav-links">
             <span class="digi-nav-pill" aria-hidden="true"></span>
-            <a href="{{ route('dashboard') }}" class="digi-nav-link {{ request()->routeIs('dashboard') ? 'active' : '' }}">Dashboard</a>
+            <a href="{{ route('dashboard') }}" class="digi-nav-link {{ request()->routeIs('dashboard') ? 'active' : '' }}">
+                <span class="digi-nav-icon" aria-hidden="true">
+                    <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="7" height="7" rx="1.5"></rect><rect x="14" y="3" width="7" height="7" rx="1.5"></rect><rect x="14" y="14" width="7" height="7" rx="1.5"></rect><rect x="3" y="14" width="7" height="7" rx="1.5"></rect></svg>
+                </span>
+                <span>Dashboard</span>
+            </a>
             @if($isAdmin)
-                <a href="{{ route('fuel.create') }}" class="digi-nav-link {{ request()->routeIs('fuel.create') ? 'active' : '' }}">Form Request</a>
+                <a href="{{ route('fuel.create') }}" class="digi-nav-link {{ request()->routeIs('fuel.create') ? 'active' : '' }}">
+                    <span class="digi-nav-icon" aria-hidden="true">
+                        <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path><polyline points="14 2 14 8 20 8"></polyline><line x1="12" y1="18" x2="12" y2="12"></line><line x1="9" y1="15" x2="15" y2="15"></line></svg>
+                    </span>
+                    <span>Form Request</span>
+                </a>
                 <a href="{{ route('approval.index') }}" class="digi-nav-link {{ request()->routeIs('approval.*') ? 'active' : '' }}">
-                    Pengajuan
+                    <span class="digi-nav-icon" aria-hidden="true">
+                        <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 11l3 3L22 4"></path><path d="M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11"></path></svg>
+                    </span>
+                    <span>Pengajuan</span>
                     @if(($pendingApprovalCount ?? 0) > 0)
                         <span class="digi-nav-count-badge" title="{{ $pendingApprovalCount }} pengajuan menunggu persetujuan">{{ $pendingApprovalCount }}</span>
                     @endif
                 </a>
                 <a href="{{ route('history.index') }}" class="digi-nav-link {{ request()->routeIs('history.*') ? 'active' : '' }}">
-                    History
+                    <span class="digi-nav-icon" aria-hidden="true">
+                        <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"></circle><polyline points="12 6 12 12 16 14"></polyline></svg>
+                    </span>
+                    <span>History</span>
                     @if(($pendingUserVerifyCount ?? 0) > 0)
                         <span class="digi-nav-count-badge is-amber" title="{{ $pendingUserVerifyCount }} pengisian menunggu verifikasi akhir Anda">{{ $pendingUserVerifyCount }}</span>
                     @endif
                 </a>
-                <a href="{{ route('evaluation.index') }}" class="digi-nav-link {{ request()->routeIs('evaluation.*') ? 'active' : '' }}">Evaluasi BBM</a>
-                <a href="{{ route('admin.master') }}" class="digi-nav-link {{ request()->routeIs('admin.master*') ? 'active' : '' }}">Master Data</a>
-                <a href="{{ route('profile.index') }}" class="digi-nav-link {{ request()->routeIs('profile.*') ? 'active' : '' }}">Profil</a>
+                <a href="{{ route('evaluation.index') }}" class="digi-nav-link {{ request()->routeIs('evaluation.*') ? 'active' : '' }}">
+                    <span class="digi-nav-icon" aria-hidden="true">
+                        <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="20" x2="18" y2="10"></line><line x1="12" y1="20" x2="12" y2="4"></line><line x1="6" y1="20" x2="6" y2="14"></line></svg>
+                    </span>
+                    <span>Evaluasi BBM</span>
+                </a>
+                <a href="{{ route('admin.master') }}" class="digi-nav-link {{ request()->routeIs('admin.master*') ? 'active' : '' }}">
+                    <span class="digi-nav-icon" aria-hidden="true">
+                        <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><ellipse cx="12" cy="5" rx="9" ry="3"></ellipse><path d="M21 12c0 1.66-4 3-9 3s-9-1.34-9-3"></path><path d="M3 5v14c0 1.66 4 3 9 3s9-1.34 9-3V5"></path></svg>
+                    </span>
+                    <span>Master Data</span>
+                </a>
+                <a href="{{ route('profile.index') }}" class="digi-nav-link {{ request()->routeIs('profile.*') ? 'active' : '' }}">
+                    <span class="digi-nav-icon" aria-hidden="true">
+                        <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path><circle cx="12" cy="7" r="4"></circle></svg>
+                    </span>
+                    <span>Profil</span>
+                </a>
             @elseif($isApprover)
                 @if($currentUser?->isSpv() || $currentUser?->isDepthead())
-                    <a href="{{ route('fuel.create') }}" class="digi-nav-link {{ request()->routeIs('fuel.create') ? 'active' : '' }}">Form Request</a>
+                    <a href="{{ route('fuel.create') }}" class="digi-nav-link {{ request()->routeIs('fuel.create') ? 'active' : '' }}">
+                        <span class="digi-nav-icon" aria-hidden="true">
+                            <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path><polyline points="14 2 14 8 20 8"></polyline><line x1="12" y1="18" x2="12" y2="12"></line><line x1="9" y1="15" x2="15" y2="15"></line></svg>
+                        </span>
+                        <span>Form Request</span>
+                    </a>
                 @endif
                 <a href="{{ route('approval.index') }}" class="digi-nav-link {{ request()->routeIs('approval.*') ? 'active' : '' }}">
-                    Pengajuan
+                    <span class="digi-nav-icon" aria-hidden="true">
+                        <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 11l3 3L22 4"></path><path d="M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11"></path></svg>
+                    </span>
+                    <span>Pengajuan</span>
                     @if(($pendingApprovalCount ?? 0) > 0)
                         <span class="digi-nav-count-badge" title="{{ $pendingApprovalCount }} pengajuan menunggu tindakan Anda">{{ $pendingApprovalCount }}</span>
                     @endif
                 </a>
                 <a href="{{ route('history.index') }}" class="digi-nav-link {{ request()->routeIs('history.*') ? 'active' : '' }}">
-                    History
+                    <span class="digi-nav-icon" aria-hidden="true">
+                        <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"></circle><polyline points="12 6 12 12 16 14"></polyline></svg>
+                    </span>
+                    <span>History</span>
                     @if(($pendingUserVerifyCount ?? 0) > 0)
                         <span class="digi-nav-count-badge is-amber" title="{{ $pendingUserVerifyCount }} pengisian menunggu verifikasi akhir Anda">{{ $pendingUserVerifyCount }}</span>
                     @endif
                 </a>
-                <a href="{{ route('profile.index') }}" class="digi-nav-link {{ request()->routeIs('profile.*') ? 'active' : '' }}">Profil</a>
+                <a href="{{ route('profile.index') }}" class="digi-nav-link {{ request()->routeIs('profile.*') ? 'active' : '' }}">
+                    <span class="digi-nav-icon" aria-hidden="true">
+                        <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path><circle cx="12" cy="7" r="4"></circle></svg>
+                    </span>
+                    <span>Profil</span>
+                </a>
             @else
-                <a href="{{ route('fuel.create') }}" class="digi-nav-link {{ request()->routeIs('fuel.create') ? 'active' : '' }}">Form Request</a>
+                <a href="{{ route('fuel.create') }}" class="digi-nav-link {{ request()->routeIs('fuel.create') ? 'active' : '' }}">
+                    <span class="digi-nav-icon" aria-hidden="true">
+                        <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path><polyline points="14 2 14 8 20 8"></polyline><line x1="12" y1="18" x2="12" y2="12"></line><line x1="9" y1="15" x2="15" y2="15"></line></svg>
+                    </span>
+                    <span>Form Request</span>
+                </a>
                 <a href="{{ route('history.index') }}" class="digi-nav-link {{ request()->routeIs('history.*') ? 'active' : '' }}">
-                    History
+                    <span class="digi-nav-icon" aria-hidden="true">
+                        <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"></circle><polyline points="12 6 12 12 16 14"></polyline></svg>
+                    </span>
+                    <span>History</span>
                     @if(($pendingUserVerifyCount ?? 0) > 0)
                         <span class="digi-nav-count-badge is-amber" title="{{ $pendingUserVerifyCount }} pengisian menunggu verifikasi akhir Anda">{{ $pendingUserVerifyCount }}</span>
                     @endif
                 </a>
-                <a href="{{ route('profile.index') }}" class="digi-nav-link {{ request()->routeIs('profile.*') ? 'active' : '' }}">Profil</a>
+                <a href="{{ route('profile.index') }}" class="digi-nav-link {{ request()->routeIs('profile.*') ? 'active' : '' }}">
+                    <span class="digi-nav-icon" aria-hidden="true">
+                        <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path><circle cx="12" cy="7" r="4"></circle></svg>
+                    </span>
+                    <span>Profil</span>
+                </a>
             @endif
         </div>
 
@@ -512,6 +574,8 @@
                 th.classList.add('digi-sortable-th');
                 th.setAttribute('title', `Klik untuk mengurutkan ${cleanTitle} (A-Z / 1-9)`);
 
+                th.querySelectorAll('.sort-icon').forEach(el => el.remove());
+
                 if (!th.querySelector('.digi-sort-icon-box')) {
                     const iconBox = document.createElement('span');
                     iconBox.className = 'digi-sort-icon-box';
@@ -630,20 +694,54 @@
             }
         }
 
-        const activeItem = navGroup.querySelector('.digi-nav-link.active');
-        if (activeItem) {
-            navGroup.classList.add('has-pill');
-            movePill(activeItem, false);
-            if (navGroup.scrollWidth > navGroup.clientWidth) {
-                activeItem.scrollIntoView({ behavior: 'auto', inline: 'center', block: 'nearest' });
+        function updateNavScrollFade() {
+            const maxScroll = navGroup.scrollWidth - navGroup.clientWidth;
+            if (maxScroll <= 2) {
+                navGroup.style.setProperty('--nav-fade-left', '0px');
+                navGroup.style.setProperty('--nav-fade-right', '0px');
+                return;
             }
+            const leftFade = navGroup.scrollLeft > 4 ? '20px' : '0px';
+            const rightFade = navGroup.scrollLeft < (maxScroll - 4) ? '20px' : '0px';
+            navGroup.style.setProperty('--nav-fade-left', leftFade);
+            navGroup.style.setProperty('--nav-fade-right', rightFade);
+        }
+
+        function syncActivePill(scrollIntoView = false) {
+            const current = navGroup.querySelector('.digi-nav-link.active');
+            if (!current) {
+                updateNavScrollFade();
+                return;
+            }
+            navGroup.classList.add('has-pill');
+            requestAnimationFrame(function() {
+                movePill(current, false);
+                if (scrollIntoView && navGroup.scrollWidth > navGroup.clientWidth) {
+                    current.scrollIntoView({ behavior: 'auto', inline: 'center', block: 'nearest' });
+                }
+                updateNavScrollFade();
+            });
+        }
+
+        navGroup.addEventListener('scroll', updateNavScrollFade, { passive: true });
+        syncActivePill(true);
+
+        window.addEventListener('load', function() {
+            syncActivePill(true);
+        });
+
+        window.addEventListener('pageshow', function() {
+            syncActivePill(false);
+        });
+
+        if (document.fonts && document.fonts.ready) {
+            document.fonts.ready.then(function() {
+                syncActivePill(false);
+            });
         }
 
         window.addEventListener('resize', function() {
-            const current = navGroup.querySelector('.digi-nav-link.active');
-            if (current) {
-                movePill(current, false);
-            }
+            syncActivePill(false);
         });
 
         navItems.forEach(function(item) {
