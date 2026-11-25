@@ -30,7 +30,7 @@ class StoreFuelRequest extends FormRequest
             'police_no' => ['required', 'string'],
             'total_liters' => ['required', 'numeric', 'gt:0', 'max:5000'],
             'hm_km' => ['required', 'numeric', 'min:0'],
-            'area' => ['required', 'string'],
+            'area' => [$isSpbu ? 'nullable' : 'required', 'string'],
             'support_point_id' => ['nullable', 'exists:support_points,id'],
             'spv_id' => [($isDepthead || $isSpbu) ? 'nullable' : 'required', 'exists:users,id'],
             'fuelman_id' => ['nullable', 'exists:users,id'],

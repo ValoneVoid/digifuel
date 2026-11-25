@@ -58,11 +58,17 @@ class FuelRequestService
                 ]);
             }
 
-            $area = Area::where('name', $data['area'])->where('is_active', true)->first();
-            if (!$area) {
-                throw ValidationException::withMessages([
-                    'area' => 'Area operasional tidak ditemukan atau sudah tidak aktif.',
-                ]);
+            $area = null;
+            if (!$isSpbu) {
+                $area = Area::where('name', $data['area'] ?? '')->where('is_active', true)->first();
+                if (!$area) {
+                    throw ValidationException::withMessages([
+                        'area' => 'Area operasional tidak ditemukan atau sudah tidak aktif.',
+                    ]);
+                }
+            } else {
+                $areaName = !empty($data['area']) ? $data['area'] : 'SPBU / Dinas Luar';
+                $area = Area::where('name', $areaName)->where('is_active', true)->first();
             }
 
             $isSpbu = strtoupper(trim((string) ($data['vendor_name'] ?? ''))) === 'SPBU';
@@ -245,7 +251,7 @@ class FuelRequestService
                 'fueled_at' => $fueledAt,
                 'user_verified_at' => $userVerifiedAt,
                 'user_verification_note' => $userVerificationNote,
-                'area' => $area ? $area->name : $data['area'],
+                'area' => $area ? $area->name : ($isSpbu ? 'SPBU / Dinas Luar' : ($data['area'] ?? '-')),
                 'area_id' => $area?->id,
                 'support_point_id' => !empty($data['support_point_id']) ? $data['support_point_id'] : null,
                 'notes' => $data['notes'] ?? null,

@@ -3,6 +3,66 @@
 @section('title', 'Fuel Request')
 
 @section('content')
+<style>
+/* Optimasi Responsif Khusus Mobile (Form Pengajuan & SPBU) */
+@media (max-width: 640px) {
+    .digi-card {
+        padding: 16px 12px !important;
+        border-radius: 12px !important;
+    }
+    .digi-form-header {
+        margin-bottom: 16px !important;
+    }
+    .digi-form-title {
+        font-size: 20px !important;
+    }
+    .digi-section-title {
+        font-size: 15px !important;
+    }
+    .digi-facility-cards {
+        grid-template-columns: 1fr !important;
+    }
+    .digi-spbu-panel {
+        padding: 14px 12px !important;
+    }
+    .digi-spbu-header {
+        flex-direction: column !important;
+        align-items: flex-start !important;
+        gap: 6px !important;
+    }
+    .digi-action-buttons {
+        flex-direction: column-reverse !important;
+        gap: 8px !important;
+    }
+    .digi-action-buttons .btn-digi {
+        width: 100% !important;
+        justify-content: center !important;
+        text-align: center !important;
+        padding: 12px !important;
+        font-size: 14px !important;
+    }
+    .digi-modal {
+        width: 95% !important;
+        max-width: 100% !important;
+        margin: 10px !important;
+    }
+    .digi-modal-body table td {
+        padding: 8px 10px !important;
+        font-size: 12px !important;
+    }
+    .digi-modal-body table td:first-child {
+        width: 130px !important;
+    }
+    .digi-modal-footer {
+        flex-direction: column-reverse !important;
+        gap: 8px !important;
+    }
+    .digi-modal-footer .btn-digi {
+        width: 100% !important;
+        justify-content: center !important;
+    }
+}
+</style>
 <div class="digi-card">
     <!-- Header -->
     <div class="digi-form-header">
@@ -199,139 +259,191 @@
 
             <!-- Memilih Approval Section -->
             <div style="margin-top: 24px; padding-top: 20px; border-top: 1px dashed #e2e8f0;">
-                <h3 class="digi-section-title" style="margin-bottom: 8px;">Memilih Approval</h3>
-                <span class="digi-approval-badge">Approval</span>
-
-                <div class="digi-form-group" style="margin-bottom: 16px;">
-                    <label class="digi-form-label">Pilih Area Operasional <span class="digi-required">*</span></label>
-                    <select name="area" id="area_select" class="digi-select @error('area') is-invalid @enderror" required onchange="handleAreaChange(this.value)">
-                        <option value="">- Pilih Area Operasional -</option>
-                        @foreach($areas as $area)
-                            <option value="{{ $area->name }}" {{ old('area') === $area->name ? 'selected' : '' }}>
-                                {{ $area->name }}
-                            </option>
-                        @endforeach
-                    </select>
-                    @error('area')
-                        <div class="digi-invalid-feedback">
-                            <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><circle cx="12" cy="12" r="10"></circle><line x1="12" y1="8" x2="12" y2="12"></line><line x1="12" y1="16" x2="12.01" y2="16"></line></svg>
-                            {{ $message }}
-                        </div>
-                    @enderror
+                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px; flex-wrap: wrap; gap: 8px;">
+                    <div>
+                        <h3 class="digi-section-title" style="margin-bottom: 2px;">Alur & Penugasan Approval</h3>
+                        <p style="font-size: 12px; color: #64748b; margin: 0;">Pilih jalur pengisian BBM dan wilayah kerja operasional unit.</p>
+                    </div>
+                    <span class="digi-approval-badge">Approval Alur</span>
                 </div>
 
-                <!-- Support Point (Kondisional: Muncul bila Area memiliki titik turunan) -->
-                <div class="digi-form-group" id="support_point_group" style="margin-bottom: 16px; display: none;">
-                    <label class="digi-form-label">
-                        Pilih Support Point (Titik Operasional) <span class="digi-required">*</span>
-                    </label>
-                    <select name="support_point_id" id="support_point_select" class="digi-select @error('support_point_id') is-invalid @enderror">
-                        <option value="">- Pilih Support Point -</option>
-                    </select>
-                    <div style="font-size: 12px; color: #64748b; margin-top: 4px;">
-                        Titik operasional spesifik untuk area ini (misal: JB, BUMA, FMC, dsb).
-                    </div>
-                    @error('support_point_id')
-                        <div class="digi-invalid-feedback">
-                            <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><circle cx="12" cy="12" r="10"></circle><line x1="12" y1="8" x2="12" y2="12"></line><line x1="12" y1="16" x2="12.01" y2="16"></line></svg>
-                            {{ $message }}
+                @if($user->canUseSpbu())
+                    <!-- Switcher Khusus Wewenang Dept Head / Site Manager -->
+                    <div style="background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 12px; padding: 14px 16px; margin-bottom: 20px;">
+                        <label class="digi-form-label" style="margin-bottom: 10px; font-weight: 700; color: #1e293b; display: flex; align-items: center; gap: 8px; font-size: 13px;">
+                            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#0284c7" stroke-width="2.3"><rect x="2" y="7" width="20" height="14" rx="2" ry="2"></rect><path d="M16 21V5a2 2 0 0 0-2-2h-4a2 2 0 0 0-2 2v16"></path></svg>
+                            Fasilitas Pengisian BBM
+                        </label>
+                        <div class="digi-facility-cards" style="display: grid; grid-template-columns: repeat(auto-fit, minmax(240px, 1fr)); gap: 12px;">
+                            <label id="modeSiteCard" style="display: flex; align-items: flex-start; gap: 10px; padding: 12px 14px; border: 2px solid #0284c7; background: #f0f9ff; border-radius: 10px; cursor: pointer; transition: all 0.2s ease;">
+                                <input type="radio" name="facility_mode" id="mode_site_radio" value="site" checked onchange="onFacilityModeChange('site')" style="margin-top: 3px; accent-color: #0284c7;">
+                                <div>
+                                    <div style="font-weight: 700; color: #0369a1; font-size: 13.5px; display: flex; align-items: center; gap: 6px;">
+                                        Vendor BBM Resmi Site
+                                    </div>
+                                    <div style="font-size: 11.5px; color: #64748b; margin-top: 3px; line-height: 1.4;">
+                                        Pengisian rutin di pos tangki site (CV Arfan / PT Syahnas) sesuai area operasional kerja.
+                                    </div>
+                                </div>
+                            </label>
+                            <label id="modeSpbuCard" style="display: flex; align-items: flex-start; gap: 10px; padding: 12px 14px; border: 1.5px solid #cbd5e1; background: #ffffff; border-radius: 10px; cursor: pointer; transition: all 0.2s ease;">
+                                <input type="radio" name="facility_mode" id="mode_spbu_radio" value="spbu" onchange="onFacilityModeChange('spbu')" style="margin-top: 3px; accent-color: #0284c7;">
+                                <div>
+                                    <div style="font-weight: 700; color: #334155; font-size: 13.5px; display: flex; align-items: center; gap: 6px;">
+                                        SPBU Umum (Dinas Luar)
+                                        <span class="digi-badge digi-badge-blue" style="font-size: 10px; padding: 1px 6px;">Bypass Otomatis</span>
+                                    </div>
+                                    <div style="font-size: 11.5px; color: #64748b; margin-top: 3px; line-height: 1.4;">
+                                        Pengisian darurat saat perjalanan dinas luar site. Tanpa pilih area site & langsung disetujui dengan bukti nota.
+                                    </div>
+                                </div>
+                            </label>
                         </div>
-                    @enderror
-                </div>
-
-                @if($user->isDepthead())
-                    <!-- Jalur Cepat Khusus Dept Head / Manager (Auto-Approved) -->
-                    <div style="background: #f0fdf4; border: 1px solid #bbf7d0; border-radius: 12px; padding: 14px 16px; margin-bottom: 18px;">
-                        <div style="display: flex; align-items: center; gap: 8px; font-weight: 700; color: #166534; font-size: 13.5px;">
-                            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"></path><polyline points="22 4 12 14.01 9 11.01"></polyline></svg>
-                            Jalur Cepat Pengajuan Dept Head (Auto-Approved)
-                        </div>
-                        <p style="font-size: 12px; color: #15803d; margin: 4px 0 0 0; line-height: 1.5;">
-                            Karena Anda memiliki wewenang <strong>Dept Head / Manager</strong>, tahap verifikasi SPV otomatis dilewati (hierarki atasan) dan pengajuan langsung disahkan dengan tanda tangan digital Anda. Setelah diajukan, permohonan langsung masuk ke antrean <strong>Vendor BBM</strong> untuk realisasi pengisian.
-                        </p>
-                        <input type="hidden" name="spv_id" id="spv_select" value="">
-                        <input type="hidden" name="depthead_id" id="depthead_select" value="{{ $user->id }}">
-                    </div>
-                @else
-                    <div class="digi-form-group" style="margin-bottom: 16px;">
-                        <label class="digi-form-label">Pilih Approval SPV (Acknowledge) <span class="digi-required">*</span></label>
-                        <select name="spv_id" id="spv_select" class="digi-select @error('spv_id') is-invalid @enderror" required>
-                            <option value="">- Pilih Approval SPV -</option>
-                            @foreach($spvs as $spv)
-                                <option value="{{ $spv->id }}" {{ old('spv_id') == $spv->id ? 'selected' : '' }}>
-                                    Approval By {{ $spv->nrp ?? $spv->username }} - {{ $spv->name }}
-                                </option>
-                            @endforeach
-                        </select>
-                        <span id="spvEmptyMsg" style="display:none; color:#b45309; font-size:12px; margin-top:4px;">⚠️ Tidak ada Approver SPV yang aktif pada area ini. Silakan hubungi Admin.</span>
-                        @error('spv_id')
-                            <div class="digi-invalid-feedback">
-                                <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><circle cx="12" cy="12" r="10"></circle><line x1="12" y1="8" x2="12" y2="12"></line><line x1="12" y1="16" x2="12.01" y2="16"></line></svg>
-                                {{ $message }}
-                            </div>
-                        @enderror
-                    </div>
-
-                    <div class="digi-form-group" style="margin-bottom: 16px;">
-                        <label class="digi-form-label">Pilih Approval Dept Head (Approve) <span class="digi-required">*</span></label>
-                        <select name="depthead_id" id="depthead_select" class="digi-select @error('depthead_id') is-invalid @enderror" required>
-                            <option value="">- Pilih Approval Dept Head -</option>
-                            @foreach($deptheads as $dh)
-                                <option value="{{ $dh->id }}" {{ old('depthead_id') == $dh->id ? 'selected' : '' }}>
-                                    Approval By {{ $dh->username }} ({{ $dh->name }})
-                                </option>
-                            @endforeach
-                        </select>
-                        <span id="dhEmptyMsg" style="display:none; color:#b45309; font-size:12px; margin-top:4px;">⚠️ Tidak ada Approver Dept Head yang aktif pada area ini. Silakan hubungi Admin.</span>
-                        @error('depthead_id')
-                            <div class="digi-invalid-feedback">
-                                <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><circle cx="12" cy="12" r="10"></circle><line x1="12" y1="8" x2="12" y2="12"></line><line x1="12" y1="16" x2="12.01" y2="16"></line></svg>
-                                {{ $message }}
-                            </div>
-                        @enderror
                     </div>
                 @endif
 
-                <div class="digi-form-group" style="margin-bottom: 16px;">
-                    <label class="digi-form-label">Pilih Perusahaan Vendor BBM <span class="digi-required">*</span></label>
-                    <select name="vendor_name" id="vendor_select" class="digi-select @error('vendor_name') is-invalid @enderror" required onchange="handleVendorChange(this.value)">
-                        <option value="">- Pilih Perusahaan Vendor BBM -</option>
-                        @foreach($vendors as $ven)
-                            <option value="{{ $ven->name }}" {{ old('vendor_name') === $ven->name ? 'selected' : '' }}>
-                                {{ $ven->name }}
-                            </option>
-                        @endforeach
-                        @if($user->canUseSpbu())
-                            <option value="SPBU" {{ old('vendor_name') === 'SPBU' ? 'selected' : '' }}>
-                                SPBU (Pengisian Luar / Dinas — Full Approved)
-                            </option>
-                        @endif
-                    </select>
-                    @error('vendor_name')
-                        <div class="digi-invalid-feedback">
-                            <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><circle cx="12" cy="12" r="10"></circle><line x1="12" y1="8" x2="12" y2="12"></line><line x1="12" y1="16" x2="12.01" y2="16"></line></svg>
-                            {{ $message }}
+                <!-- Wrapper Khusus Pengisian Site (Area, Support Point, Approver, Vendor) -->
+                <div id="siteFacilityWrap">
+                    <div class="digi-form-group" style="margin-bottom: 16px;">
+                        <label class="digi-form-label">Pilih Area Operasional <span class="digi-required">*</span></label>
+                        <select name="area" id="area_select" class="digi-select @error('area') is-invalid @enderror" required onchange="handleAreaChange(this.value)">
+                            <option value="">- Pilih Area Operasional -</option>
+                            @foreach($areas as $area)
+                                <option value="{{ $area->name }}" {{ old('area') === $area->name ? 'selected' : '' }}>
+                                    {{ $area->name }}
+                                </option>
+                            @endforeach
+                        </select>
+                        @error('area')
+                            <div class="digi-invalid-feedback">
+                                <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><circle cx="12" cy="12" r="10"></circle><line x1="12" y1="8" x2="12" y2="12"></line><line x1="12" y1="16" x2="12.01" y2="16"></line></svg>
+                                {{ $message }}
+                            </div>
+                        @enderror
+                    </div>
+
+                    <!-- Support Point (Kondisional: Muncul bila Area memiliki titik turunan) -->
+                    <div class="digi-form-group" id="support_point_group" style="margin-bottom: 16px; display: none;">
+                        <label class="digi-form-label">
+                            Pilih Support Point (Titik Operasional) <span class="digi-required">*</span>
+                        </label>
+                        <select name="support_point_id" id="support_point_select" class="digi-select @error('support_point_id') is-invalid @enderror">
+                            <option value="">- Pilih Support Point -</option>
+                        </select>
+                        <div style="font-size: 12px; color: #64748b; margin-top: 4px;">
+                            Titik operasional spesifik untuk area ini (misal: JB, BUMA, FMC, dsb).
                         </div>
-                    @enderror
+                        @error('support_point_id')
+                            <div class="digi-invalid-feedback">
+                                <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><circle cx="12" cy="12" r="10"></circle><line x1="12" y1="8" x2="12" y2="12"></line><line x1="12" y1="16" x2="12.01" y2="16"></line></svg>
+                                {{ $message }}
+                            </div>
+                        @enderror
+                    </div>
+
+                    <!-- Wrapper Approval Alur Reguler -->
+                    <div id="siteApprovalWrap">
+                        @if($user->isDepthead())
+                            <!-- Jalur Cepat Khusus Dept Head / Manager (Auto-Approved) -->
+                            <div style="background: #f0fdf4; border: 1px solid #bbf7d0; border-radius: 12px; padding: 14px 16px; margin-bottom: 18px;">
+                                <div style="display: flex; align-items: center; gap: 8px; font-weight: 700; color: #166534; font-size: 13.5px;">
+                                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"></path><polyline points="22 4 12 14.01 9 11.01"></polyline></svg>
+                                    Jalur Pengajuan Mandiri Dept Head (Auto-Approved)
+                                </div>
+                                <p style="font-size: 12px; color: #15803d; margin: 4px 0 0 0; line-height: 1.5;">
+                                    Karena Anda memiliki wewenang <strong>Dept Head / Manager</strong>, tahap verifikasi SPV otomatis dilewati dan pengajuan langsung disahkan dengan tanda tangan digital Anda. Setelah diajukan, permohonan langsung masuk ke antrean <strong>Vendor BBM</strong> untuk realisasi pengisian.
+                                </p>
+                                <input type="hidden" name="spv_id" id="spv_select" value="">
+                                <input type="hidden" name="depthead_id" id="depthead_select" value="{{ $user->id }}">
+                            </div>
+                        @else
+                            <div class="digi-form-group" style="margin-bottom: 16px;">
+                                <label class="digi-form-label">Pilih Approval SPV (Acknowledge) <span class="digi-required">*</span></label>
+                                <select name="spv_id" id="spv_select" class="digi-select @error('spv_id') is-invalid @enderror" required>
+                                    <option value="">- Pilih Approval SPV -</option>
+                                    @foreach($spvs as $spv)
+                                        <option value="{{ $spv->id }}" {{ old('spv_id') == $spv->id ? 'selected' : '' }}>
+                                            Approval By {{ $spv->nrp ?? $spv->username }} - {{ $spv->name }}
+                                        </option>
+                                    @endforeach
+                                </select>
+                                <span id="spvEmptyMsg" style="display:none; color:#b45309; font-size:12px; margin-top:4px;">Tidak ada Approver SPV yang aktif pada area ini. Silakan hubungi Admin.</span>
+                                @error('spv_id')
+                                    <div class="digi-invalid-feedback">
+                                        <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><circle cx="12" cy="12" r="10"></circle><line x1="12" y1="8" x2="12" y2="12"></line><line x1="12" y1="16" x2="12.01" y2="16"></line></svg>
+                                        {{ $message }}
+                                    </div>
+                                @enderror
+                            </div>
+
+                            <div class="digi-form-group" style="margin-bottom: 16px;">
+                                <label class="digi-form-label">Pilih Approval Dept Head (Approve) <span class="digi-required">*</span></label>
+                                <select name="depthead_id" id="depthead_select" class="digi-select @error('depthead_id') is-invalid @enderror" required>
+                                    <option value="">- Pilih Approval Dept Head -</option>
+                                    @foreach($deptheads as $dh)
+                                        <option value="{{ $dh->id }}" {{ old('depthead_id') == $dh->id ? 'selected' : '' }}>
+                                            Approval By {{ $dh->username }} ({{ $dh->name }})
+                                        </option>
+                                    @endforeach
+                                </select>
+                                <span id="dhEmptyMsg" style="display:none; color:#b45309; font-size:12px; margin-top:4px;">Tidak ada Approver Dept Head yang aktif pada area ini. Silakan hubungi Admin.</span>
+                                @error('depthead_id')
+                                    <div class="digi-invalid-feedback">
+                                        <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><circle cx="12" cy="12" r="10"></circle><line x1="12" y1="8" x2="12" y2="12"></line><line x1="12" y1="16" x2="12.01" y2="16"></line></svg>
+                                        {{ $message }}
+                                    </div>
+                                @enderror
+                            </div>
+                        @endif
+
+                        <div class="digi-form-group" style="margin-bottom: 16px;" id="vendor_select_wrap">
+                            <label class="digi-form-label">Pilih Perusahaan Vendor BBM <span class="digi-required">*</span></label>
+                            <select name="vendor_name" id="vendor_select" class="digi-select @error('vendor_name') is-invalid @enderror" required onchange="handleVendorChange(this.value)">
+                                <option value="">- Pilih Perusahaan Vendor BBM -</option>
+                                @foreach($vendors as $ven)
+                                    <option value="{{ $ven->name }}" {{ old('vendor_name') === $ven->name ? 'selected' : '' }}>
+                                        {{ $ven->name }}
+                                    </option>
+                                @endforeach
+                                @if($user->canUseSpbu())
+                                    <option value="SPBU" {{ old('vendor_name') === 'SPBU' ? 'selected' : '' }}>
+                                        SPBU (Pengisian Luar / Dinas — Full Approved)
+                                    </option>
+                                @endif
+                            </select>
+                            @error('vendor_name')
+                                <div class="digi-invalid-feedback">
+                                    <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><circle cx="12" cy="12" r="10"></circle><line x1="12" y1="8" x2="12" y2="12"></line><line x1="12" y1="16" x2="12.01" y2="16"></line></svg>
+                                    {{ $message }}
+                                </div>
+                            @enderror
+                        </div>
+                    </div>
                 </div>
 
                 @if($user->canUseSpbu())
                 <!-- Panel Khusus Pengisian SPBU (Dept Head / Site Manager) -->
-                <div id="spbuPanel" style="display: none; background: #fffbeb; border: 1.5px solid #f59e0b; border-radius: 12px; padding: 16px 18px; margin-bottom: 18px;">
-                    <div style="display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 8px; margin-bottom: 12px;">
-                        <div style="display: flex; align-items: center; gap: 8px; font-weight: 700; color: #92400e; font-size: 14px;">
-                            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.3"><path d="M3 22V6a2 2 0 0 1 2-2h8a2 2 0 0 1 2 2v16"></path><path d="M15 10h2a2 2 0 0 1 2 2v5a2 2 0 0 0 2 2v0a2 2 0 0 0 2-2V9.83a2 2 0 0 0-.59-1.42L20 6"></path><line x1="3" y1="10" x2="15" y2="10"></line></svg>
-                            Detail Pengisian SPBU (Khusus Dept Head / Site Manager)
+                <div id="spbuPanel" class="digi-spbu-panel" style="display: none; background: #f8fafc; border: 1.5px solid #0284c7; border-radius: 12px; padding: 18px 20px; margin-bottom: 20px; box-shadow: 0 2px 10px rgba(2, 132, 199, 0.06);">
+                    <div class="digi-spbu-header" style="display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 8px; margin-bottom: 12px; padding-bottom: 10px; border-bottom: 1px solid #e2e8f0;">
+                        <div style="display: flex; align-items: center; gap: 8px; font-weight: 700; color: #0369a1; font-size: 14.5px;">
+                            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.3"><path d="M3 22V6a2 2 0 0 1 2-2h8a2 2 0 0 1 2 2v16"></path><path d="M15 10h2a2 2 0 0 1 2 2v5a2 2 0 0 0 2 2v0a2 2 0 0 0 2-2V9.83a2 2 0 0 0-.59-1.42L20 6"></path><line x1="3" y1="10" x2="15" y2="10"></line></svg>
+                            Data Pengisian SPBU Darurat / Dinas Luar
                         </div>
-                        <span class="digi-badge digi-badge-green" style="font-size: 11px;">Otomatis Full Approved (Tanpa SPV & Vendor)</span>
+                        <span class="digi-badge digi-badge-green" style="font-size: 11px; font-weight: 700; padding: 4px 10px;">
+                            Selesai Otomatis (Full Bypass)
+                        </span>
                     </div>
-                    <p style="font-size: 12px; color: #b45309; margin: 0 0 14px 0; line-height: 1.5;">
-                        Pengisian di SPBU akan langsung berstatus <strong>Selesai (Full Approved)</strong> dan otomatis masuk ke laporan Evaluasi BBM dengan harga aktual nota. Wajib melampirkan lokasi SPBU, harga per liter, dan foto struk/nota.
-                    </p>
 
-                    <div class="digi-form-grid-2" style="margin-bottom: 12px;">
+                    <div style="background: #f0fdf4; border: 1px solid #bbf7d0; border-radius: 8px; padding: 10px 14px; margin-bottom: 16px; font-size: 12.5px; color: #166534; line-height: 1.5; display: flex; align-items: flex-start; gap: 10px;">
+                        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" style="margin-top: 2px; flex-shrink: 0;"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"></path><polyline points="22 4 12 14.01 9 11.01"></polyline></svg>
+                        <div>
+                            <strong>Bypass Alur Penuh:</strong> Pengisian SPBU tidak memerlukan pemilihan area site operasional maupun antrean approval SPV/Vendor BBM. Begitu formulir dikirim, status pengajuan langsung berstatus <strong>Selesai (Completed)</strong> dan tercatat ke laporan konsumsi unit serta ekspor Excel.
+                        </div>
+                    </div>
+
+                    <div class="digi-form-grid-2" style="margin-bottom: 14px;">
                         <div class="digi-form-group" style="margin-bottom: 0;">
-                            <label class="digi-form-label">Lokasi SPBU <span class="digi-required">*</span></label>
+                            <label class="digi-form-label">Lokasi / Nama SPBU <span class="digi-required">*</span></label>
                             <input type="text" name="spbu_location" id="spbu_location" class="digi-input @error('spbu_location') is-invalid @enderror" placeholder="Contoh: SPBU Pertamina KM 171 Satui / Banjarmasin" value="{{ old('spbu_location') }}">
                             @error('spbu_location')
                                 <div class="digi-invalid-feedback">{{ $message }}</div>
@@ -340,7 +452,7 @@
                         <div class="digi-form-group" style="margin-bottom: 0;">
                             <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:6px;">
                                 <label class="digi-form-label" style="margin-bottom:0;">Harga Aktual per Liter (Rp) <span class="digi-required">*</span></label>
-                                <span id="spbuEstTotalBadge" style="font-size:11.5px; font-weight:700; color:#15803d; display:none;">Est: Rp 0</span>
+                                <span id="spbuEstTotalBadge" style="font-size:11.5px; font-weight:700; color:#15803d; display:none; background:#dcfce7; padding:2px 8px; border-radius:6px; border:1px solid #bbf7d0;">Est. Total: Rp 0</span>
                             </div>
                             <input type="number" step="1" min="1" name="spbu_price_per_liter" id="spbu_price_per_liter" class="digi-input @error('spbu_price_per_liter') is-invalid @enderror" placeholder="Contoh: 13900 atau 15500" value="{{ old('spbu_price_per_liter') }}" oninput="updateSpbuEstimate()">
                             @error('spbu_price_per_liter')
@@ -350,13 +462,16 @@
                     </div>
 
                     <div class="digi-form-group" style="margin-bottom: 0;">
-                        <label class="digi-form-label">Upload Foto Nota / Struk SPBU <span class="digi-required">*</span> <span style="font-size:11px; color:#64748b; font-weight:400;">(JPG/PNG/WEBP, dikompres otomatis oleh sistem)</span></label>
+                        <label class="digi-form-label">Upload Foto Nota / Struk Fisik <span class="digi-required">*</span> <span style="font-size:11px; color:#64748b; font-weight:400;">(Lampirkan foto struk asli dari SPBU)</span></label>
                         <input type="file" name="spbu_receipt_photo" id="spbu_receipt_photo" accept="image/jpeg,image/png,image/webp" class="digi-input @error('spbu_receipt_photo') is-invalid @enderror" style="padding: 8px; background: #fff;" onchange="previewSpbuReceipt(this)">
                         @error('spbu_receipt_photo')
                             <div class="digi-invalid-feedback">{{ $message }}</div>
                         @enderror
                         <div id="spbuPhotoPreviewWrap" style="display:none; margin-top: 10px;">
-                            <img id="spbuPhotoPreviewImg" src="" alt="Preview Nota SPBU" style="max-height: 170px; border-radius: 8px; border: 1px solid #fcd34d; box-shadow: 0 2px 6px rgba(0,0,0,0.08);">
+                            <div style="display: inline-block; position: relative;">
+                                <img id="spbuPhotoPreviewImg" src="" alt="Preview Nota SPBU" style="max-height: 180px; border-radius: 8px; border: 1.5px solid #0284c7; box-shadow: 0 2px 6px rgba(0,0,0,0.08); display: block;">
+                                <button type="button" onclick="clearSpbuPhoto()" style="position: absolute; top: 6px; right: 6px; background: rgba(220, 38, 38, 0.9); color: #fff; border: none; border-radius: 50%; width: 24px; height: 24px; font-weight: bold; cursor: pointer; display: flex; align-items: center; justify-content: center;" title="Hapus foto">&times;</button>
+                            </div>
                         </div>
                     </div>
                 </div>
@@ -375,7 +490,7 @@
             </div>
 
             <!-- Action Buttons at bottom right -->
-            <div style="display: flex; justify-content: flex-end; gap: 10px; margin-top: 16px; flex-wrap: wrap;">
+            <div class="digi-action-buttons" style="display: flex; justify-content: flex-end; gap: 10px; margin-top: 16px; flex-wrap: wrap;">
                 <button type="button" class="btn-digi btn-digi-gray" onclick="submitAsDraft()">
                     Simpan Draft
                 </button>
@@ -495,20 +610,136 @@ function handleUnitChange(select) {
     updateSpbuEstimate();
 }
 
-function handleVendorChange(vendorName) {
-    const panel = document.getElementById('spbuPanel');
+function onFacilityModeChange(mode) {
+    const siteCard = document.getElementById('modeSiteCard');
+    const spbuCard = document.getElementById('modeSpbuCard');
+    const siteRadio = document.getElementById('mode_site_radio');
+    const spbuRadio = document.getElementById('mode_spbu_radio');
+    const siteFacilityWrap = document.getElementById('siteFacilityWrap');
+    const spbuPanel = document.getElementById('spbuPanel');
+    const areaSelect = document.getElementById('area_select');
+    const spSelect = document.getElementById('support_point_select');
+    const spvSelect = document.getElementById('spv_select');
+    const dhSelect = document.getElementById('depthead_select');
+    const vendorSelect = document.getElementById('vendor_select');
     const locInput = document.getElementById('spbu_location');
     const priceInput = document.getElementById('spbu_price_per_liter');
     const photoInput = document.getElementById('spbu_receipt_photo');
-    const isSpbu = canUseSpbu && String(vendorName).toUpperCase() === 'SPBU';
 
-    if (panel) {
-        panel.style.display = isSpbu ? 'block' : 'none';
+    if (mode === 'spbu') {
+        if (siteCard) {
+            siteCard.style.borderColor = '#cbd5e1';
+            siteCard.style.background = '#ffffff';
+        }
+        if (spbuCard) {
+            spbuCard.style.borderColor = '#0284c7';
+            spbuCard.style.background = '#f0f9ff';
+        }
+        if (spbuRadio) spbuRadio.checked = true;
+        if (siteFacilityWrap) siteFacilityWrap.style.display = 'none';
+        if (spbuPanel) spbuPanel.style.display = 'block';
+
+        if (areaSelect) {
+            areaSelect.required = false;
+            areaSelect.classList.remove('is-invalid');
+        }
+        if (spSelect) {
+            spSelect.required = false;
+            spSelect.classList.remove('is-invalid');
+        }
+        if (spvSelect) {
+            spvSelect.required = false;
+            spvSelect.classList.remove('is-invalid');
+        }
+        if (dhSelect) {
+            dhSelect.required = false;
+            dhSelect.classList.remove('is-invalid');
+        }
+        if (vendorSelect) {
+            vendorSelect.value = 'SPBU';
+            vendorSelect.required = false;
+            vendorSelect.classList.remove('is-invalid');
+        }
+
+        if (locInput) locInput.required = true;
+        if (priceInput) priceInput.required = true;
+        if (photoInput) photoInput.required = true;
+
+        updateSpbuEstimate();
+    } else {
+        if (siteCard) {
+            siteCard.style.borderColor = '#0284c7';
+            siteCard.style.background = '#f0f9ff';
+        }
+        if (spbuCard) {
+            spbuCard.style.borderColor = '#cbd5e1';
+            spbuCard.style.background = '#ffffff';
+        }
+        if (siteRadio) siteRadio.checked = true;
+        if (siteFacilityWrap) siteFacilityWrap.style.display = 'block';
+        if (spbuPanel) spbuPanel.style.display = 'none';
+
+        if (areaSelect) {
+            areaSelect.required = true;
+        }
+        const spGroup = document.getElementById('support_point_group');
+        if (spSelect && spGroup && spGroup.style.display !== 'none') {
+            spSelect.required = true;
+        }
+        if (spvSelect && !isDeptHead) {
+            spvSelect.required = true;
+        }
+        if (dhSelect && !isDeptHead) {
+            dhSelect.required = true;
+        }
+        if (vendorSelect) {
+            if (vendorSelect.value === 'SPBU') {
+                vendorSelect.value = '';
+            }
+            vendorSelect.required = true;
+        }
+
+        if (locInput) {
+            locInput.required = false;
+            locInput.classList.remove('is-invalid');
+        }
+        if (priceInput) {
+            priceInput.required = false;
+            priceInput.classList.remove('is-invalid');
+        }
+        if (photoInput) {
+            photoInput.required = false;
+            photoInput.classList.remove('is-invalid');
+        }
+
+        updateSpbuEstimate();
     }
-    if (locInput) locInput.required = isSpbu;
-    if (priceInput) priceInput.required = isSpbu;
-    if (photoInput) photoInput.required = isSpbu;
-    updateSpbuEstimate();
+}
+
+function clearSpbuPhoto() {
+    const input = document.getElementById('spbu_receipt_photo');
+    const wrap = document.getElementById('spbuPhotoPreviewWrap');
+    const img = document.getElementById('spbuPhotoPreviewImg');
+    if (input) input.value = '';
+    if (img) img.src = '';
+    if (wrap) wrap.style.display = 'none';
+}
+
+function handleVendorChange(vendorName) {
+    const isSpbu = canUseSpbu && String(vendorName).toUpperCase() === 'SPBU';
+    if (canUseSpbu) {
+        onFacilityModeChange(isSpbu ? 'spbu' : 'site');
+    } else {
+        const panel = document.getElementById('spbuPanel');
+        const locInput = document.getElementById('spbu_location');
+        const priceInput = document.getElementById('spbu_price_per_liter');
+        const photoInput = document.getElementById('spbu_receipt_photo');
+        if (panel) panel.style.display = isSpbu ? 'block' : 'none';
+        if (locInput) locInput.required = isSpbu;
+        if (priceInput) priceInput.required = isSpbu;
+        if (photoInput) photoInput.required = isSpbu;
+        updateSpbuEstimate();
+    }
 }
 
 function updateSpbuEstimate() {
@@ -518,7 +749,7 @@ function updateSpbuEstimate() {
     if (!badge) return;
     if (liters > 0 && price > 0) {
         const total = Math.round(liters * price);
-        badge.textContent = 'Est. Total: Rp ' + total.toLocaleString('id-ID');
+        badge.textContent = `Est. Total: Rp ${total.toLocaleString('id-ID')} (${liters} L × Rp ${Math.round(price).toLocaleString('id-ID')}/L)`;
         badge.style.display = 'inline';
     } else {
         badge.style.display = 'none';
@@ -761,9 +992,10 @@ function openPreviewModal() {
         }
     }
     if (isSpbu) {
+        document.getElementById('prev_area').textContent = ': SPBU / Dinas Luar (Bebas Area Site)';
         document.getElementById('prev_spv').textContent = ': Full Bypass (Pengisian SPBU)';
         document.getElementById('prev_depthead').textContent = ': Otomatis Full Approved (Anda)';
-        document.getElementById('prev_vendor').textContent = ': SPBU (Langsung Selesai tanpa Vendor)';
+        document.getElementById('prev_vendor').textContent = ': SPBU Umum (Tanpa Vendor Site)';
         const spbuRow = document.getElementById('prev_spbu_row');
         const spbuInfo = document.getElementById('prev_spbu_info');
         const loc = document.getElementById('spbu_location')?.value || '-';
@@ -773,6 +1005,7 @@ function openPreviewModal() {
             spbuRow.style.display = 'table-row';
         }
     } else {
+        document.getElementById('prev_area').textContent = ': ' + (area || '-');
         const spbuRow = document.getElementById('prev_spbu_row');
         if (spbuRow) spbuRow.style.display = 'none';
         if (isDeptHead) {
@@ -809,10 +1042,21 @@ document.addEventListener('DOMContentLoaded', function() {
         handleUnitChange(unitSelect);
     }
 
-    const vendorSelect = document.getElementById('vendor_select');
-    if (vendorSelect && vendorSelect.value) {
-        handleVendorChange(vendorSelect.value);
-    }
+    // Check initial facility mode or old vendor
+    @if($user->canUseSpbu())
+        const oldVendor = @json(old('vendor_name', ''));
+        const oldFacilityMode = @json(old('facility_mode', ''));
+        if (oldVendor === 'SPBU' || oldFacilityMode === 'spbu') {
+            onFacilityModeChange('spbu');
+        } else {
+            onFacilityModeChange('site');
+        }
+    @else
+        const vendorSelect = document.getElementById('vendor_select');
+        if (vendorSelect && vendorSelect.value) {
+            handleVendorChange(vendorSelect.value);
+        }
+    @endif
 
     const litersInput = document.getElementById('total_liters');
     if (litersInput) {
@@ -857,20 +1101,21 @@ document.addEventListener('DOMContentLoaded', function() {
                 { id: 'police_no', name: 'Nomor Polisi' },
                 { id: 'total_liters', name: 'Total Liter' },
                 { id: 'hm_km', name: 'KM / HM' },
-                { id: 'area_select', name: 'Area Operasional' },
-                ...(document.getElementById('support_point_group')?.style.display !== 'none' ? [
-                    { id: 'support_point_select', name: 'Support Point' }
-                ] : []),
-                ...(!isDeptHead && !isSpbuSubmit ? [
-                    { id: 'spv_select', name: 'Approval SPV' },
-                    { id: 'depthead_select', name: 'Approval Dept Head' },
-                ] : []),
-                { id: 'vendor_select', name: 'Vendor BBM' },
-                ...(isSpbuSubmit ? [
+                ...(!isSpbuSubmit ? [
+                    { id: 'area_select', name: 'Area Operasional' },
+                    ...(document.getElementById('support_point_group')?.style.display !== 'none' ? [
+                        { id: 'support_point_select', name: 'Support Point' }
+                    ] : []),
+                    ...(!isDeptHead ? [
+                        { id: 'spv_select', name: 'Approval SPV' },
+                        { id: 'depthead_select', name: 'Approval Dept Head' },
+                    ] : []),
+                    { id: 'vendor_select', name: 'Vendor BBM' },
+                ] : [
                     { id: 'spbu_location', name: 'Lokasi SPBU' },
                     { id: 'spbu_price_per_liter', name: 'Harga Aktual SPBU' },
                     ...(action === 'submit' ? [{ id: 'spbu_receipt_photo', name: 'Foto Nota SPBU' }] : []),
-                ] : []),
+                ]),
             ];
 
             requiredFields.forEach(field => {
