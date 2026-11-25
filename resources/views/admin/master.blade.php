@@ -2134,7 +2134,7 @@
                                 @php $decryptedPwd = $u->decrypted_password; @endphp
                                 <div style="display: inline-flex; align-items: center; gap: 6px; background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 8px; padding: 4px 8px;">
                                     <span id="pwd-text-{{ $u->id }}" data-revealed="0" data-pwd="{{ $decryptedPwd ?? '' }}" data-empty="{{ $decryptedPwd === null ? '1' : '0' }}" style="font-family: monospace; font-size: 12px; font-weight: 600; color: #334155; letter-spacing: 1px;">••••••••</span>
-                                    <button type="button" onclick="toggleTableUserPassword({{ $u->id }}, this)" title="Lihat Password" aria-label="Lihat Password" style="background: transparent; border: none; padding: 2px; color: #64748b; cursor: pointer; display: inline-flex; align-items: center; justify-content: center;">
+                                    <button type="button" data-user-id="{{ $u->id }}" onclick="toggleTableUserPassword(this.dataset.userId, this)" title="Lihat Password" aria-label="Lihat Password" style="background: transparent; border: none; padding: 2px; color: #64748b; cursor: pointer; display: inline-flex; align-items: center; justify-content: center;">
                                         <svg class="eye-open" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
                                             <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"></path>
                                             <circle cx="12" cy="12" r="3"></circle>

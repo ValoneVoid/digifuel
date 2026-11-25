@@ -3,6 +3,7 @@
 namespace App\Http\Requests;
 
 use Illuminate\Foundation\Http\FormRequest;
+use Illuminate\Validation\Validator;
 use App\Models\Vehicle;
 use App\Models\Area;
 use App\Models\AreaApprover;
@@ -13,7 +14,7 @@ class StoreFuelRequest extends FormRequest
 {
     public function authorize(): bool
     {
-        return auth()->check();
+        return $this->user() !== null;
     }
 
     public function rules(): array
@@ -97,7 +98,7 @@ class StoreFuelRequest extends FormRequest
         ];
     }
 
-    public function withValidator($validator): void
+    public function withValidator(Validator $validator): void
     {
         $validator->after(function ($validator) {
             /** @var \App\Models\User|null $authUser */

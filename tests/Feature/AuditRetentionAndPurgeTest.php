@@ -55,6 +55,7 @@ class AuditRetentionAndPurgeTest extends TestCase
 
     public function test_admin_can_export_audit_trail_to_excel(): void
     {
+        /** @var \App\Models\User $admin */
         $admin = User::factory()->create([
             'role' => 'admin',
             'is_active' => true,
@@ -77,6 +78,7 @@ class AuditRetentionAndPurgeTest extends TestCase
 
     public function test_admin_can_purge_audit_logs_via_web_with_two_step_verification(): void
     {
+        /** @var \App\Models\User $admin */
         $admin = User::factory()->create([
             'role' => 'admin',
             'is_active' => true,

@@ -181,7 +181,7 @@
             </a>
 
             @if(app(\App\Policies\FuelRequestPolicy::class)->delete($currentUser, $fuelRequest))
-                <button type="button" class="btn-digi btn-digi-red" style="padding: 9px 16px;" onclick="confirmDeleteRequest({{ $fuelRequest->id }}, '{{ $fuelRequest->request_no }}')">
+                <button type="button" class="btn-digi btn-digi-red" style="padding: 9px 16px;" data-id="{{ $fuelRequest->id }}" data-no="{{ $fuelRequest->request_no }}" onclick="confirmDeleteRequest(this.dataset.id, this.dataset.no)">
                     <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
                         <polyline points="3 6 5 6 21 6"></polyline>
                         <path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path>
@@ -423,7 +423,7 @@
                     </div>
                 @endif
             @elseif($currentUser && app(\App\Policies\FuelRequestPolicy::class)->recordRealization($currentUser, $fuelRequest))
-                <form action="{{ route('approval.realization', $fuelRequest->id) }}" method="POST" style="margin-top: 14px; padding-top: 14px; border-top: 1px dashed #86efac;">
+                <form id="vendorRealizationForm" action="{{ route('approval.realization', $fuelRequest->id) }}" method="POST" style="margin-top: 14px; padding-top: 14px; border-top: 1px dashed #86efac;">
                     @csrf
                     <div style="font-size: 13px; font-weight: 700; color: #166534; margin-bottom: 12px;">
                         Input Realisasi Pengisian BBM Aktual (KM & Waktu Pengisian Terkunci Otomatis):
@@ -743,7 +743,7 @@
 
 @section('scripts')
 <script>
-const userHasSignature = {{ ($currentUser && $currentUser->hasActiveSignature()) ? 'true' : 'false' }};
+const userHasSignature = Boolean({{ ($currentUser && $currentUser->hasActiveSignature()) ? 1 : 0 }});
 
 function requireApproverSignatureNotice(actionName) {
     const actionText = actionName || 'menyetujui pengajuan';
@@ -887,7 +887,7 @@ function confirmDeleteRequest(id, reqNo) {
 }
 
 document.addEventListener('DOMContentLoaded', function() {
-    const realForm = document.querySelector('form[action="{{ route('approval.realization', $fuelRequest->id) }}"]');
+    const realForm = document.getElementById('vendorRealizationForm');
     if (realForm) {
         realForm.addEventListener('submit', function(e) {
             if (!userHasSignature) {

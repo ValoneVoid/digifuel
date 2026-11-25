@@ -16,6 +16,7 @@ class MultiSheetExcelExportTest extends TestCase
 
     public function test_evaluation_export_generates_multi_sheet_workbook_matching_monitoring_reference(): void
     {
+        /** @var \App\Models\User $admin */
         $admin = User::factory()->create([
             'role' => 'admin',
             'is_active' => true,

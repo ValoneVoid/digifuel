@@ -557,8 +557,10 @@ function switchCalcMode(cMode) {
         cOverrides.style.display = 'none';
     }
 }
-
-const chartData = @json($chartData);
+</script>
+<script id="evaluation-chart-data" type="application/json">@json($chartData)</script>
+<script>
+const chartData = JSON.parse(document.getElementById('evaluation-chart-data')?.textContent || '{}');
 if (typeof Chart !== 'undefined' && chartData.unitLabels && chartData.unitLabels.length > 0) {
     const isMobile = window.innerWidth < 768;
 
@@ -615,9 +617,9 @@ if (typeof Chart !== 'undefined' && chartData.unitLabels && chartData.unitLabels
                     x: {
                         grid: { display: false },
                         ticks: {
-                            maxRotation: isMobile ? 30 : 0,
+                            maxRotation: isMobile ? 45 : 0,
                             minRotation: 0,
-                            autoSkip: false,
+                            autoSkip: isMobile,
                             font: {
                                 size: isMobile ? 10 : 11,
                                 weight: '600'
@@ -626,6 +628,7 @@ if (typeof Chart !== 'undefined' && chartData.unitLabels && chartData.unitLabels
                     },
                     y: {
                         beginAtZero: true,
+                        suggestedMax: 50,
                         ticks: {
                             font: { size: 10 },
                             callback: function(val) {
@@ -682,6 +685,7 @@ if (typeof Chart !== 'undefined' && chartData.unitLabels && chartData.unitLabels
                 scales: {
                     x: {
                         beginAtZero: true,
+                        suggestedMax: 1000000,
                         ticks: {
                             font: { size: 10 },
                             callback: function(val) {

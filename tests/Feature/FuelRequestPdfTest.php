@@ -193,6 +193,7 @@ class FuelRequestPdfTest extends TestCase
             ]);
         }
 
+        /** @var \App\Models\User $otherVendorUser */
         $otherVendorUser = User::factory()->create([
             'name' => 'Vendor Prima User',
             'username' => 'vendor_prima',

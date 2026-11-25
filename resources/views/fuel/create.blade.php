@@ -411,10 +411,20 @@
 @endsection
 
 @section('scripts')
+<script id="fuel-create-config" type="application/json">
+{!! json_encode([
+    'areaApproverMap' => $areaApproverMap ?? [],
+    'isDeptHead' => (bool)$user->isDepthead(),
+    'canUseSpbu' => (bool)$user->canUseSpbu(),
+    'userHasSignature' => (bool)$user->signature_url,
+]) !!}
+</script>
 <script>
-const areaApproverMap = @json($areaApproverMap ?? []);
-const isDeptHead = {{ $user->isDepthead() ? 'true' : 'false' }};
-const canUseSpbu = {{ $user->canUseSpbu() ? 'true' : 'false' }};
+const fuelCreateConfig = JSON.parse(document.getElementById('fuel-create-config')?.textContent || '{}');
+const areaApproverMap = fuelCreateConfig.areaApproverMap || {};
+const isDeptHead = fuelCreateConfig.isDeptHead || false;
+const canUseSpbu = fuelCreateConfig.canUseSpbu || false;
+const userHasSignature = fuelCreateConfig.userHasSignature || false;
 
 function handleUnitChange(select) {
     const selectedOption = select.options[select.selectedIndex];
@@ -626,7 +636,6 @@ function handleAreaChange(areaName) {
         .catch(() => {});
 }
 
-const userHasSignature = {{ $user->signature_url ? 'true' : 'false' }};
 
 function requireSignatureNotice() {
     if (typeof Swal !== 'undefined') {

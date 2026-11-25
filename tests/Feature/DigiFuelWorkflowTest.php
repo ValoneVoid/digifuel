@@ -752,6 +752,7 @@ class DigiFuelWorkflowTest extends TestCase
 
     public function test_user_can_create_signature_via_direct_canvas_drawing_and_file_upload(): void
     {
+        /** @var \App\Models\User $user */
         $user = User::factory()->create([
             'role' => 'driver',
             'is_active' => true,
