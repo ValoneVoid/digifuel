@@ -67,8 +67,9 @@
         </form>
 
         <div style="text-align: center;">
-            <a href="{{ route('login') }}" style="font-size: 13px; font-weight: 600; color: #0284c7; text-decoration: none;">
-                &larr; Kembali ke Halaman Login
+            <a href="{{ route('login') }}" style="display: inline-flex; align-items: center; gap: 6px; font-size: 13px; font-weight: 600; color: #0284c7; text-decoration: none;">
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.3" stroke-linecap="round" stroke-linejoin="round"><line x1="19" y1="12" x2="5" y2="12"></line><polyline points="12 19 5 12 12 5"></polyline></svg>
+                <span>Kembali ke Halaman Login</span>
             </a>
         </div>
     </div>

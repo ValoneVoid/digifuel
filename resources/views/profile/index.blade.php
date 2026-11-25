@@ -120,14 +120,16 @@
 @media (max-width: 768px) {
     .digi-profile-layout {
         grid-template-columns: 1fr !important;
-        gap: 14px !important;
+        gap: 10px !important;
         width: 100% !important;
         max-width: 100% !important;
         box-sizing: border-box !important;
+        background: #f1f5f9 !important;
     }
     .digi-profile-left, .digi-profile-right {
-        padding: 18px 14px !important;
-        border-radius: 14px !important;
+        padding: 22px 16px !important;
+        border-radius: 16px !important;
+        box-shadow: 0 4px 18px rgba(15, 23, 42, 0.1) !important;
         width: 100% !important;
         max-width: 100% !important;
         box-sizing: border-box !important;

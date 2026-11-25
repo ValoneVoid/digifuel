@@ -476,10 +476,10 @@
         border-color: #94a3b8;
     }
     .digi-tab-pill.is-active {
-        background: linear-gradient(135deg, #0284c7 0%, #0369a1 100%);
+        background: #0284c7;
         color: #ffffff;
         border-color: #0284c7;
-        box-shadow: 0 4px 12px rgba(2, 132, 199, 0.3);
+        box-shadow: 0 4px 12px rgba(2, 132, 199, 0.28);
     }
     .digi-tab-pill .tab-step-num {
         display: inline-flex;
@@ -2354,7 +2354,7 @@
             <!-- Header with Active Theme Indicator -->
             <div style="display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 14px; margin-bottom: 20px; padding-bottom: 16px; border-bottom: 1px solid #f1f5f9;">
                 <div style="display: flex; align-items: center; gap: 14px;">
-                    <div style="width: 48px; height: 48px; border-radius: 12px; background: linear-gradient(135deg, #0f172a 0%, #1e293b 100%); display: flex; align-items: center; justify-content: center; color: #38bdf8; box-shadow: 0 4px 12px rgba(15, 23, 42, 0.15);">
+                    <div style="width: 48px; height: 48px; border-radius: 12px; background: #0f172a; display: flex; align-items: center; justify-content: center; color: #38bdf8; box-shadow: 0 4px 12px rgba(15, 23, 42, 0.15);">
                         <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
                             <circle cx="12" cy="12" r="5"/><path d="M12 1v2M12 21v2M4.22 4.22l1.42 1.42M18.36 18.36l1.42 1.42M1 12h2M21 12h2M4.22 19.78l1.42-1.42M18.36 5.64l1.42-1.42"/>
                         </svg>
@@ -2797,13 +2797,17 @@
             <div id="deleteStep1Footer" class="digi-modal-footer">
                 <button type="button" class="btn-digi btn-digi-gray" onclick="closeDeleteModal()">Batal</button>
                 <button type="button" class="btn-digi btn-digi-yellow" onclick="proceedToDeleteStep2()" style="font-weight: 700;">
-                    Lanjut ke Verifikasi Langkah 2 &rarr;
+                    <span>Lanjut ke Verifikasi Langkah 2</span>
+                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><line x1="5" y1="12" x2="19" y2="12"></line><polyline points="12 5 19 12 12 19"></polyline></svg>
                 </button>
             </div>
 
             <!-- FOOTER STEP 2 -->
             <div id="deleteStep2Footer" class="digi-modal-footer" style="display: none; justify-content: space-between;">
-                <button type="button" class="btn-digi btn-digi-gray" onclick="backToDeleteStep1()">&larr; Kembali</button>
+                <button type="button" class="btn-digi btn-digi-gray" onclick="backToDeleteStep1()">
+                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><line x1="19" y1="12" x2="5" y2="12"></line><polyline points="12 19 5 12 12 5"></polyline></svg>
+                    <span>Kembali</span>
+                </button>
                 <div style="display: flex; gap: 8px;">
                     <button type="button" class="btn-digi btn-digi-gray" onclick="closeDeleteModal()">Batal</button>
                     <button type="submit" id="deleteFinalSubmitBtn" class="btn-digi btn-digi-red" disabled style="opacity: 0.5; cursor: not-allowed;">
