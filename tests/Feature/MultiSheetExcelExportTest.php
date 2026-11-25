@@ -113,23 +113,31 @@ class MultiSheetExcelExportTest extends TestCase
 
         // Inspect Dashboard XML contains genuine formulas and Division references
         $dashXml = $zip->getFromName('xl/worksheets/sheet1.xml');
-        $this->assertStringContainsString("SUM('UT 208 DA 8191'!G2:G1000)", $dashXml);
+        $this->assertStringContainsString("SUM('UT 208 DA 8191'!G2:G2)", $dashXml);
         $this->assertStringContainsString('Master_Kendaraan!A2', $dashXml);
         $this->assertStringContainsString('Master_Kendaraan!C2', $dashXml);
         $this->assertStringContainsString('Master_Kendaraan!F2', $dashXml);
+        $this->assertStringContainsString('No. Polisi', $dashXml);
+        $this->assertStringContainsString('Fuel Type', $dashXml);
+        $this->assertStringContainsString('Harga / Liter (IDR)', $dashXml);
+        $this->assertStringContainsString('Total Harga (IDR)', $dashXml);
         $this->assertStringContainsString('Service', $dashXml);
         $this->assertStringContainsString('Sparepart', $dashXml);
         $this->assertStringContainsString('TOTAL JARAK (KM)', $dashXml);
 
-        // Inspect Master_Kendaraan XML contains Division column
+        // Inspect Master_Kendaraan XML contains Division, Police No & Fuel Type columns
         $masterXml = $zip->getFromName('xl/worksheets/sheet2.xml');
         $this->assertStringContainsString('Divisi / Beban Account', $masterXml);
+        $this->assertStringContainsString('No. Polisi', $masterXml);
+        $this->assertStringContainsString('Fuel Type', $masterXml);
         $this->assertStringContainsString('Service', $masterXml);
         $this->assertStringContainsString('Sparepart', $masterXml);
 
-        // Inspect Unit Sheet XML contains VLOOKUP and calculation formulas
+        // Inspect Unit Sheet XML contains VLOOKUP, cumulative, and calculation formulas
         $unitXml = $zip->getFromName('xl/worksheets/sheet3.xml');
-        $this->assertStringContainsString('VLOOKUP(B2, Master_Kendaraan!$A$2:$C$50, 2, FALSE)', $unitXml);
+        $this->assertStringContainsString('VLOOKUP(B2, Master_Kendaraan!$A$2:$H$200, 2, FALSE)', $unitXml);
+        $this->assertStringContainsString('Rasio Kumulatif (Km/L)', $unitXml);
+        $this->assertStringContainsString('Status Kumulatif', $unitXml);
         $this->assertStringContainsString('F2-E2', $unitXml);
         $this->assertStringContainsString('Total / Rata-rata', $unitXml);
 
