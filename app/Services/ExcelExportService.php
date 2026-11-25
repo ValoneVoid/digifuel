@@ -294,6 +294,9 @@ class ExcelExportService
         $xml .= '<col min="4" max="4" width="24" customWidth="1"/>';
         $xml .= '<col min="5" max="5" width="24" customWidth="1"/>';
         $xml .= '<col min="6" max="6" width="26" customWidth="1"/>';
+        $xml .= '<col min="7" max="7" width="18" customWidth="1"/>';
+        $xml .= '<col min="8" max="8" width="18" customWidth="1"/>';
+        $xml .= '<col min="9" max="9" width="22" customWidth="1"/>';
         $xml .= '</cols>' . "\n";
 
         $xml .= '<sheetData>' . "\n";
@@ -302,10 +305,13 @@ class ExcelExportService
         $xml .= '<row r="1" ht="24" customHeight="1">';
         $xml .= '<c r="A1" s="4" t="inlineStr"><is><t>ID Kendaraan</t></is></c>';
         $xml .= '<c r="B1" s="4" t="inlineStr"><is><t>Tipe Unit</t></is></c>';
-        $xml .= '<c r="C1" s="4" t="inlineStr"><is><t>Target Rasio (Km/L)</t></is></c>';
+        $xml .= '<c r="C1" s="4" t="inlineStr"><is><t>Target Rasio Min (Km/L)</t></is></c>';
         $xml .= '<c r="D1" s="4" t="inlineStr"><is><t>Kapasitas Tangki (L)</t></is></c>';
         $xml .= '<c r="E1" s="4" t="inlineStr"><is><t>Vendor Unit</t></is></c>';
         $xml .= '<c r="F1" s="4" t="inlineStr"><is><t>Divisi / Beban Account</t></is></c>';
+        $xml .= '<c r="G1" s="4" t="inlineStr"><is><t>No. Polisi</t></is></c>';
+        $xml .= '<c r="H1" s="4" t="inlineStr"><is><t>Fuel Type</t></is></c>';
+        $xml .= '<c r="I1" s="4" t="inlineStr"><is><t>Target Rasio Max (Km/L)</t></is></c>';
         $xml .= "</row>\n";
 
         // Data Rows starting at Row 2
@@ -314,9 +320,12 @@ class ExcelExportService
             $code = htmlspecialchars($mv['unit_code'], ENT_XML1);
             $model = htmlspecialchars($mv['model'], ENT_XML1);
             $ratio = (float)($mv['target_ratio'] ?? 8.0);
+            $ratioMax = (isset($mv['standard_max']) && (float)$mv['standard_max'] > $ratio) ? (float)$mv['standard_max'] : null;
             $tank = (float)($mv['tank_capacity'] ?? 80.0);
             $vendor = htmlspecialchars($mv['unit_vendor'] ?? 'Internal UT', ENT_XML1);
             $division = htmlspecialchars($mv['division'] ?? '-', ENT_XML1);
+            $policeNo = htmlspecialchars($mv['police_no'] ?? '-', ENT_XML1);
+            $fuelType = htmlspecialchars($mv['fuel_type'] ?? 'Solar Industri', ENT_XML1);
 
             $xml .= "<row r=\"{$rowNum}\" ht=\"20\" customHeight=\"1\">";
             $xml .= "<c r=\"A{$rowNum}\" s=\"5\" t=\"inlineStr\"><is><t>{$code}</t></is></c>";
@@ -325,6 +334,13 @@ class ExcelExportService
             $xml .= "<c r=\"D{$rowNum}\" s=\"8\"><v>{$tank}</v></c>";
             $xml .= "<c r=\"E{$rowNum}\" s=\"6\" t=\"inlineStr\"><is><t>{$vendor}</t></is></c>";
             $xml .= "<c r=\"F{$rowNum}\" s=\"6\" t=\"inlineStr\"><is><t>{$division}</t></is></c>";
+            $xml .= "<c r=\"G{$rowNum}\" s=\"6\" t=\"inlineStr\"><is><t>{$policeNo}</t></is></c>";
+            $xml .= "<c r=\"H{$rowNum}\" s=\"6\" t=\"inlineStr\"><is><t>{$fuelType}</t></is></c>";
+            if ($ratioMax !== null) {
+                $xml .= "<c r=\"I{$rowNum}\" s=\"8\"><v>{$ratioMax}</v></c>";
+            } else {
+                $xml .= "<c r=\"I{$rowNum}\" s=\"11\" t=\"inlineStr\"><is><t>-</t></is></c>";
+            }
             $xml .= "</row>\n";
         }
 
@@ -343,8 +359,8 @@ class ExcelExportService
         $xml = '<?xml version="1.0" encoding="UTF-8" standalone="yes"?>' . "\n";
         $xml .= '<worksheet xmlns="http://schemas.openxmlformats.org/spreadsheetml/2006/main">' . "\n";
 
-        // Column widths
-        $widths = [23, 18, 22, 21, 17, 18, 21, 20, 23, 24, 19, 16, 22, 24];
+        // Column widths (A..P = 16 columns, single unified table)
+        $widths = [16, 18, 22, 20, 16, 16, 18, 18, 18, 18, 19, 15, 20, 17, 20, 22];
         $xml .= '<cols>';
         foreach ($widths as $idx => $w) {
             $cNum = $idx + 1;
@@ -354,11 +370,12 @@ class ExcelExportService
 
         $xml .= '<sheetData>' . "\n";
 
-        // Row 1: Headers (A1:N1)
+        // Row 1: Headers (A1:P1) — Kumulatif langsung di sebelah Evaluasi (M & N)
         $headers = [
             'Tanggal', 'ID Kendaraan', 'Tipe Unit', 'Driver',
             'Odo Awal (Km)', 'Odo Akhir (Km)', 'Jarak Tempuh (Km)', 'Pengisian Fuel (L)',
             'Rasio Aktual (Km/L)', 'Rasio Standar (Km/L)', 'Biaya BBM (IDR)', 'Evaluasi',
+            'Rasio Kumulatif (Km/L)', 'Status Kumulatif',
             'Varian Pemborosan (L)', 'Biaya Kerugian (IDR)'
         ];
         $xml .= '<row r="1" ht="24" customHeight="1">';
@@ -380,24 +397,31 @@ class ExcelExportService
         $sumWaste = 0.0;
         $sumLoss = 0.0;
         $stdRatioVal = (float)($vehicle['target_ratio'] ?? 8.0);
+        $stdMaxVal = isset($vehicle['standard_max']) && (float)$vehicle['standard_max'] > $stdRatioVal
+            ? (float)$vehicle['standard_max']
+            : null;
+        $firstOdoStart = $txCount > 0 ? (float)($transactions[0]['odo_start'] ?? 0) : 0.0;
+        $runningFuel = 0.0;
 
         if ($txCount === 0) {
             // One empty or placeholder row to keep formula references intact
             $xml .= "<row r=\"2\" ht=\"20\" customHeight=\"1\">";
             $xml .= "<c r=\"A2\" s=\"11\" t=\"inlineStr\"><is><t>-</t></is></c>";
             $xml .= "<c r=\"B2\" s=\"5\" t=\"inlineStr\"><is><t>{$escapedCode}</t></is></c>";
-            $xml .= "<c r=\"C2\" s=\"6\"><f>VLOOKUP(B2, Master_Kendaraan!\$A\$2:\$C\$50, 2, FALSE)</f><v>-</v></c>";
+            $xml .= "<c r=\"C2\" s=\"6\"><f>VLOOKUP(B2, Master_Kendaraan!\$A\$2:\$H\$200, 2, FALSE)</f><v>-</v></c>";
             $xml .= "<c r=\"D2\" s=\"6\" t=\"inlineStr\"><is><t>-</t></is></c>";
             $xml .= "<c r=\"E2\" s=\"8\"><v>0</v></c>";
             $xml .= "<c r=\"F2\" s=\"8\"><v>0</v></c>";
             $xml .= "<c r=\"G2\" s=\"8\"><f>F2-E2</f><v>0</v></c>";
             $xml .= "<c r=\"H2\" s=\"8\"><v>0</v></c>";
             $xml .= "<c r=\"I2\" s=\"9\"><f>IF(H2&gt;0, G2/H2, 0)</f><v>0</v></c>";
-            $xml .= "<c r=\"J2\" s=\"8\"><f>VLOOKUP(B2, Master_Kendaraan!\$A\$2:\$C\$50, 3, FALSE)</f><v>{$stdRatioVal}</v></c>";
+            $xml .= "<c r=\"J2\" s=\"8\"><f>VLOOKUP(B2, Master_Kendaraan!\$A\$2:\$H\$200, 3, FALSE)</f><v>{$stdRatioVal}</v></c>";
             $xml .= "<c r=\"K2\" s=\"10\"><f>H2*{$price}</f><v>0</v></c>";
-            $xml .= "<c r=\"L2\" s=\"12\"><f>IF(I2&lt;(J2-0.5), \"Tidak Wajar\", \"Wajar\")</f><v>Wajar</v></c>";
-            $xml .= "<c r=\"M2\" s=\"9\"><f>IF(I2&lt;J2, H2-(G2/J2), 0)</f><v>0</v></c>";
-            $xml .= "<c r=\"N2\" s=\"10\"><f>M2*{$price}</f><v>0</v></c>";
+            $xml .= "<c r=\"L2\" s=\"12\" t=\"str\"><f>IF(I2&lt;(J2-0.5), \"Tidak Wajar\", \"Wajar\")</f><v>Wajar</v></c>";
+            $xml .= "<c r=\"M2\" s=\"9\"><f>IF(SUM(\$H\$2:H2)&gt;0, (F2-\$E\$2)/SUM(\$H\$2:H2), 0)</f><v>0</v></c>";
+            $xml .= "<c r=\"N2\" s=\"11\" t=\"str\"><f>IF(M2&lt;=0, \"Incomplete\", IF(M2&lt;(J2-0.5), \"Tidak Wajar\", \"Wajar\"))</f><v>Incomplete</v></c>";
+            $xml .= "<c r=\"O2\" s=\"9\"><f>IF(I2&lt;J2, H2-(G2/J2), 0)</f><v>0</v></c>";
+            $xml .= "<c r=\"P2\" s=\"10\"><f>O2*{$price}</f><v>0</v></c>";
             $xml .= "</row>\n";
             $lastRow = 2;
             $totalRow = 3;
@@ -412,11 +436,33 @@ class ExcelExportService
                 $fuel = (float)($t['fuel_liters'] ?? 0);
                 $actRatio = $fuel > 0 ? round($dist / $fuel, 2) : 0.0;
                 $cost = round($fuel * $price, 2);
-                $isWajar = $actRatio >= ($stdRatioVal - 0.5);
+                $isWajar = $actRatio >= ($stdRatioVal - 0.5) && ($stdMaxVal === null || $actRatio <= $stdMaxVal);
                 $evalText = $isWajar ? 'Wajar' : 'Tidak Wajar';
                 $evalStyle = $isWajar ? 12 : 13;
+                $evalFormula = $stdMaxVal !== null
+                    ? "IF(OR(I{$r}&lt;(J{$r}-0.5), I{$r}&gt;{$stdMaxVal}), \"Tidak Wajar\", \"Wajar\")"
+                    : "IF(I{$r}&lt;(J{$r}-0.5), \"Tidak Wajar\", \"Wajar\")";
                 $waste = ($actRatio < $stdRatioVal && $stdRatioVal > 0) ? round($fuel - ($dist / $stdRatioVal), 2) : 0.0;
                 $loss = round($waste * $price, 2);
+
+                // Running cumulative (sejak baris pertama)
+                $runningFuel += $fuel;
+                $runDist = $odoEnd > $firstOdoStart ? round($odoEnd - $firstOdoStart, 2) : 0.0;
+                $runCumRatio = ($runningFuel > 0 && $runDist > 0) ? round($runDist / $runningFuel, 2) : 0.0;
+                if ($runCumRatio <= 0) {
+                    $runCumStatus = 'Incomplete';
+                    $runCumStyle = 11;
+                } elseif ($runCumRatio < ($stdRatioVal - 0.5) || ($stdMaxVal !== null && $runCumRatio > $stdMaxVal)) {
+                    $runCumStatus = 'Tidak Wajar';
+                    $runCumStyle = 13;
+                } else {
+                    $runCumStatus = 'Wajar';
+                    $runCumStyle = 12;
+                }
+
+                $cumStatusFormula = $stdMaxVal !== null
+                    ? "IF(M{$r}&lt;=0, \"Incomplete\", IF(OR(M{$r}&lt;(J{$r}-0.5), M{$r}&gt;{$stdMaxVal}), \"Tidak Wajar\", \"Wajar\"))"
+                    : "IF(M{$r}&lt;=0, \"Incomplete\", IF(M{$r}&lt;(J{$r}-0.5), \"Tidak Wajar\", \"Wajar\"))";
 
                 $sumDist += $dist;
                 $sumFuel += $fuel;
@@ -427,23 +473,41 @@ class ExcelExportService
                 $xml .= "<row r=\"{$r}\" ht=\"20\" customHeight=\"1\">";
                 $xml .= "<c r=\"A{$r}\" s=\"11\" t=\"inlineStr\"><is><t>{$dateVal}</t></is></c>";
                 $xml .= "<c r=\"B{$r}\" s=\"5\" t=\"inlineStr\"><is><t>{$escapedCode}</t></is></c>";
-                $xml .= "<c r=\"C{$r}\" s=\"6\"><f>VLOOKUP(B{$r}, Master_Kendaraan!\$A\$2:\$C\$50, 2, FALSE)</f><v>-</v></c>";
+                $xml .= "<c r=\"C{$r}\" s=\"6\"><f>VLOOKUP(B{$r}, Master_Kendaraan!\$A\$2:\$H\$200, 2, FALSE)</f><v>-</v></c>";
                 $xml .= "<c r=\"D{$r}\" s=\"6\" t=\"inlineStr\"><is><t>{$driver}</t></is></c>";
                 $xml .= "<c r=\"E{$r}\" s=\"8\"><v>{$odoStart}</v></c>";
                 $xml .= "<c r=\"F{$r}\" s=\"8\"><v>{$odoEnd}</v></c>";
                 $xml .= "<c r=\"G{$r}\" s=\"8\"><f>F{$r}-E{$r}</f><v>{$dist}</v></c>";
                 $xml .= "<c r=\"H{$r}\" s=\"8\"><v>{$fuel}</v></c>";
                 $xml .= "<c r=\"I{$r}\" s=\"9\"><f>IF(H{$r}&gt;0, G{$r}/H{$r}, 0)</f><v>{$actRatio}</v></c>";
-                $xml .= "<c r=\"J{$r}\" s=\"8\"><f>VLOOKUP(B{$r}, Master_Kendaraan!\$A\$2:\$C\$50, 3, FALSE)</f><v>{$stdRatioVal}</v></c>";
+                $xml .= "<c r=\"J{$r}\" s=\"8\"><f>VLOOKUP(B{$r}, Master_Kendaraan!\$A\$2:\$H\$200, 3, FALSE)</f><v>{$stdRatioVal}</v></c>";
                 $xml .= "<c r=\"K{$r}\" s=\"10\"><f>H{$r}*{$price}</f><v>{$cost}</v></c>";
-                $xml .= "<c r=\"L{$r}\" s=\"{$evalStyle}\" t=\"str\"><f>IF(I{$r}&lt;(J{$r}-0.5), \"Tidak Wajar\", \"Wajar\")</f><v>{$evalText}</v></c>";
-                $xml .= "<c r=\"M{$r}\" s=\"9\"><f>IF(I{$r}&lt;J{$r}, H{$r}-(G{$r}/J{$r}), 0)</f><v>{$waste}</v></c>";
-                $xml .= "<c r=\"N{$r}\" s=\"10\"><f>M{$r}*{$price}</f><v>{$loss}</v></c>";
+                $xml .= "<c r=\"L{$r}\" s=\"{$evalStyle}\" t=\"str\"><f>{$evalFormula}</f><v>{$evalText}</v></c>";
+                $xml .= "<c r=\"M{$r}\" s=\"9\"><f>IF(SUM(\$H\$2:H{$r})&gt;0, IF(F{$r}&gt;\$E\$2, (F{$r}-\$E\$2)/SUM(\$H\$2:H{$r}), 0), 0)</f><v>{$runCumRatio}</v></c>";
+                $xml .= "<c r=\"N{$r}\" s=\"{$runCumStyle}\" t=\"str\"><f>{$cumStatusFormula}</f><v>{$runCumStatus}</v></c>";
+                $xml .= "<c r=\"O{$r}\" s=\"9\"><f>IF(I{$r}&lt;J{$r}, H{$r}-(G{$r}/J{$r}), 0)</f><v>{$waste}</v></c>";
+                $xml .= "<c r=\"P{$r}\" s=\"10\"><f>O{$r}*{$price}</f><v>{$loss}</v></c>";
                 $xml .= "</row>\n";
             }
         }
 
         $overallRatio = $sumFuel > 0 ? round($sumDist / $sumFuel, 2) : 0.0;
+        $lastOdoEnd = $txCount > 0 ? (float)($transactions[$txCount - 1]['odo_end'] ?? 0) : 0.0;
+        $totCumDist = $lastOdoEnd > $firstOdoStart ? round($lastOdoEnd - $firstOdoStart, 2) : 0.0;
+        $totCumRatio = ($sumFuel > 0 && $totCumDist > 0) ? round($totCumDist / $sumFuel, 2) : 0.0;
+        if ($totCumRatio <= 0) {
+            $totCumStatus = 'Incomplete';
+            $totCumStyle = 14;
+        } elseif ($totCumRatio < ($stdRatioVal - 0.5) || ($stdMaxVal !== null && $totCumRatio > $stdMaxVal)) {
+            $totCumStatus = 'Tidak Wajar';
+            $totCumStyle = 13;
+        } else {
+            $totCumStatus = 'Wajar';
+            $totCumStyle = 12;
+        }
+        $totCumStatusFormula = $stdMaxVal !== null
+            ? "IF(M{$totalRow}&lt;=0, \"Incomplete\", IF(OR(M{$totalRow}&lt;(J{$totalRow}-0.5), M{$totalRow}&gt;{$stdMaxVal}), \"Tidak Wajar\", \"Wajar\"))"
+            : "IF(M{$totalRow}&lt;=0, \"Incomplete\", IF(M{$totalRow}&lt;(J{$totalRow}-0.5), \"Tidak Wajar\", \"Wajar\"))";
 
         // Total / Rata-rata Row
         $xml .= "<row r=\"{$totalRow}\" ht=\"22\" customHeight=\"1\">";
@@ -451,16 +515,18 @@ class ExcelExportService
         $xml .= "<c r=\"B{$totalRow}\" s=\"14\"/>";
         $xml .= "<c r=\"C{$totalRow}\" s=\"14\"/>";
         $xml .= "<c r=\"D{$totalRow}\" s=\"14\" t=\"inlineStr\"><is><t>Total / Rata-rata</t></is></c>";
-        $xml .= "<c r=\"E{$totalRow}\" s=\"14\"/>";
-        $xml .= "<c r=\"F{$totalRow}\" s=\"14\"/>";
+        $xml .= "<c r=\"E{$totalRow}\" s=\"15\"><f>MIN(E{$firstRow}:E{$lastRow})</f><v>{$firstOdoStart}</v></c>";
+        $xml .= "<c r=\"F{$totalRow}\" s=\"15\"><f>MAX(F{$firstRow}:F{$lastRow})</f><v>{$lastOdoEnd}</v></c>";
         $xml .= "<c r=\"G{$totalRow}\" s=\"15\"><f>SUM(G{$firstRow}:G{$lastRow})</f><v>{$sumDist}</v></c>";
         $xml .= "<c r=\"H{$totalRow}\" s=\"15\"><f>SUM(H{$firstRow}:H{$lastRow})</f><v>{$sumFuel}</v></c>";
         $xml .= "<c r=\"I{$totalRow}\" s=\"16\"><f>IF(H{$totalRow}&gt;0, G{$totalRow}/H{$totalRow}, 0)</f><v>{$overallRatio}</v></c>";
         $xml .= "<c r=\"J{$totalRow}\" s=\"15\"><f>AVERAGE(J{$firstRow}:J{$lastRow})</f><v>{$stdRatioVal}</v></c>";
         $xml .= "<c r=\"K{$totalRow}\" s=\"17\"><f>SUM(K{$firstRow}:K{$lastRow})</f><v>{$sumCost}</v></c>";
         $xml .= "<c r=\"L{$totalRow}\" s=\"14\"/>";
-        $xml .= "<c r=\"M{$totalRow}\" s=\"16\"><f>SUM(M{$firstRow}:M{$lastRow})</f><v>{$sumWaste}</v></c>";
-        $xml .= "<c r=\"N{$totalRow}\" s=\"17\"><f>SUM(N{$firstRow}:N{$lastRow})</f><v>{$sumLoss}</v></c>";
+        $xml .= "<c r=\"M{$totalRow}\" s=\"16\"><f>IF(H{$totalRow}&gt;0, IF(F{$totalRow}&gt;E{$totalRow}, (F{$totalRow}-E{$totalRow})/H{$totalRow}, 0), 0)</f><v>{$totCumRatio}</v></c>";
+        $xml .= "<c r=\"N{$totalRow}\" s=\"{$totCumStyle}\" t=\"str\"><f>{$totCumStatusFormula}</f><v>{$totCumStatus}</v></c>";
+        $xml .= "<c r=\"O{$totalRow}\" s=\"16\"><f>SUM(O{$firstRow}:O{$lastRow})</f><v>{$sumWaste}</v></c>";
+        $xml .= "<c r=\"P{$totalRow}\" s=\"17\"><f>SUM(P{$firstRow}:P{$lastRow})</f><v>{$sumLoss}</v></c>";
         $xml .= "</row>\n";
 
         $xml .= '</sheetData></worksheet>';
@@ -468,15 +534,15 @@ class ExcelExportService
     }
 
     /**
-     * Sheet 1: Dashboard XML Builder
+     * Sheet 1: Dashboard XML Builder (16 Columns A:P — matches Website Evaluation Table)
      */
     protected function buildDashboardXml(array $masterVehicles, array $unitSheets, float $price, ?string $periodLabel = null): string
     {
         $xml = '<?xml version="1.0" encoding="UTF-8" standalone="yes"?>' . "\n";
         $xml .= '<worksheet xmlns="http://schemas.openxmlformats.org/spreadsheetml/2006/main">' . "\n";
 
-        // Column Widths
-        $widths = [22, 28, 22, 23.1, 24, 20, 20, 18, 20, 24, 24];
+        // Column Widths (A..P = 16 columns)
+        $widths = [22, 24, 18, 22, 16, 16, 18, 20, 18, 20, 18, 16, 18, 22, 20, 22];
         $xml .= '<cols>';
         foreach ($widths as $idx => $w) {
             $cNum = $idx + 1;
@@ -487,7 +553,7 @@ class ExcelExportService
         $unitCount = count($masterVehicles);
         $firstDataRow = 9;
         $lastDataRow = max($firstDataRow, $firstDataRow + $unitCount - 1);
-        $totalRow = $lastDataRow + 1; // Row 24 when 15 units
+        $totalRow = $lastDataRow + 1;
 
         // Precompute cached dashboard totals
         $totDist = 0.0;
@@ -496,74 +562,74 @@ class ExcelExportService
         $totWaste = 0.0;
         $totLoss = 0.0;
         $sumStd = 0.0;
+        $sumPrice = 0.0;
 
         foreach ($masterVehicles as $mv) {
             $code = $mv['unit_code'];
             $std = (float)($mv['target_ratio'] ?? 8.0);
+            $uPrice = (float)($mv['price_per_liter'] ?? $price);
             $sumStd += $std;
+            $sumPrice += $uPrice;
             $txs = $unitSheets[$code] ?? [];
             $uDist = 0.0;
             $uFuel = 0.0;
+            $uCostTx = 0.0;
             foreach ($txs as $t) {
                 $uDist += (float)($t['distance'] ?? 0);
                 $uFuel += (float)($t['fuel_liters'] ?? 0);
+                $uCostTx += (float)($t['fuel_cost'] ?? 0);
             }
             $totDist += $uDist;
             $totFuel += $uFuel;
-            $totCost += round($uFuel * $price, 2);
+            $totCost += $uCostTx > 0 ? round($uCostTx, 2) : round($uFuel * $uPrice, 2);
             $uRatio = $uFuel > 0 ? round($uDist / $uFuel, 2) : 0;
             $uWaste = ($uRatio < $std && $std > 0) ? round($uFuel - ($uDist / $std), 2) : 0;
             $totWaste += $uWaste;
-            $totLoss += round($uWaste * $price, 2);
+            $totLoss += round($uWaste * $uPrice, 2);
         }
         $avgRatio = $totFuel > 0 ? round($totDist / $totFuel, 2) : 0.0;
         $avgStdRatio = $unitCount > 0 ? round($sumStd / $unitCount, 2) : 8.0;
+        $avgPrice = $unitCount > 0 ? round($sumPrice / $unitCount, 2) : $price;
 
         $xml .= '<sheetData>' . "\n";
 
-        // Row 1 & 2: Title Banner (Merged A1:K2)
+        // Row 1 & 2: Title Banner (Merged A1:P2)
         $xml .= '<row r="1" ht="26" customHeight="1">';
         $xml .= '<c r="A1" s="1" t="inlineStr"><is><t>DASHBOARD MONITORING KONSUMSI BBM LIGHT VEHICLE (LV)</t></is></c>';
-        for ($c = 1; $c < 11; $c++) {
+        for ($c = 1; $c < 16; $c++) {
             $colL = $this->columnLetter($c);
             $xml .= "<c r=\"{$colL}1\" s=\"1\"/>";
         }
         $xml .= "</row>\n";
         $xml .= '<row r="2" ht="12" customHeight="1">';
-        for ($c = 0; $c < 11; $c++) {
+        for ($c = 0; $c < 16; $c++) {
             $colL = $this->columnLetter($c);
             $xml .= "<c r=\"{$colL}2\" s=\"1\"/>";
         }
         $xml .= "</row>\n";
 
-        // Row 4: KPI Header Labels (A4:B4, C4:E4, F4:H4, I4:K4)
+        // Row 4: KPI Header Labels (A4:D4, E4:H4, I4:L4, M4:P4)
         $xml .= '<row r="4" ht="18" customHeight="1">';
         $xml .= '<c r="A4" s="2" t="inlineStr"><is><t>TOTAL JARAK (KM)</t></is></c>';
-        $xml .= '<c r="B4" s="2"/>';
-        $xml .= '<c r="C4" s="2" t="inlineStr"><is><t>TOTAL PENGISIAN FUEL (L)</t></is></c>';
-        $xml .= '<c r="D4" s="2"/>';
-        $xml .= '<c r="E4" s="2"/>';
-        $xml .= '<c r="F4" s="2" t="inlineStr"><is><t>RATA-RATA RASIO (KM/L)</t></is></c>';
-        $xml .= '<c r="G4" s="2"/>';
-        $xml .= '<c r="H4" s="2"/>';
-        $xml .= '<c r="I4" s="2" t="inlineStr"><is><t>TOTAL BIAYA (IDR)</t></is></c>';
-        $xml .= '<c r="J4" s="2"/>';
-        $xml .= '<c r="K4" s="2"/>';
+        $xml .= '<c r="B4" s="2"/><c r="C4" s="2"/><c r="D4" s="2"/>';
+        $xml .= '<c r="E4" s="2" t="inlineStr"><is><t>TOTAL PENGISIAN FUEL (L)</t></is></c>';
+        $xml .= '<c r="F4" s="2"/><c r="G4" s="2"/><c r="H4" s="2"/>';
+        $xml .= '<c r="I4" s="2" t="inlineStr"><is><t>RATA-RATA RASIO (KM/L)</t></is></c>';
+        $xml .= '<c r="J4" s="2"/><c r="K4" s="2"/><c r="L4" s="2"/>';
+        $xml .= '<c r="M4" s="2" t="inlineStr"><is><t>TOTAL HARGA (IDR)</t></is></c>';
+        $xml .= '<c r="N4" s="2"/><c r="O4" s="2"/><c r="P4" s="2"/>';
         $xml .= "</row>\n";
 
-        // Row 5: KPI Values referencing Row 24 Total (D24, E24, F24, I24)
+        // Row 5: KPI Values referencing Total Row (G, H, K, J)
         $xml .= '<row r="5" ht="28" customHeight="1">';
-        $xml .= "<c r=\"A5\" s=\"3\"><f>D{$totalRow}</f><v>{$totDist}</v></c>";
-        $xml .= '<c r="B5" s="3"/>';
-        $xml .= "<c r=\"C5\" s=\"3\"><f>E{$totalRow}</f><v>{$totFuel}</v></c>";
-        $xml .= '<c r="D5" s="3"/>';
-        $xml .= '<c r="E5" s="3"/>';
-        $xml .= "<c r=\"F5\" s=\"3\"><f>F{$totalRow}</f><v>{$avgRatio}</v></c>";
-        $xml .= '<c r="G5" s="3"/>';
-        $xml .= '<c r="H5" s="3"/>';
-        $xml .= "<c r=\"I5\" s=\"3\"><f>I{$totalRow}</f><v>{$totCost}</v></c>";
-        $xml .= '<c r="J5" s="3"/>';
-        $xml .= '<c r="K5" s="3"/>';
+        $xml .= "<c r=\"A5\" s=\"3\"><f>G{$totalRow}</f><v>{$totDist}</v></c>";
+        $xml .= '<c r="B5" s="3"/><c r="C5" s="3"/><c r="D5" s="3"/>';
+        $xml .= "<c r=\"E5\" s=\"3\"><f>H{$totalRow}</f><v>{$totFuel}</v></c>";
+        $xml .= '<c r="F5" s="3"/><c r="G5" s="3"/><c r="H5" s="3"/>';
+        $xml .= "<c r=\"I5\" s=\"3\"><f>K{$totalRow}</f><v>{$avgRatio}</v></c>";
+        $xml .= '<c r="J5" s="3"/><c r="K5" s="3"/><c r="L5" s="3"/>';
+        $xml .= "<c r=\"M5\" s=\"3\"><f>J{$totalRow}</f><v>{$totCost}</v></c>";
+        $xml .= '<c r="N5" s="3"/><c r="O5" s="3"/><c r="P5" s="3"/>';
         $xml .= "</row>\n";
 
         // Row 7: Section Title
@@ -572,11 +638,24 @@ class ExcelExportService
         $xml .= '<c r="A7" s="19" t="inlineStr"><is><t>' . htmlspecialchars($secTitle, ENT_XML1) . '</t></is></c>';
         $xml .= "</row>\n";
 
-        // Row 8: Table Headers (A8:K8)
+        // Row 8: Table Headers (A8:P8 — Identik dengan tabel Evaluasi BBM Website)
         $headers = [
-            'ID Kendaraan', 'Tipe Unit', 'Divisi / Beban Account', 'Total Jarak (Km)', 'Total Pengisian Fuel (L)',
-            'Rasio Aktual (Km/L)', 'Rasio Standar (Km/L)', 'Evaluasi per Unit',
-            'Total Biaya (IDR)', 'Varian Pemborosan (L)', 'Biaya Kerugian (IDR)'
+            'ID Kendaraan',
+            'Tipe Unit',
+            'Vendor Unit',
+            'Divisi / Beban Account',
+            'No. Polisi',
+            'Fuel Type',
+            'Total Jarak (Km)',
+            'Total Pengisian Fuel (L)',
+            'Harga / Liter (IDR)',
+            'Total Harga (IDR)',
+            'Rasio Aktual (Km/L)',
+            'Standar (Km/L)',
+            'Evaluasi Periode',
+            'Kumulatif (Sejak Awal)',
+            'Varian Pemborosan (L)',
+            'Biaya Kerugian (IDR)',
         ];
         $xml .= '<row r="8" ht="24" customHeight="1">';
         foreach ($headers as $colIdx => $h) {
@@ -593,74 +672,105 @@ class ExcelExportService
             $code = $mv['unit_code'];
             $safeSheetName = $this->sanitizeSheetName($code);
             $stdRatio = (float)($mv['target_ratio'] ?? 8.0);
+            $uPrice = (float)($mv['price_per_liter'] ?? $price);
 
             // Compute cached values from unit sheet transactions
             $txs = $unitSheets[$code] ?? [];
             $uDist = 0.0;
             $uFuel = 0.0;
+            $uCostTx = 0.0;
             foreach ($txs as $t) {
                 $uDist += (float)($t['distance'] ?? 0);
                 $uFuel += (float)($t['fuel_liters'] ?? 0);
+                $uCostTx += (float)($t['fuel_cost'] ?? 0);
             }
             $uRatio = $uFuel > 0 ? round($uDist / $uFuel, 2) : 0.0;
-            $uCost = round($uFuel * $price, 2);
-            $isWajar = $uRatio >= ($stdRatio - 0.5);
+            $uCost = $uCostTx > 0 ? round($uCostTx, 2) : round($uFuel * $uPrice, 2);
+            $stdMax = (isset($mv['standard_max']) && (float)$mv['standard_max'] > $stdRatio) ? (float)$mv['standard_max'] : null;
+            $isWajar = $uRatio >= ($stdRatio - 0.5) && ($stdMax === null || $uRatio <= $stdMax);
             $evalText = $isWajar ? 'Wajar' : 'Tidak Wajar';
             $evalStyle = $isWajar ? 12 : 13;
+            $dashEvalFormula = $stdMax !== null
+                ? "IF(OR(K{$r}&lt;(L{$r}-0.5), K{$r}&gt;Master_Kendaraan!I{$mRow}), \"Tidak Wajar\", \"Wajar\")"
+                : "IF(K{$r}&lt;(L{$r}-0.5), \"Tidak Wajar\", \"Wajar\")";
             $uWaste = ($uRatio < $stdRatio && $stdRatio > 0) ? round($uFuel - ($uDist / $stdRatio), 2) : 0.0;
-            $uLoss = round($uWaste * $price, 2);
+            $uLoss = round($uWaste * $uPrice, 2);
+
+            $vendorVal = htmlspecialchars($mv['unit_vendor'] ?? 'Internal UT', ENT_XML1);
+            $divVal = htmlspecialchars($mv['division'] ?? '-', ENT_XML1);
+            $policeVal = htmlspecialchars($mv['police_no'] ?? '-', ENT_XML1);
+            $fuelTypeVal = htmlspecialchars($mv['fuel_type'] ?? 'Solar Industri', ENT_XML1);
+            $cumLabelVal = htmlspecialchars($mv['cumulative_label'] ?? '-', ENT_XML1);
+
+            $unitTxCount = count($txs);
+            $unitLastRow = max(2, 2 + $unitTxCount - 1);
+            $unitTotalRow = $unitLastRow + 1;
 
             $xml .= "<row r=\"{$r}\" ht=\"20\" customHeight=\"1\">";
-            // Col A: =Master_Kendaraan!A{m}
+            // Col A: ID Kendaraan
             $xml .= "<c r=\"A{$r}\" s=\"5\"><f>Master_Kendaraan!A{$mRow}</f><v>" . htmlspecialchars($code, ENT_XML1) . "</v></c>";
-            // Col B: =Master_Kendaraan!B{m}
+            // Col B: Tipe Unit
             $xml .= "<c r=\"B{$r}\" s=\"6\"><f>Master_Kendaraan!B{$mRow}</f><v>" . htmlspecialchars($mv['model'], ENT_XML1) . "</v></c>";
-            // Col C: =Master_Kendaraan!F{m}
-            $divVal = htmlspecialchars($mv['division'] ?? '-', ENT_XML1);
-            $xml .= "<c r=\"C{$r}\" s=\"6\"><f>Master_Kendaraan!F{$mRow}</f><v>{$divVal}</v></c>";
-            // Col D: =SUM('{unit}'!G2:G1000)
-            $xml .= "<c r=\"D{$r}\" s=\"8\"><f>SUM('{$safeSheetName}'!G2:G1000)</f><v>{$uDist}</v></c>";
-            // Col E: =SUM('{unit}'!H2:H1000)
-            $xml .= "<c r=\"E{$r}\" s=\"8\"><f>SUM('{$safeSheetName}'!H2:H1000)</f><v>{$uFuel}</v></c>";
-            // Col F: =IF(E{r}>0, D{r}/E{r}, 0)
-            $xml .= "<c r=\"F{$r}\" s=\"9\"><f>IF(E{$r}&gt;0, D{$r}/E{$r}, 0)</f><v>{$uRatio}</v></c>";
-            // Col G: =Master_Kendaraan!C{m}
-            $xml .= "<c r=\"G{$r}\" s=\"8\"><f>Master_Kendaraan!C{$mRow}</f><v>{$stdRatio}</v></c>";
-            // Col H: =IF(F{r}<(G{r}-0.5), "Tidak Wajar", "Wajar")
-            $xml .= "<c r=\"H{$r}\" s=\"{$evalStyle}\" t=\"str\"><f>IF(F{$r}&lt;(G{$r}-0.5), \"Tidak Wajar\", \"Wajar\")</f><v>{$evalText}</v></c>";
-            // Col I: =SUM('{unit}'!K2:K1000)
-            $xml .= "<c r=\"I{$r}\" s=\"10\"><f>SUM('{$safeSheetName}'!K2:K1000)</f><v>{$uCost}</v></c>";
-            // Col J: =IF(F{r}<G{r}, E{r}-(D{r}/G{r}), 0)
-            $xml .= "<c r=\"J{$r}\" s=\"9\"><f>IF(F{$r}&lt;G{$r}, E{$r}-(D{$r}/G{$r}), 0)</f><v>{$uWaste}</v></c>";
-            // Col K: =J{r}*{$price}
-            $xml .= "<c r=\"K{$r}\" s=\"10\"><f>J{$r}*{$price}</f><v>{$uLoss}</v></c>";
+            // Col C: Vendor Unit
+            $xml .= "<c r=\"C{$r}\" s=\"6\"><f>Master_Kendaraan!E{$mRow}</f><v>{$vendorVal}</v></c>";
+            // Col D: Divisi / Beban Account
+            $xml .= "<c r=\"D{$r}\" s=\"6\"><f>Master_Kendaraan!F{$mRow}</f><v>{$divVal}</v></c>";
+            // Col E: No. Polisi
+            $xml .= "<c r=\"E{$r}\" s=\"6\"><f>Master_Kendaraan!G{$mRow}</f><v>{$policeVal}</v></c>";
+            // Col F: Fuel Type
+            $xml .= "<c r=\"F{$r}\" s=\"6\"><f>Master_Kendaraan!H{$mRow}</f><v>{$fuelTypeVal}</v></c>";
+            // Col G: Total Jarak (Km) — exact transaction row range (excludes Total row)
+            $xml .= "<c r=\"G{$r}\" s=\"8\"><f>SUM('{$safeSheetName}'!G2:G{$unitLastRow})</f><v>{$uDist}</v></c>";
+            // Col H: Total Pengisian Fuel (L)
+            $xml .= "<c r=\"H{$r}\" s=\"8\"><f>SUM('{$safeSheetName}'!H2:H{$unitLastRow})</f><v>{$uFuel}</v></c>";
+            // Col I: Harga / Liter (IDR)
+            $xml .= "<c r=\"I{$r}\" s=\"10\"><v>{$uPrice}</v></c>";
+            // Col J: Total Harga (IDR)
+            $xml .= "<c r=\"J{$r}\" s=\"10\"><f>SUM('{$safeSheetName}'!K2:K{$unitLastRow})</f><v>{$uCost}</v></c>";
+            // Col K: Rasio Aktual (Km/L)
+            $xml .= "<c r=\"K{$r}\" s=\"9\"><f>IF(H{$r}&gt;0, G{$r}/H{$r}, 0)</f><v>{$uRatio}</v></c>";
+            // Col L: Standar (Km/L)
+            $xml .= "<c r=\"L{$r}\" s=\"8\"><f>Master_Kendaraan!C{$mRow}</f><v>{$stdRatio}</v></c>";
+            // Col M: Evaluasi Periode (mendukung rentang Min - Max dari Master_Kendaraan)
+            $xml .= "<c r=\"M{$r}\" s=\"{$evalStyle}\" t=\"str\"><f>{$dashEvalFormula}</f><v>{$evalText}</v></c>";
+            // Col N: Kumulatif (Sejak Awal) — live formula referencing Per-Unit Sheet Total Row (M & N)!
+            $xml .= "<c r=\"N{$r}\" s=\"11\" t=\"str\"><f>IF('{$safeSheetName}'!M{$unitTotalRow}&gt;0, TEXT('{$safeSheetName}'!M{$unitTotalRow}, \"0.0\")&amp;\" Km/L (\"&amp;'{$safeSheetName}'!N{$unitTotalRow}&amp;\")\", \"-\")</f><v>{$cumLabelVal}</v></c>";
+            // Col O: Varian Pemborosan (L)
+            $xml .= "<c r=\"O{$r}\" s=\"9\"><f>IF(K{$r}&lt;L{$r}, H{$r}-(G{$r}/L{$r}), 0)</f><v>{$uWaste}</v></c>";
+            // Col P: Biaya Kerugian (IDR)
+            $xml .= "<c r=\"P{$r}\" s=\"10\"><f>O{$r}*I{$r}</f><v>{$uLoss}</v></c>";
             $xml .= "</row>\n";
         }
 
-        // Row Total / Rata-rata Nasional (Row 24 when 15 units)
+        // Row Total / Rata-rata Nasional
         $xml .= "<row r=\"{$totalRow}\" ht=\"22\" customHeight=\"1\">";
         $xml .= "<c r=\"A{$totalRow}\" s=\"14\"/>";
         $xml .= "<c r=\"B{$totalRow}\" s=\"14\"/>";
-        $xml .= "<c r=\"C{$totalRow}\" s=\"14\" t=\"inlineStr\"><is><t>Total / Rata-rata Nasional</t></is></c>";
-        $xml .= "<c r=\"D{$totalRow}\" s=\"15\"><f>SUM(D{$firstDataRow}:D{$lastDataRow})</f><v>{$totDist}</v></c>";
-        $xml .= "<c r=\"E{$totalRow}\" s=\"15\"><f>SUM(E{$firstDataRow}:E{$lastDataRow})</f><v>{$totFuel}</v></c>";
-        $xml .= "<c r=\"F{$totalRow}\" s=\"16\"><f>IF(E{$totalRow}&gt;0, D{$totalRow}/E{$totalRow}, 0)</f><v>{$avgRatio}</v></c>";
-        $xml .= "<c r=\"G{$totalRow}\" s=\"15\"><f>AVERAGE(G{$firstDataRow}:G{$lastDataRow})</f><v>{$avgStdRatio}</v></c>";
-        $xml .= "<c r=\"H{$totalRow}\" s=\"18\"/>";
-        $xml .= "<c r=\"I{$totalRow}\" s=\"17\"><f>SUM(I{$firstDataRow}:I{$lastDataRow})</f><v>{$totCost}</v></c>";
-        $xml .= "<c r=\"J{$totalRow}\" s=\"16\"><f>SUM(J{$firstDataRow}:J{$lastDataRow})</f><v>{$totWaste}</v></c>";
-        $xml .= "<c r=\"K{$totalRow}\" s=\"17\"><f>SUM(K{$firstDataRow}:K{$lastDataRow})</f><v>{$totLoss}</v></c>";
+        $xml .= "<c r=\"C{$totalRow}\" s=\"14\"/>";
+        $xml .= "<c r=\"D{$totalRow}\" s=\"14\"/>";
+        $xml .= "<c r=\"E{$totalRow}\" s=\"14\"/>";
+        $xml .= "<c r=\"F{$totalRow}\" s=\"14\" t=\"inlineStr\"><is><t>Total / Rata-rata</t></is></c>";
+        $xml .= "<c r=\"G{$totalRow}\" s=\"15\"><f>SUM(G{$firstDataRow}:G{$lastDataRow})</f><v>{$totDist}</v></c>";
+        $xml .= "<c r=\"H{$totalRow}\" s=\"15\"><f>SUM(H{$firstDataRow}:H{$lastDataRow})</f><v>{$totFuel}</v></c>";
+        $xml .= "<c r=\"I{$totalRow}\" s=\"17\"><f>AVERAGE(I{$firstDataRow}:I{$lastDataRow})</f><v>{$avgPrice}</v></c>";
+        $xml .= "<c r=\"J{$totalRow}\" s=\"17\"><f>SUM(J{$firstDataRow}:J{$lastDataRow})</f><v>{$totCost}</v></c>";
+        $xml .= "<c r=\"K{$totalRow}\" s=\"16\"><f>IF(H{$totalRow}&gt;0, G{$totalRow}/H{$totalRow}, 0)</f><v>{$avgRatio}</v></c>";
+        $xml .= "<c r=\"L{$totalRow}\" s=\"15\"><f>AVERAGE(L{$firstDataRow}:L{$lastDataRow})</f><v>{$avgStdRatio}</v></c>";
+        $xml .= "<c r=\"M{$totalRow}\" s=\"18\"/>";
+        $xml .= "<c r=\"N{$totalRow}\" s=\"18\"/>";
+        $xml .= "<c r=\"O{$totalRow}\" s=\"16\"><f>SUM(O{$firstDataRow}:O{$lastDataRow})</f><v>{$totWaste}</v></c>";
+        $xml .= "<c r=\"P{$totalRow}\" s=\"17\"><f>SUM(P{$firstDataRow}:P{$lastDataRow})</f><v>{$totLoss}</v></c>";
         $xml .= "</row>\n";
 
         $xml .= '</sheetData>';
 
-        // Merges for Banner Title and KPI boxes
-        $xml .= '<mergeCells count="5">';
-        $xml .= '<mergeCell ref="A1:K2"/>';
-        $xml .= '<mergeCell ref="A4:B4"/><mergeCell ref="A5:B5"/>';
-        $xml .= '<mergeCell ref="C4:E4"/><mergeCell ref="C5:E5"/>';
-        $xml .= '<mergeCell ref="F4:H4"/><mergeCell ref="F5:H5"/>';
-        $xml .= '<mergeCell ref="I4:K4"/><mergeCell ref="I5:K5"/>';
+        // Merges for Banner Title and KPI boxes (9 merged ranges)
+        $xml .= '<mergeCells count="9">';
+        $xml .= '<mergeCell ref="A1:P2"/>';
+        $xml .= '<mergeCell ref="A4:D4"/><mergeCell ref="A5:D5"/>';
+        $xml .= '<mergeCell ref="E4:H4"/><mergeCell ref="E5:H5"/>';
+        $xml .= '<mergeCell ref="I4:L4"/><mergeCell ref="I5:L5"/>';
+        $xml .= '<mergeCell ref="M4:P4"/><mergeCell ref="M5:P5"/>';
         $xml .= '</mergeCells>';
 
         $xml .= '</worksheet>';

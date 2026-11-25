@@ -192,6 +192,29 @@
 
     <!-- MAIN CONTENT -->
     <main class="digi-main-container">
+        @if(!request()->routeIs('dashboard'))
+            @php
+                $backFallbackUrl = route('dashboard');
+                if (request()->routeIs('approval.show')) {
+                    $backFallbackUrl = ($currentUser && $currentUser->isDriver() && !$currentUser->isAdmin())
+                        ? route('history.index')
+                        : route('approval.index');
+                } elseif (request()->routeIs('evaluation.show')) {
+                    $backFallbackUrl = route('evaluation.index');
+                }
+            @endphp
+            <div class="digi-global-back-bar no-print" style="margin-bottom: 12px; display: flex; align-items: center;">
+                <button type="button"
+                    onclick="digiGoBack('{{ $backFallbackUrl }}')"
+                    style="display: inline-flex; align-items: center; gap: 6px; padding: 7px 14px; min-height: 36px; background: #ffffff; color: #334155; border: 1px solid #cbd5e1; border-radius: 8px; font-size: 13px; font-weight: 600; cursor: pointer; box-shadow: 0 1px 2px rgba(15, 23, 42, 0.05); transition: background 0.15s, border-color 0.15s;"
+                    onmouseover="this.style.background='#f8fafc'; this.style.borderColor='#94a3b8';"
+                    onmouseout="this.style.background='#ffffff'; this.style.borderColor='#cbd5e1';">
+                    <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><line x1="19" y1="12" x2="5" y2="12"></line><polyline points="12 19 5 12 12 5"></polyline></svg>
+                    <span>Kembali</span>
+                </button>
+            </div>
+        @endif
+
         @if(session('success'))
             @php
                 $isWelcomeMsg = str_contains(strtolower(session('success')), 'selamat datang') || str_contains(strtolower(session('success')), 'login') || str_contains(strtolower(session('success')), 'beralih ke akun');
@@ -644,6 +667,23 @@
             });
         });
     });
+
+    function digiGoBack(fallbackUrl) {
+        try {
+            const ref = document.referrer;
+            if (ref) {
+                const refUrl = new URL(ref);
+                const isSameOrigin = refUrl.origin === window.location.origin;
+                const isSamePage = refUrl.pathname === window.location.pathname && refUrl.search === window.location.search;
+                const isAuthPage = refUrl.pathname === '/login' || refUrl.pathname === '/forgot-password';
+                if (isSameOrigin && !isSamePage && !isAuthPage && window.history.length > 1) {
+                    window.history.back();
+                    return;
+                }
+            }
+        } catch (e) {}
+        window.location.href = fallbackUrl || "{{ route('dashboard') }}";
+    }
     </script>
     @yield('scripts')
 </body>

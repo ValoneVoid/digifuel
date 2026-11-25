@@ -401,6 +401,7 @@ class AdminMasterController extends Controller
             'tank_capacity' => ['nullable', 'numeric', 'min:1'],
             'default_area_id' => ['nullable', 'exists:areas,id'],
             'standard_consumption' => ['nullable', 'numeric', 'min:0.01'],
+            'standard_max' => ['nullable', 'numeric', 'gt:standard_consumption'],
             'is_active' => ['nullable', 'boolean'],
         ], [
             'unit_code.required' => 'Unit Code kendaraan wajib diisi.',
@@ -410,6 +411,8 @@ class AdminMasterController extends Controller
             'tank_capacity.min' => 'Kapasitas tangki minimal 1 Liter.',
             'standard_consumption.numeric' => 'Nilai standar konsumsi BBM harus berupa angka.',
             'standard_consumption.min' => 'Nilai standar konsumsi BBM minimal 0.01.',
+            'standard_max.numeric' => 'Nilai standar maksimal harus berupa angka.',
+            'standard_max.gt' => 'Nilai standar maksimal harus lebih besar dari standar minimal.',
         ]);
 
         $veh = Vehicle::create([
@@ -427,10 +430,12 @@ class AdminMasterController extends Controller
 
         // Auto-create active Fuel Standard if provided
         if ($request->filled('standard_consumption')) {
+            $stdMax = $request->filled('standard_max') ? (float)$request->input('standard_max') : null;
             FuelStandard::create([
                 'vehicle_id' => $veh->id,
                 'standard_type' => 'km_per_liter',
                 'standard_value' => (float)$request->input('standard_consumption'),
+                'standard_max' => $stdMax,
                 'tolerance_percentage' => 5.0,
                 'effective_start' => now()->toDateString(),
                 'is_active' => true,
@@ -459,6 +464,7 @@ class AdminMasterController extends Controller
             'tank_capacity' => ['nullable', 'numeric', 'min:1'],
             'default_area_id' => ['nullable', 'exists:areas,id'],
             'standard_consumption' => ['nullable', 'numeric', 'min:0.01'],
+            'standard_max' => ['nullable', 'numeric', 'gt:standard_consumption'],
             'is_active' => ['nullable', 'boolean'],
         ], [
             'unit_code.required' => 'Unit Code kendaraan wajib diisi.',
@@ -468,6 +474,8 @@ class AdminMasterController extends Controller
             'tank_capacity.min' => 'Kapasitas tangki minimal 1 Liter.',
             'standard_consumption.numeric' => 'Nilai standar konsumsi BBM harus berupa angka.',
             'standard_consumption.min' => 'Nilai standar konsumsi BBM minimal 0.01.',
+            'standard_max.numeric' => 'Nilai standar maksimal harus berupa angka.',
+            'standard_max.gt' => 'Nilai standar maksimal harus lebih besar dari standar minimal.',
         ]);
 
         $payload = [
@@ -488,8 +496,13 @@ class AdminMasterController extends Controller
         // Auto-sync active Fuel Standard if provided
         if ($request->has('standard_consumption') && $request->input('standard_consumption') !== null && $request->input('standard_consumption') !== '') {
             $newStdVal = (float)$request->input('standard_consumption');
+            $newStdMax = ($request->has('standard_max') && $request->input('standard_max') !== null && $request->input('standard_max') !== '')
+                ? (float)$request->input('standard_max')
+                : null;
             $activeStd = $veh->activeFuelStandard;
-            if (!$activeStd || (float)$activeStd->standard_value !== $newStdVal) {
+            $oldStdMax = ($activeStd && $activeStd->standard_max !== null) ? (float)$activeStd->standard_max : null;
+
+            if (!$activeStd || (float)$activeStd->standard_value !== $newStdVal || $oldStdMax !== $newStdMax) {
                 if ($activeStd) {
                     $activeStd->update(['is_active' => false, 'effective_end' => now()->toDateString()]);
                 }
@@ -497,6 +510,7 @@ class AdminMasterController extends Controller
                     'vehicle_id' => $veh->id,
                     'standard_type' => 'km_per_liter',
                     'standard_value' => $newStdVal,
+                    'standard_max' => $newStdMax,
                     'tolerance_percentage' => 5.0,
                     'effective_start' => now()->toDateString(),
                     'is_active' => true,

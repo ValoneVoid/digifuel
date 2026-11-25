@@ -246,6 +246,7 @@ class EvaluationController extends Controller
                     'cumulative_ratio' => $latestRec->cumulative_ratio,
                     'cumulative_status' => $latestRec->cumulative_status,
                     'admin_notes' => $latestRec->admin_notes,
+                    'price_used' => (float)($latestRec->price_used ?: $first->price_used),
                     'total_actual_cost' => $actualCost,
                     'waste_liters' => $wasteLiters,
                     'estimated_cost_loss' => $costLoss,
@@ -492,17 +493,22 @@ class EvaluationController extends Controller
             "Mengekspor Laporan Evaluasi Konsumsi BBM ({$periodLabel}) ke Excel (.xlsx) sejumlah {$data->count()} record."
         );
 
-        // Struktur 11 Kolom (A s/d K) termasuk Divisi / Beban Account
+        // Struktur 16 Kolom (A s/d P) — Seragam dengan tabel Evaluasi BBM di Website
         $headers = [
             'ID Kendaraan',
             'Tipe Unit',
+            'Vendor Unit',
             'Divisi / Beban Account',
+            'No. Polisi',
+            'Fuel Type',
             'Total Jarak (Km)',
             'Total Pengisian Fuel (L)',
+            'Harga / Liter (IDR)',
+            'Total Harga (IDR)',
             'Rasio Aktual (Km/L)',
-            'Rasio Standar (Km/L)',
-            'Evaluasi per Unit',
-            'Total Biaya (IDR)',
+            'Standar (Km/L)',
+            'Evaluasi Periode',
+            'Kumulatif (Sejak Awal)',
             'Varian Pemborosan (L)',
             'Biaya Kerugian (IDR)',
         ];
@@ -556,13 +562,26 @@ class EvaluationController extends Controller
 
                 $v = $eval->vehicle;
                 $unitCode = $v?->unit_code ?? "Unit-{$eval->id}";
+                $cumLabel = (!empty($eval->cumulative_ratio) && (float)$eval->cumulative_ratio > 0)
+                    ? number_format((float)$eval->cumulative_ratio, 1, ',', '.') . ' Km/L (' . ($eval->cumulative_status === 'normal' ? 'Wajar' : ($eval->cumulative_status === 'needs_review' ? 'Tidak Wajar' : ucfirst($eval->cumulative_status ?? '-'))) . ')'
+                    : '-';
                 $masterVehicles[] = [
                     'unit_code' => $unitCode,
                     'model' => $v?->model ?? $v?->unit_type ?? 'Light Vehicle',
                     'division' => $v?->division ?? '-',
+                    'police_no' => $v?->police_no ?? '-',
+                    'fuel_type' => $v?->fuel_type ?? 'Solar Industri',
                     'unit_vendor' => $v?->unitVendor?->name ?? 'Internal UT',
                     'target_ratio' => (float)$eval->standard_used,
+                    'standard_max' => ($eval->standard_max_used !== null && (float)$eval->standard_max_used > (float)$eval->standard_used) ? (float)$eval->standard_max_used : null,
                     'tank_capacity' => (float)($v?->tank_capacity ?? 80),
+                    'price_per_liter' => (float)$price,
+                    'cumulative_label' => $cumLabel,
+                    'cumulative_meter_start' => $eval->cumulative_meter_start !== null ? (float)$eval->cumulative_meter_start : null,
+                    'cumulative_meter_end' => $eval->cumulative_meter_end !== null ? (float)$eval->cumulative_meter_end : null,
+                    'cumulative_liters' => (float)($eval->cumulative_liters ?? 0),
+                    'cumulative_ratio' => (float)($eval->cumulative_ratio ?? 0),
+                    'cumulative_status' => $eval->cumulative_status ?? 'incomplete',
                 ];
 
                 // Load transactions
@@ -691,13 +710,28 @@ class EvaluationController extends Controller
                     ],
                 ];
 
+                $latestEvalInGroup = $evalGroup->sortByDesc('period')->first();
+                $groupPrice = (float)($latestEvalInGroup->price_used > 0 ? $latestEvalInGroup->price_used : $pricePerLiter);
+                $cumLabel = (!empty($latestEvalInGroup->cumulative_ratio) && (float)$latestEvalInGroup->cumulative_ratio > 0)
+                    ? number_format((float)$latestEvalInGroup->cumulative_ratio, 1, ',', '.') . ' Km/L (' . ($latestEvalInGroup->cumulative_status === 'normal' ? 'Wajar' : ($latestEvalInGroup->cumulative_status === 'needs_review' ? 'Tidak Wajar' : ucfirst($latestEvalInGroup->cumulative_status ?? '-'))) . ')'
+                    : '-';
                 $masterVehicles[] = [
                     'unit_code' => $unitCode,
                     'model' => $v?->model ?? $v?->unit_type ?? 'Light Vehicle',
                     'division' => $v?->division ?? '-',
+                    'police_no' => $v?->police_no ?? '-',
+                    'fuel_type' => $v?->fuel_type ?? 'Solar Industri',
                     'unit_vendor' => $v?->unitVendor?->name ?? 'Internal UT',
                     'target_ratio' => $stdRatio,
+                    'standard_max' => ($latestEvalInGroup->standard_max_used !== null && (float)$latestEvalInGroup->standard_max_used > $stdRatio) ? (float)$latestEvalInGroup->standard_max_used : null,
                     'tank_capacity' => (float)($v?->tank_capacity ?? 80),
+                    'price_per_liter' => $groupPrice,
+                    'cumulative_label' => $cumLabel,
+                    'cumulative_meter_start' => $latestEvalInGroup->cumulative_meter_start !== null ? (float)$latestEvalInGroup->cumulative_meter_start : null,
+                    'cumulative_meter_end' => $latestEvalInGroup->cumulative_meter_end !== null ? (float)$latestEvalInGroup->cumulative_meter_end : null,
+                    'cumulative_liters' => (float)($latestEvalInGroup->cumulative_liters ?? 0),
+                    'cumulative_ratio' => (float)($latestEvalInGroup->cumulative_ratio ?? 0),
+                    'cumulative_status' => $latestEvalInGroup->cumulative_status ?? 'incomplete',
                 ];
 
                 // Load all transactions across the range / year

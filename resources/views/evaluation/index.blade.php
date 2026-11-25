@@ -232,6 +232,8 @@
                     <th style="color: #ffffff; background: #1e3a8a;">Tipe Unit</th>
                     <th style="color: #ffffff; background: #1e3a8a;">Vendor Unit</th>
                     <th style="color: #ffffff; background: #1e3a8a;">Divisi / Beban Account</th>
+                    <th style="color: #ffffff; background: #1e3a8a; white-space: nowrap;">No. Polisi</th>
+                    <th style="color: #ffffff; background: #1e3a8a; white-space: nowrap;">Fuel Type</th>
                     @if($isConsolidated)
                         <th style="color: #ffffff; background: #1e3a8a; text-align: center;">Jml Bulan</th>
                     @elseif($mode !== 'monthly')
@@ -239,11 +241,12 @@
                     @endif
                     <th style="color: #ffffff; background: #1e3a8a; text-align: right;">Total Jarak (Km)</th>
                     <th style="color: #ffffff; background: #1e3a8a; text-align: right;">Total Pengisian Fuel (L)</th>
+                    <th style="color: #ffffff; background: #1e3a8a; text-align: right; white-space: nowrap;">Harga / Liter (IDR)</th>
+                    <th style="color: #ffffff; background: #1e3a8a; text-align: right; white-space: nowrap;">Total Harga (IDR)</th>
                     <th style="color: #ffffff; background: #1e3a8a; text-align: right;">Rasio Aktual (Km/L)</th>
                     <th style="color: #ffffff; background: #1e3a8a; text-align: right;">Standar (Km/L)</th>
                     <th style="color: #ffffff; background: #1e3a8a; text-align: center;">Evaluasi Periode</th>
                     <th style="color: #ffffff; background: #1e3a8a; text-align: center;">Kumulatif (Sejak Awal)</th>
-                    <th style="color: #ffffff; background: #1e3a8a; text-align: right;">Total Biaya (IDR)</th>
                     <th style="color: #ffffff; background: #1e3a8a; text-align: right;">Varian Pemborosan (L)</th>
                     <th style="color: #ffffff; background: #1e3a8a; text-align: right;">Biaya Kerugian (IDR)</th>
                     <th style="color: #ffffff; background: #1e3a8a; text-align: center;">Detail</th>
@@ -275,6 +278,14 @@
                                 <span style="color: #94a3b8; font-size: 12px;">-</span>
                             @endif
                         </td>
+                        <td style="font-size: 12.5px; font-weight: 600; color: #334155; white-space: nowrap;">
+                            {{ $eval->vehicle?->police_no ?? '-' }}
+                        </td>
+                        <td style="font-size: 12px; white-space: nowrap;">
+                            <span class="digi-badge digi-badge-gray" style="font-size: 11px;">
+                                {{ $eval->vehicle?->fuel_type ?? 'Solar Industri' }}
+                            </span>
+                        </td>
                         @if($isConsolidated)
                             <td style="text-align: center;">
                                 <span class="digi-badge digi-badge-blue" style="font-size: 11px;" title="Bulan: {{ $eval->period }}">
@@ -288,6 +299,8 @@
                         @endif
                         <td style="text-align: right;">{{ number_format($eval->total_distance_or_hours, 0, ',', '.') }}</td>
                         <td style="text-align: right;">{{ number_format($eval->total_actual_liters, 1, ',', '.') }}</td>
+                        <td style="text-align: right; white-space: nowrap;">Rp {{ number_format((float)($eval->price_used ?? 0), 0, ',', '.') }}</td>
+                        <td style="text-align: right; white-space: nowrap; font-weight: 600;">Rp {{ number_format($eval->total_actual_cost, 0, ',', '.') }}</td>
                         <td style="text-align: right; font-weight: 700;">{{ number_format($eval->actual_ratio, 1, ',', '.') }}</td>
                         <td style="text-align: right; white-space: nowrap;">
                             @if(!empty($eval->standard_max_used) && (float)$eval->standard_max_used > (float)$eval->standard_used)
@@ -326,7 +339,6 @@
                                 <span style="color: #94a3b8; font-size: 12px;">-</span>
                             @endif
                         </td>
-                        <td style="text-align: right;">Rp {{ number_format($eval->total_actual_cost, 0, ',', '.') }}</td>
                         <td style="text-align: right; font-weight: {{ $eval->waste_liters > 0 ? '700' : '400' }}; color: {{ $eval->waste_liters > 0 ? '#dc2626' : '#1e293b' }};">
                             {{ number_format($eval->waste_liters, 1, ',', '.') }}
                         </td>
@@ -345,7 +357,7 @@
                     </tr>
                 @empty
                     <tr>
-                        <td colspan="{{ $mode !== 'monthly' ? 15 : 14 }}" style="text-align: center; color: #94a3b8; padding: 36px;">
+                        <td colspan="{{ $mode !== 'monthly' ? 18 : 17 }}" style="text-align: center; color: #94a3b8; padding: 36px;">
                             Belum ada data evaluasi pada {{ $periodLabel }}. Klik tombol <strong>Hitung Evaluasi</strong> untuk menjalankan kalkulasi otomatis dari transaksi BBM.
                         </td>
                     </tr>

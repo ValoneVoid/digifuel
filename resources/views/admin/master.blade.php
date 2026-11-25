@@ -904,8 +904,12 @@
                     <input type="number" name="tank_capacity" id="unit_tank_capacity" class="digi-input" value="80">
                 </div>
                 <div class="digi-form-group">
-                    <label class="digi-form-label">Standar Rasio (KM/L)</label>
-                    <input type="number" step="0.01" min="0.01" name="standard_consumption" id="unit_standard_consumption" class="digi-input" placeholder="Misal: 8.0">
+                    <label class="digi-form-label">Standar Rasio (Min – Max KM/L)</label>
+                    <div style="display: flex; align-items: center; gap: 6px;">
+                        <input type="number" step="0.01" min="0.01" name="standard_consumption" id="unit_standard_consumption" class="digi-input" placeholder="Min (misal: 10)">
+                        <span style="color: #64748b; font-weight: 700; font-size: 12px; white-space: nowrap;">s/d</span>
+                        <input type="number" step="0.01" min="0.01" name="standard_max" id="unit_standard_max" class="digi-input" placeholder="Max (opsional: 15)">
+                    </div>
                 </div>
             </div>
             <div style="display: flex; justify-content: flex-end; margin-top: 14px;">
@@ -970,7 +974,13 @@
                             <td>{{ (float)($v->tank_capacity ?? 80) }} L</td>
                             <td>
                                 @if($v->activeFuelStandard)
-                                    <span class="digi-badge digi-badge-blue" style="font-weight: 700;">{{ (float)$v->activeFuelStandard->standard_value }} KM/L</span>
+                                    @php
+                                        $stdMin = (float)$v->activeFuelStandard->standard_value;
+                                        $stdMax = $v->activeFuelStandard->standard_max !== null ? (float)$v->activeFuelStandard->standard_max : null;
+                                    @endphp
+                                    <span class="digi-badge digi-badge-blue" style="font-weight: 700; white-space: nowrap;">
+                                        {{ ($stdMax && $stdMax > $stdMin) ? "{$stdMin} – {$stdMax} KM/L" : "{$stdMin} KM/L" }}
+                                    </span>
                                 @else
                                     <span style="color: #94a3b8; font-size: 12px;">Belum diatur</span>
                                 @endif
@@ -3164,6 +3174,10 @@ function editUnit(v) {
     if (document.getElementById('unit_standard_consumption')) {
         document.getElementById('unit_standard_consumption').value = v.active_fuel_standard ? parseFloat(v.active_fuel_standard.standard_value) : '';
     }
+    if (document.getElementById('unit_standard_max')) {
+        const smax = v.active_fuel_standard ? v.active_fuel_standard.standard_max : null;
+        document.getElementById('unit_standard_max').value = (smax !== null && smax !== undefined && smax !== '') ? parseFloat(smax) : '';
+    }
     document.getElementById('unitFormTitle').textContent = 'Edit Data Unit: ' + v.unit_code;
     document.getElementById('unitSubmitBtn').textContent = 'Perbarui Unit';
     document.getElementById('unitCancelBtn').style.display = 'inline-flex';
@@ -3191,6 +3205,9 @@ function resetUnitForm() {
     }
     if (document.getElementById('unit_standard_consumption')) {
         document.getElementById('unit_standard_consumption').value = '';
+    }
+    if (document.getElementById('unit_standard_max')) {
+        document.getElementById('unit_standard_max').value = '';
     }
     if (document.getElementById('unit_meter_type')) {
         document.getElementById('unit_meter_type').value = 'km';
