@@ -26,4 +26,19 @@ class Area extends Model
     {
         return $this->hasMany(FuelRequest::class);
     }
+
+    public function supportPoints()
+    {
+        return $this->hasMany(SupportPoint::class);
+    }
+
+    public function activeSupportPoints()
+    {
+        return $this->hasMany(SupportPoint::class)->where('is_active', true);
+    }
+
+    public function hasSupportPoints(): bool
+    {
+        return $this->supportPoints()->exists();
+    }
 }

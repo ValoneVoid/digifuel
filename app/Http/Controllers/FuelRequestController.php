@@ -11,6 +11,7 @@ use App\Models\FuelRequestHistory;
 use App\Models\Vehicle;
 use App\Models\Area;
 use App\Models\AreaApprover;
+use App\Models\SupportPoint;
 use App\Models\Vendor;
 use App\Models\User;
 use Illuminate\Support\Facades\Auth;
@@ -33,7 +34,7 @@ class FuelRequestController extends Controller
 
         // Only active units can be used for new Fuel Requests
         $vehicles = Vehicle::with(['defaultArea', 'unitVendor'])->where('is_active', true)->orderBy('unit_code')->get();
-        $areas = Area::where('is_active', true)->orderBy('name')->get();
+        $areas = Area::where('is_active', true)->with('activeSupportPoints')->orderBy('name')->get();
         $vendors = Vendor::where('is_active', true)->orderBy('name')->get();
 
         $spvs = User::where('role', 'spv')->where('is_active', true)->get();
@@ -56,6 +57,11 @@ class FuelRequestController extends Controller
             $areaVendors = $areaVendorUsers->map(fn($u) => $u->vendor)->filter(fn($v) => $v && $v->is_active)->unique('id')->values();
 
             $areaApproverMap[$area->name] = [
+                'has_support_points' => $area->activeSupportPoints->isNotEmpty(),
+                'support_points' => $area->activeSupportPoints->map(fn($sp) => [
+                    'id' => $sp->id,
+                    'name' => $sp->name,
+                ])->values(),
                 'spvs' => ($areaSpvs->isNotEmpty() ? $areaSpvs : $spvs)->map(fn($u) => [
                     'id' => $u->id,
                     'label' => 'Approval By ' . ($u->nrp ?? $u->username) . ' - ' . $u->name,
@@ -134,6 +140,11 @@ class FuelRequestController extends Controller
 
         return response()->json([
             'area' => $areaName,
+            'has_support_points' => $area ? $area->activeSupportPoints()->exists() : false,
+            'support_points' => $area ? $area->activeSupportPoints->map(fn($sp) => [
+                'id' => $sp->id,
+                'name' => $sp->name,
+            ])->values() : [],
             'spvs' => $spvs->map(fn($u) => [
                 'id' => $u->id,
                 'label' => 'Approval By ' . ($u->nrp ?? $u->username) . ' - ' . $u->name,

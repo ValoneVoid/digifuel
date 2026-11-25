@@ -31,6 +31,7 @@ class StoreFuelRequest extends FormRequest
             'total_liters' => ['required', 'numeric', 'gt:0', 'max:5000'],
             'hm_km' => ['required', 'numeric', 'min:0'],
             'area' => ['required', 'string'],
+            'support_point_id' => ['nullable', 'exists:support_points,id'],
             'spv_id' => [($isDepthead || $isSpbu) ? 'nullable' : 'required', 'exists:users,id'],
             'fuelman_id' => ['nullable', 'exists:users,id'],
             'depthead_id' => [($isDepthead || $isSpbu) ? 'nullable' : 'required', 'exists:users,id'],
@@ -60,6 +61,7 @@ class StoreFuelRequest extends FormRequest
             'hm_km.numeric' => 'HM / KM harus berupa angka numerik valid.',
             'hm_km.min' => 'Nilai HM / KM tidak boleh bernilai negatif.',
             'area.required' => 'Area operasional wajib dipilih.',
+            'support_point_id.exists' => 'Support Point yang dipilih tidak valid atau sedang nonaktif.',
             'spv_id.required' => 'Approver SPV wajib dipilih.',
             'spv_id.exists' => 'Approver SPV yang dipilih tidak valid atau sedang nonaktif.',
             'fuelman_id.required' => 'Petugas Fuel Man wajib dipilih.',
@@ -87,6 +89,7 @@ class StoreFuelRequest extends FormRequest
             'total_liters' => 'Total (Jumlah) Liter BBM',
             'hm_km' => 'KM / HM Odometer',
             'area' => 'Area Operasional',
+            'support_point_id' => 'Support Point',
             'spv_id' => 'Pilihan Approval SPV',
             'depthead_id' => 'Pilihan Approval Dept Head / Manager',
             'vendor_name' => 'Perusahaan Vendor BBM',
@@ -130,6 +133,15 @@ class StoreFuelRequest extends FormRequest
                 $area = Area::where('name', $this->input('area'))->where('is_active', true)->first();
                 if (!$area) {
                     $validator->errors()->add('area', 'Area operasional tidak ditemukan atau sedang nonaktif.');
+                } else if ($area->activeSupportPoints()->exists()) {
+                    if (empty($this->input('support_point_id'))) {
+                        $validator->errors()->add('support_point_id', 'Area ' . $area->name . ' memiliki titik operasional (Support Point). Silakan pilih Support Point.');
+                    } else {
+                        $spExists = $area->activeSupportPoints()->where('id', $this->input('support_point_id'))->exists();
+                        if (!$spExists) {
+                            $validator->errors()->add('support_point_id', 'Support Point yang dipilih tidak valid atau tidak termasuk dalam area ' . $area->name . '.');
+                        }
+                    }
                 }
             }
 

@@ -139,6 +139,13 @@ Route::middleware(['auth'])->group(function () {
         Route::match(['patch', 'post'], '/admin/master/areas/{id}/toggle-active', [AdminMasterController::class, 'toggleArea'])->name('admin.master.areas.toggle');
         Route::delete('/admin/master/areas/{id}', [AdminMasterController::class, 'destroyArea'])->name('admin.master.areas.destroy');
 
+        // 3b. Support Point Routes (sub-resource of Area)
+        Route::post('/admin/master/areas/{area_id}/support-points', [AdminMasterController::class, 'storeSupportPoint'])->name('admin.master.support-points.store');
+        Route::match(['put', 'patch', 'post'], '/admin/master/support-points/{id}', [AdminMasterController::class, 'updateSupportPoint'])->name('admin.master.support-points.update');
+        Route::match(['patch', 'post'], '/admin/master/support-points/{id}/toggle-active', [AdminMasterController::class, 'toggleSupportPoint'])->name('admin.master.support-points.toggle');
+        Route::delete('/admin/master/support-points/{id}', [AdminMasterController::class, 'destroySupportPoint'])->name('admin.master.support-points.destroy');
+        Route::get('/api/areas/{area_id}/support-points', [AdminMasterController::class, 'apiSupportPoints'])->name('api.support-points');
+
         // 4. Vendor BBM ID-based CRUD Routes
         Route::get('/admin/master/vendors/{id}/edit', [AdminMasterController::class, 'editVendor'])->name('admin.master.vendors.edit');
         Route::match(['put', 'patch', 'post'], '/admin/master/vendors/{id}', [AdminMasterController::class, 'updateVendor'])->name('admin.master.vendors.update');

@@ -1317,6 +1317,53 @@
                     <button type="submit" id="areaSubmitBtn" class="btn-digi btn-digi-blue">Simpan Area</button>
                 </div>
             </div>
+
+            <!-- SUPPORT POINT MANAGEMENT (HANYA AKTIF SAAT EDIT AREA) -->
+            <div id="areaSupportPointSection" style="margin-top: 18px; padding-top: 16px; border-top: 1px dashed #cbd5e1; display: none;">
+                <div style="margin-bottom: 12px;">
+                    <div style="display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 8px;">
+                        <h4 style="margin: 0; font-size: 13.5px; font-weight: 700; color: #0f172a; display: flex; align-items: center; gap: 6px;">
+                            <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="#0284c7" stroke-width="2.5"><circle cx="12" cy="12" r="10"></circle><line x1="12" y1="8" x2="12" y2="12"></line><line x1="12" y1="16" x2="12.01" y2="16"></line></svg>
+                            Kelola Support Point (Titik Operasional Turunan)
+                            <span id="spAreaBadge" class="digi-badge digi-badge-blue" style="font-size: 11px;"></span>
+                        </h4>
+                    </div>
+                    <p style="margin: 4px 0 0 0; font-size: 12px; color: #64748b; line-height: 1.4;">
+                        Tambahkan titik operasional jika area ini memiliki turunan (seperti <strong>Kusan</strong>: <em>JB, BUMA, FMC, Non-FMC PPA, GRM</em> atau <strong>Batulicin</strong>). Jika area tidak memiliki titik turunan (seperti <strong>SDU</strong> atau <strong>STI</strong>), biarkan kosong.
+                    </p>
+                </div>
+
+                <!-- Input Tambah Support Point -->
+                <div style="background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 8px; padding: 10px 12px; margin-bottom: 12px;">
+                    <div style="display: flex; gap: 8px; align-items: flex-end; flex-wrap: wrap;">
+                        <div style="flex: 1; min-width: 200px;">
+                            <label class="digi-form-label" style="font-size: 11.5px; margin-bottom: 3px;">Nama Titik Support Point</label>
+                            <input type="text" id="new_sp_name" class="digi-input" placeholder="Contoh: JB, BUMA, FMC, Non-FMC PPA, GRM..." style="height: 36px; font-size: 13px;" onkeydown="if(event.key==='Enter'){event.preventDefault(); submitNewSupportPoint();}">
+                        </div>
+                        <button type="button" class="btn-digi btn-digi-green" onclick="submitNewSupportPoint()" style="height: 36px; padding: 0 14px; font-size: 12px; font-weight: 600; white-space: nowrap;">
+                            <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" style="margin-right: 3px;"><line x1="12" y1="5" x2="12" y2="19"></line><line x1="5" y1="12" x2="19" y2="12"></line></svg>
+                            + Tambah Titik
+                        </button>
+                    </div>
+                </div>
+
+                <!-- Tabel Support Points -->
+                <div style="border: 1px solid #e2e8f0; border-radius: 8px; overflow: hidden; background: #ffffff;">
+                    <table style="width: 100%; border-collapse: collapse; font-size: 12.5px;">
+                        <thead>
+                            <tr style="background: #f1f5f9; border-bottom: 1px solid #e2e8f0;">
+                                <th style="padding: 7px 12px; text-align: left; font-weight: 600; color: #475569; width: 40px;">No</th>
+                                <th style="padding: 7px 12px; text-align: left; font-weight: 600; color: #475569;">Nama Support Point</th>
+                                <th style="padding: 7px 12px; text-align: center; font-weight: 600; color: #475569; width: 100px;">Status</th>
+                                <th style="padding: 7px 12px; text-align: center; font-weight: 600; color: #475569; width: 120px;">Aksi</th>
+                            </tr>
+                        </thead>
+                        <tbody id="spTableBody">
+                            <!-- Populated via Javascript -->
+                        </tbody>
+                    </table>
+                </div>
+            </div>
         </form>
 
         <div class="digi-table-filter-bar">
@@ -1335,6 +1382,7 @@
                         <th style="width: 50px;">No</th>
                         <th>Kode Area</th>
                         <th>Nama Area Operasional</th>
+                        <th>Titik Dukung (Support Point)</th>
                         <th>Status</th>
                         <th style="width: 72px; text-align: center;">Aksi</th>
                     </tr>
@@ -1345,6 +1393,22 @@
                             <td>{{ $areas->firstItem() ? ($areas->firstItem() + $idx) : ($idx + 1) }}</td>
                             <td style="font-weight:700; color: #0284c7;">{{ $a->code ?? 'AREA-' . $a->id }}</td>
                             <td style="font-weight:600;">{{ $a->name }}</td>
+                            <td>
+                                @if(($a->support_points_count ?? count($a->supportPoints ?? [])) > 0)
+                                    <div style="display: flex; flex-direction: column; gap: 3px;">
+                                        <span class="digi-badge digi-badge-blue" style="font-weight: 700; width: fit-content;">
+                                            {{ $a->support_points_count ?? count($a->supportPoints) }} Titik
+                                        </span>
+                                        <span style="font-size: 11px; color: #475569;">
+                                            {{ $a->supportPoints->pluck('name')->implode(', ') }}
+                                        </span>
+                                    </div>
+                                @else
+                                    <span class="digi-badge digi-badge-gray" style="font-size: 11px; color: #64748b;">
+                                        Tanpa Turunan
+                                    </span>
+                                @endif
+                            </td>
                             <td>
                                 <span class="digi-status-dot-pill {{ $a->is_active ? 'is-active' : 'is-inactive' }}">
                                     <span class="dot"></span>{{ $a->is_active ? 'Aktif' : 'Nonaktif' }}
@@ -3219,6 +3283,14 @@ function editArea(a) {
     if (form) form.classList.add('is-editing');
     const badge = document.getElementById('areaEditBadge');
     if (badge) badge.style.display = 'inline-flex';
+
+    // Show and load Support Points section
+    const spSec = document.getElementById('areaSupportPointSection');
+    const spBadge = document.getElementById('spAreaBadge');
+    if (spSec) spSec.style.display = 'block';
+    if (spBadge) spBadge.textContent = a.name;
+    loadSupportPointsForArea(a.id);
+
     form.scrollIntoView({ behavior: 'smooth', block: 'center' });
 }
 function resetAreaForm() {
@@ -3233,6 +3305,192 @@ function resetAreaForm() {
     document.getElementById('areaCancelBtn').style.display = 'none';
     const badge = document.getElementById('areaEditBadge');
     if (badge) badge.style.display = 'none';
+
+    // Hide Support Points section
+    const spSec = document.getElementById('areaSupportPointSection');
+    if (spSec) spSec.style.display = 'none';
+    const tbody = document.getElementById('spTableBody');
+    if (tbody) tbody.innerHTML = '';
+    const newSpInput = document.getElementById('new_sp_name');
+    if (newSpInput) newSpInput.value = '';
+}
+
+function escapeHtml(str) {
+    if (str === null || str === undefined) return '';
+    return String(str)
+        .replace(/&/g, '&amp;')
+        .replace(/</g, '&lt;')
+        .replace(/>/g, '&gt;')
+        .replace(/"/g, '&quot;')
+        .replace(/'/g, '&#039;');
+}
+
+function renderSupportPointsTable(points) {
+    const tbody = document.getElementById('spTableBody');
+    if (!tbody) return;
+
+    if (!points || !points.length) {
+        tbody.innerHTML = '<tr><td colspan="4" style="text-align: center; padding: 14px; color: #94a3b8; font-style: italic;">Belum ada Support Point untuk area ini (area berstatus tanpa titik turunan).</td></tr>';
+        return;
+    }
+
+    tbody.innerHTML = points.map((sp, idx) => `
+        <tr style="border-bottom: 1px solid #f1f5f9;">
+            <td style="padding: 7px 12px; color: #64748b;">${idx + 1}</td>
+            <td style="padding: 7px 12px; font-weight: 600; color: #1e293b;">${escapeHtml(sp.name)}</td>
+            <td style="padding: 7px 12px; text-align: center;">
+                <span class="digi-status-dot-pill ${sp.is_active ? 'is-active' : 'is-inactive'}">
+                    <span class="dot"></span>${sp.is_active ? 'Aktif' : 'Nonaktif'}
+                </span>
+            </td>
+            <td style="padding: 7px 12px; text-align: center;">
+                <div style="display: inline-flex; gap: 4px; align-items: center;">
+                    <button type="button" class="btn-digi ${sp.is_active ? 'btn-digi-gray' : 'btn-digi-green'}" style="padding: 3px 8px; font-size: 11px;" onclick="toggleSupportPoint(${sp.id})" title="${sp.is_active ? 'Nonaktifkan' : 'Aktifkan'}">
+                        ${sp.is_active ? 'Nonaktif' : 'Aktif'}
+                    </button>
+                    <button type="button" class="btn-digi btn-digi-red" style="padding: 3px 8px; font-size: 11px;" onclick="deleteSupportPoint(${sp.id}, '${escapeHtml(sp.name)}')" title="Hapus">
+                        Hapus
+                    </button>
+                </div>
+            </td>
+        </tr>
+    `).join('');
+}
+
+function loadSupportPointsForArea(areaId) {
+    if (!areaId) return;
+    const tbody = document.getElementById('spTableBody');
+    if (tbody) {
+        tbody.innerHTML = '<tr><td colspan="4" style="text-align: center; padding: 12px; color: #64748b;">Memuat data support point...</td></tr>';
+    }
+    fetch(`/api/areas/${areaId}/support-points`)
+        .then(res => res.json())
+        .then(data => {
+            renderSupportPointsTable(data.support_points || []);
+        })
+        .catch(() => {
+            if (tbody) tbody.innerHTML = '<tr><td colspan="4" style="text-align: center; padding: 12px; color: #dc2626;">Gagal memuat data support point.</td></tr>';
+        });
+}
+
+function submitNewSupportPoint() {
+    const areaId = document.getElementById('area_id').value;
+    const nameInput = document.getElementById('new_sp_name');
+    const name = nameInput ? nameInput.value.trim() : '';
+
+    if (!areaId) {
+        alert('Area belum dipilih. Silakan simpan atau pilih area terlebih dahulu.');
+        return;
+    }
+    if (!name) {
+        if (nameInput) {
+            nameInput.classList.add('is-invalid');
+            nameInput.focus();
+        }
+        return;
+    }
+
+    const csrf = document.querySelector('meta[name="csrf-token"]')?.getAttribute('content') ||
+                 document.querySelector('input[name="_token"]')?.value;
+
+    fetch(`/admin/master/areas/${areaId}/support-points`, {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json',
+            'Accept': 'application/json',
+            'X-CSRF-TOKEN': csrf,
+        },
+        body: JSON.stringify({ name: name })
+    })
+    .then(res => res.json())
+    .then(res => {
+        if (res.success) {
+            if (nameInput) {
+                nameInput.value = '';
+                nameInput.classList.remove('is-invalid');
+            }
+            loadSupportPointsForArea(areaId);
+            if (typeof Swal !== 'undefined') {
+                Swal.fire({
+                    toast: true,
+                    position: 'top-end',
+                    icon: 'success',
+                    title: res.message,
+                    showConfirmButton: false,
+                    timer: 2000
+                });
+            }
+        } else {
+            alert(res.message || 'Gagal menambahkan support point.');
+        }
+    })
+    .catch(() => {
+        alert('Terjadi kesalahan saat menyimpan support point.');
+    });
+}
+
+function toggleSupportPoint(spId) {
+    const areaId = document.getElementById('area_id').value;
+    const csrf = document.querySelector('meta[name="csrf-token"]')?.getAttribute('content') ||
+                 document.querySelector('input[name="_token"]')?.value;
+
+    fetch(`/admin/master/support-points/${spId}/toggle-active`, {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json',
+            'Accept': 'application/json',
+            'X-CSRF-TOKEN': csrf,
+        }
+    })
+    .then(res => res.json())
+    .then(res => {
+        if (res.success) {
+            loadSupportPointsForArea(areaId);
+        } else {
+            alert(res.message || 'Gagal mengubah status.');
+        }
+    })
+    .catch(() => {
+        alert('Terjadi kesalahan saat mengubah status.');
+    });
+}
+
+function deleteSupportPoint(spId, spName) {
+    if (!confirm(`Hapus Support Point "${spName}"?`)) return;
+
+    const areaId = document.getElementById('area_id').value;
+    const csrf = document.querySelector('meta[name="csrf-token"]')?.getAttribute('content') ||
+                 document.querySelector('input[name="_token"]')?.value;
+
+    fetch(`/admin/master/support-points/${spId}`, {
+        method: 'DELETE',
+        headers: {
+            'Content-Type': 'application/json',
+            'Accept': 'application/json',
+            'X-CSRF-TOKEN': csrf,
+        }
+    })
+    .then(res => res.json())
+    .then(res => {
+        if (res.success) {
+            loadSupportPointsForArea(areaId);
+            if (typeof Swal !== 'undefined') {
+                Swal.fire({
+                    toast: true,
+                    position: 'top-end',
+                    icon: 'success',
+                    title: res.message,
+                    showConfirmButton: false,
+                    timer: 2000
+                });
+            }
+        } else {
+            alert(res.message || 'Gagal menghapus support point.');
+        }
+    })
+    .catch(() => {
+        alert('Terjadi kesalahan saat menghapus support point.');
+    });
 }
 
 // 4. Vendor Form Auto-Fill & Reset

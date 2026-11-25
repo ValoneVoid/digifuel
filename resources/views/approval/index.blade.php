@@ -102,7 +102,7 @@
                         </td>
                         <td>
                             <div style="font-weight: 600;">{{ $req->driver_name }}</div>
-                            <div style="font-size: 11.5px; color: #64748b;">{{ $req->area }}</div>
+                            <div style="font-size: 11.5px; color: #64748b;">{{ $req->area }}{{ $req->supportPoint ? ' - ' . $req->supportPoint->name : '' }}</div>
                         </td>
                         <td>
                             <div style="font-weight: 600;">{{ $req->unit_code }}</div>

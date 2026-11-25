@@ -48,7 +48,7 @@
         <tr>
             <td class="lbl">AREA <em>(Lokasi Operasional)</em></td>
             <td class="col">:</td>
-            <td class="val">{{ $fuelRequest->area }}</td>
+            <td class="val">{{ $fuelRequest->area }}{{ $fuelRequest->supportPoint ? ' (' . $fuelRequest->supportPoint->name . ')' : '' }}</td>
         </tr>
         <tr>
             <td class="lbl">KM</td>

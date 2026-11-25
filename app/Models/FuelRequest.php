@@ -45,6 +45,11 @@ class FuelRequest extends Model
         return $this->belongsTo(Area::class, 'area_id');
     }
 
+    public function supportPoint()
+    {
+        return $this->belongsTo(SupportPoint::class, 'support_point_id');
+    }
+
     public function vendorModel()
     {
         return $this->belongsTo(Vendor::class, 'vendor_id');

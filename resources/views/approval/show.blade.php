@@ -274,7 +274,7 @@
 
             <div class="digi-form-group" style="margin-bottom: 16px;">
                 <label class="digi-form-label">Area Operasional <span class="digi-required">*</span></label>
-                <input type="text" class="digi-input" value="{{ $fuelRequest->area }}" readonly disabled>
+                <input type="text" class="digi-input" value="{{ $fuelRequest->area }}{{ $fuelRequest->supportPoint ? ' (' . $fuelRequest->supportPoint->name . ')' : '' }}" readonly disabled>
             </div>
 
             <div class="digi-form-group" style="margin-bottom: 16px;">

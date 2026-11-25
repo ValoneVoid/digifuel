@@ -220,6 +220,25 @@
                     @enderror
                 </div>
 
+                <!-- Support Point (Kondisional: Muncul bila Area memiliki titik turunan) -->
+                <div class="digi-form-group" id="support_point_group" style="margin-bottom: 16px; display: none;">
+                    <label class="digi-form-label">
+                        Pilih Support Point (Titik Operasional) <span class="digi-required">*</span>
+                    </label>
+                    <select name="support_point_id" id="support_point_select" class="digi-select @error('support_point_id') is-invalid @enderror">
+                        <option value="">- Pilih Support Point -</option>
+                    </select>
+                    <div style="font-size: 12px; color: #64748b; margin-top: 4px;">
+                        Titik operasional spesifik untuk area ini (misal: JB, BUMA, FMC, dsb).
+                    </div>
+                    @error('support_point_id')
+                        <div class="digi-invalid-feedback">
+                            <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><circle cx="12" cy="12" r="10"></circle><line x1="12" y1="8" x2="12" y2="12"></line><line x1="12" y1="16" x2="12.01" y2="16"></line></svg>
+                            {{ $message }}
+                        </div>
+                    @enderror
+                </div>
+
                 @if($user->isDepthead())
                     <!-- Jalur Cepat Khusus Dept Head / Manager (Auto-Approved) -->
                     <div style="background: #f0fdf4; border: 1px solid #bbf7d0; border-radius: 12px; padding: 14px 16px; margin-bottom: 18px;">
@@ -392,6 +411,7 @@
                     <tr style="border-bottom: 1px solid #f1f5f9;"><td style="padding: 9px 14px; color:#64748b;">Vendor Rental Unit</td><td style="padding: 9px 14px; font-weight:600; color: #0369a1;" id="prev_unit_vendor">: -</td></tr>
                     <tr style="border-bottom: 1px solid #f1f5f9;"><td style="padding: 9px 14px; color:#64748b;">Odometer & Jumlah BBM</td><td style="padding: 9px 14px; font-weight:700; color: #166534;" id="prev_liters">: -</td></tr>
                     <tr style="border-bottom: 1px solid #f1f5f9;"><td style="padding: 9px 14px; color:#64748b;">Area Operasional</td><td style="padding: 9px 14px; font-weight:600; color: #334155;" id="prev_area">: -</td></tr>
+                    <tr id="prev_sp_row" style="border-bottom: 1px solid #f1f5f9; display:none;"><td style="padding: 9px 14px; color:#64748b;">Support Point</td><td style="padding: 9px 14px; font-weight:700; color: #0284c7;" id="prev_support_point">: -</td></tr>
                     <tr style="border-bottom: 1px solid #f1f5f9;"><td style="padding: 9px 14px; color:#64748b;">Verifikasi SPV (Tahap 2)</td><td style="padding: 9px 14px; font-weight:600; color: #334155;" id="prev_spv">: -</td></tr>
                     <tr style="border-bottom: 1px solid #f1f5f9;"><td style="padding: 9px 14px; color:#64748b;">Approval Dept Head (Tahap 3)</td><td style="padding: 9px 14px; font-weight:600; color: #334155;" id="prev_depthead">: -</td></tr>
                     <tr style="border-bottom: 1px solid #f1f5f9;"><td style="padding: 9px 14px; color:#64748b;">Penyedia BBM (Tahap 4)</td><td style="padding: 9px 14px; font-weight:700; color: #15803d;" id="prev_vendor">: -</td></tr>
@@ -417,6 +437,7 @@
     'isDeptHead' => (bool)$user->isDepthead(),
     'canUseSpbu' => (bool)$user->canUseSpbu(),
     'userHasSignature' => (bool)$user->signature_url,
+    'oldSupportPointId' => old('support_point_id') ? (int)old('support_point_id') : null,
 ]) !!}
 </script>
 <script>
@@ -597,15 +618,40 @@ function populateSelect(selectId, items, valueKey, labelKey, placeholder, append
     }
 }
 
+function updateSupportPointUi(data, preselectedId) {
+    const spGroup = document.getElementById('support_point_group');
+    const spSelect = document.getElementById('support_point_select');
+    if (!spGroup || !spSelect) return;
+
+    if (data && data.has_support_points && Array.isArray(data.support_points) && data.support_points.length > 0) {
+        spGroup.style.display = 'block';
+        spSelect.required = true;
+        populateSelect('support_point_select', data.support_points, 'id', 'name', '- Pilih Support Point -');
+        if (preselectedId) {
+            spSelect.value = preselectedId;
+        }
+    } else {
+        spGroup.style.display = 'none';
+        spSelect.required = false;
+        spSelect.innerHTML = '<option value="">- Pilih Support Point -</option>';
+        spSelect.value = '';
+        spSelect.classList.remove('is-invalid');
+    }
+}
+
 function handleAreaChange(areaName) {
     const areaSel = document.getElementById('area_select');
     if (areaSel && areaSel.value) areaSel.classList.remove('is-invalid');
 
-    if (!areaName) return;
+    if (!areaName) {
+        updateSupportPointUi(null);
+        return;
+    }
 
     // Immediate update from preloaded map
     if (areaApproverMap[areaName]) {
         const data = areaApproverMap[areaName];
+        updateSupportPointUi(data, fuelCreateConfig.oldSupportPointId);
         if (!isDeptHead) {
             populateSelect('spv_select', data.spvs, 'id', 'label', '- Pilih Approval SPV -');
             populateSelect('depthead_select', data.deptheads, 'id', 'label', '- Pilih Approval Dept Head -');
@@ -621,16 +667,19 @@ function handleAreaChange(areaName) {
     fetch(`/api/area-approvers?area=${encodeURIComponent(areaName)}`)
         .then(res => res.json())
         .then(data => {
-            if (data && data.vendors) {
-                if (!isDeptHead) {
-                    populateSelect('spv_select', data.spvs, 'id', 'label', '- Pilih Approval SPV -');
-                    populateSelect('depthead_select', data.deptheads, 'id', 'label', '- Pilih Approval Dept Head -');
-                    const spvMsg = document.getElementById('spvEmptyMsg');
-                    if (spvMsg) spvMsg.style.display = (!data.spvs || data.spvs.length === 0) ? 'block' : 'none';
-                    const dhMsg = document.getElementById('dhEmptyMsg');
-                    if (dhMsg) dhMsg.style.display = (!data.deptheads || data.deptheads.length === 0) ? 'block' : 'none';
+            if (data) {
+                updateSupportPointUi(data, fuelCreateConfig.oldSupportPointId);
+                if (data.vendors) {
+                    if (!isDeptHead) {
+                        populateSelect('spv_select', data.spvs, 'id', 'label', '- Pilih Approval SPV -');
+                        populateSelect('depthead_select', data.deptheads, 'id', 'label', '- Pilih Approval Dept Head -');
+                        const spvMsg = document.getElementById('spvEmptyMsg');
+                        if (spvMsg) spvMsg.style.display = (!data.spvs || data.spvs.length === 0) ? 'block' : 'none';
+                        const dhMsg = document.getElementById('dhEmptyMsg');
+                        if (dhMsg) dhMsg.style.display = (!data.deptheads || data.deptheads.length === 0) ? 'block' : 'none';
+                    }
+                    populateSelect('vendor_select', data.vendors, 'name', 'name', '- Pilih Perusahaan Vendor BBM -', true);
                 }
-                populateSelect('vendor_select', data.vendors, 'name', 'name', '- Pilih Perusahaan Vendor BBM -', true);
             }
         })
         .catch(() => {});
@@ -687,6 +736,34 @@ function openPreviewModal() {
     if (prevUv) prevUv.textContent = ': ' + unitVendor;
     document.getElementById('prev_liters').textContent = ': ' + (hmKm ? hmKm + ' KM' : '-') + ' | ' + (liters || '0') + ' Liter';
     document.getElementById('prev_area').textContent = ': ' + (area || '-');
+
+    const spGroup = document.getElementById('support_point_group');
+    const spSel = document.getElementById('support_point_select');
+    const spRow = document.getElementById('prev_sp_row');
+    const prevSp = document.getElementById('prev_support_point');
+
+    if (spGroup && spGroup.style.display !== 'none' && spSel && (!spSel.value || spSel.value === '')) {
+        spSel.classList.add('is-invalid');
+        spSel.scrollIntoView({ behavior: 'smooth', block: 'center' });
+        spSel.focus();
+        if (typeof Swal !== 'undefined') {
+            Swal.fire({
+                icon: 'warning',
+                title: 'Support Point Wajib Dipilih',
+                text: 'Area ini memiliki titik operasional turunan. Silakan pilih Support Point tujuan pengisian.',
+            });
+        }
+        return;
+    }
+
+    if (spRow && prevSp) {
+        if (spGroup && spGroup.style.display !== 'none' && spSel && spSel.value && spSel.selectedIndex > 0) {
+            spRow.style.display = 'table-row';
+            prevSp.textContent = ': ' + spSel.options[spSel.selectedIndex].text;
+        } else {
+            spRow.style.display = 'none';
+        }
+    }
     if (isSpbu) {
         document.getElementById('prev_spv').textContent = ': Full Bypass (Pengisian SPBU)';
         document.getElementById('prev_depthead').textContent = ': Otomatis Full Approved (Anda)';
@@ -785,6 +862,9 @@ document.addEventListener('DOMContentLoaded', function() {
                 { id: 'total_liters', name: 'Total Liter' },
                 { id: 'hm_km', name: 'KM / HM' },
                 { id: 'area_select', name: 'Area Operasional' },
+                ...(document.getElementById('support_point_group')?.style.display !== 'none' ? [
+                    { id: 'support_point_select', name: 'Support Point' }
+                ] : []),
                 ...(!isDeptHead && !isSpbuSubmit ? [
                     { id: 'spv_select', name: 'Approval SPV' },
                     { id: 'depthead_select', name: 'Approval Dept Head' },
@@ -824,6 +904,12 @@ document.addEventListener('DOMContentLoaded', function() {
                 return false;
             }
         });
+    }
+
+    // Auto-initialize area & support point if old value exists
+    const initialArea = document.getElementById('area_select')?.value;
+    if (initialArea) {
+        handleAreaChange(initialArea);
     }
 });
 </script>

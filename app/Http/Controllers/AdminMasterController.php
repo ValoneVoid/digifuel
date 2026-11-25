@@ -8,6 +8,7 @@ use Illuminate\Validation\ValidationException;
 use App\Models\Employee;
 use App\Models\Vehicle;
 use App\Models\Area;
+use App\Models\SupportPoint;
 use App\Models\Vendor;
 use App\Models\UnitVendor;
 use App\Models\User;
@@ -114,7 +115,7 @@ class AdminMasterController extends Controller
         }
         $vehicles = $vehiclesQuery->paginate($perPage)->withQueryString();
 
-        $areasQuery = Area::orderBy('name');
+        $areasQuery = Area::with(['supportPoints'])->withCount('supportPoints')->orderBy('name');
         if ($tab === 'areas' && $search !== '') {
             $areasQuery->where(function ($q) use ($search) {
                 $q->where('name', 'like', "%{$search}%")
@@ -543,7 +544,7 @@ class AdminMasterController extends Controller
 
     public function editArea(int|string $id)
     {
-        $area = Area::findOrFail($id);
+        $area = Area::with('supportPoints')->findOrFail($id);
 
         return response()->json([
             'success' => true,
@@ -637,6 +638,87 @@ class AdminMasterController extends Controller
     protected function generateUniqueAreaCode(string $name = '', ?int $ignoreId = null): string
     {
         return $this->generateSequentialCode(Area::class, $ignoreId);
+    }
+
+    // =========================================================================
+    // 3b. SUPPORT POINT CRUD (sub-resource of Area)
+    // =========================================================================
+
+    public function apiSupportPoints(int|string $area_id)
+    {
+        $area = Area::with('activeSupportPoints')->findOrFail($area_id);
+        return response()->json([
+            'has_support_points' => $area->activeSupportPoints->isNotEmpty(),
+            'support_points' => $area->activeSupportPoints->map(fn($sp) => [
+                'id'   => $sp->id,
+                'name' => $sp->name,
+            ])->values(),
+        ]);
+    }
+
+    public function storeSupportPoint(Request $request, int|string $area_id)
+    {
+        $area = Area::findOrFail($area_id);
+        $validated = $request->validate([
+            'name' => ['required', 'string', 'max:100',
+                Rule::unique('support_points', 'name')->where('area_id', $area->id)],
+        ]);
+
+        $sp = SupportPoint::create([
+            'area_id'   => $area->id,
+            'name'      => $validated['name'],
+            'is_active' => true,
+        ]);
+
+        $user = $this->getActiveUser();
+        FuelRequestHistory::record(null, $user->id, 'master_updated', null, 'active',
+            "Menambahkan Support Point: {$sp->name} pada Area {$area->name}.");
+
+        if ($request->expectsJson() || $request->ajax()) {
+            return response()->json(['success' => true, 'message' => "Support Point {$sp->name} berhasil ditambahkan.", 'data' => $sp]);
+        }
+        return redirect()->route('admin.master', ['tab' => 'areas'])->with('success', "Support Point {$sp->name} berhasil ditambahkan.");
+    }
+
+    public function updateSupportPoint(Request $request, int|string $id)
+    {
+        $sp = SupportPoint::findOrFail($id);
+        $validated = $request->validate([
+            'name' => ['required', 'string', 'max:100',
+                Rule::unique('support_points', 'name')->where('area_id', $sp->area_id)->ignore($sp->id)],
+        ]);
+
+        $sp->update(['name' => $validated['name']]);
+
+        $user = $this->getActiveUser();
+        FuelRequestHistory::record(null, $user->id, 'master_updated', null, 'active',
+            "Memperbarui Support Point ID #{$sp->id}: {$sp->name}.");
+
+        if ($request->expectsJson() || $request->ajax()) {
+            return response()->json(['success' => true, 'message' => "Support Point berhasil diperbarui.", 'data' => $sp->fresh()]);
+        }
+        return redirect()->route('admin.master', ['tab' => 'areas'])->with('success', "Support Point berhasil diperbarui.");
+    }
+
+    public function toggleSupportPoint(Request $request, int|string $id)
+    {
+        return $this->toggleEntityById($request, SupportPoint::class, $id, 'support point', 'areas');
+    }
+
+    public function destroySupportPoint(Request $request, int|string $id)
+    {
+        $sp = SupportPoint::findOrFail($id);
+        $name = $sp->name;
+        $sp->delete();
+
+        $user = $this->getActiveUser();
+        FuelRequestHistory::record(null, $user->id, 'master_deleted', 'active', 'deleted',
+            "Menghapus Support Point ID #{$id}: {$name}.");
+
+        if ($request->expectsJson() || $request->ajax()) {
+            return response()->json(['success' => true, 'message' => "Support Point {$name} berhasil dihapus."]);
+        }
+        return redirect()->route('admin.master', ['tab' => 'areas'])->with('success', "Support Point {$name} berhasil dihapus.");
     }
 
     // =========================================================================

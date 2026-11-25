@@ -247,6 +247,7 @@ class FuelRequestService
                 'user_verification_note' => $userVerificationNote,
                 'area' => $area ? $area->name : $data['area'],
                 'area_id' => $area?->id,
+                'support_point_id' => !empty($data['support_point_id']) ? $data['support_point_id'] : null,
                 'notes' => $data['notes'] ?? null,
                 'spv_id' => $spv?->id,
                 'spv_name' => $spv ? ('Approval By ' . ($spv->nrp ?? $spv->username) . ' - ' . $spv->name) : ($isSpbu ? 'Bypassed (SPBU)' : 'Bypassed (Dept Head)'),
