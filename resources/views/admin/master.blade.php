@@ -3330,25 +3330,50 @@ function renderSupportPointsTable(points) {
     if (!tbody) return;
 
     if (!points || !points.length) {
-        tbody.innerHTML = '<tr><td colspan="4" style="text-align: center; padding: 14px; color: #94a3b8; font-style: italic;">Belum ada Support Point untuk area ini (area berstatus tanpa titik turunan).</td></tr>';
+        tbody.innerHTML = `
+            <tr>
+                <td colspan="4" style="text-align: center; padding: 24px 16px; color: #64748b; background: #fafafa;">
+                    <div style="max-width: 420px; margin: 0 auto;">
+                        <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="#94a3b8" stroke-width="2" style="margin: 0 auto 8px auto; display: block;"><circle cx="12" cy="12" r="10"></circle><line x1="12" y1="8" x2="12" y2="12"></line><line x1="12" y1="16" x2="12.01" y2="16"></line></svg>
+                        <div style="font-weight: 600; color: #334155; font-size: 13px; margin-bottom: 4px;">Area ini Berstatus Tanpa Titik Turunan</div>
+                        <div style="font-size: 11.5px; color: #94a3b8; line-height: 1.4;">
+                            Sama seperti SDU atau STI, pengajuan BBM pada area ini tidak akan mewajibkan pemohon memilih Support Point. Tambahkan nama titik di atas jika area ini beranak.
+                        </div>
+                    </div>
+                </td>
+            </tr>
+        `;
         return;
     }
 
     tbody.innerHTML = points.map((sp, idx) => `
-        <tr style="border-bottom: 1px solid #f1f5f9;">
-            <td style="padding: 7px 12px; color: #64748b;">${idx + 1}</td>
-            <td style="padding: 7px 12px; font-weight: 600; color: #1e293b;">${escapeHtml(sp.name)}</td>
-            <td style="padding: 7px 12px; text-align: center;">
+        <tr style="border-bottom: 1px solid #f1f5f9; background: ${sp.is_active ? '#ffffff' : '#f8fafc'};">
+            <td style="padding: 9px 12px; color: #64748b; font-size: 12px;">${idx + 1}</td>
+            <td style="padding: 9px 12px;">
+                <span style="font-weight: 600; color: ${sp.is_active ? '#0f172a' : '#64748b'}; font-size: 13px;">
+                    ${escapeHtml(sp.name)}
+                </span>
+                ${!sp.is_active ? '<span style="font-size: 11px; color: #dc2626; margin-left: 6px; font-weight: 500;">(Nonaktif &bull; Disembunyikan dari form pemohon)</span>' : ''}
+            </td>
+            <td style="padding: 9px 12px; text-align: center;">
                 <span class="digi-status-dot-pill ${sp.is_active ? 'is-active' : 'is-inactive'}">
                     <span class="dot"></span>${sp.is_active ? 'Aktif' : 'Nonaktif'}
                 </span>
             </td>
-            <td style="padding: 7px 12px; text-align: center;">
-                <div style="display: inline-flex; gap: 4px; align-items: center;">
-                    <button type="button" class="btn-digi ${sp.is_active ? 'btn-digi-gray' : 'btn-digi-green'}" style="padding: 3px 8px; font-size: 11px;" onclick="toggleSupportPoint(${sp.id})" title="${sp.is_active ? 'Nonaktifkan' : 'Aktifkan'}">
-                        ${sp.is_active ? 'Nonaktif' : 'Aktif'}
+            <td style="padding: 9px 12px; text-align: center;">
+                <div style="display: inline-flex; gap: 6px; align-items: center; justify-content: center;">
+                    <button type="button" 
+                        class="btn-digi ${sp.is_active ? 'btn-digi-gray' : 'btn-digi-green'}" 
+                        style="padding: 4px 10px; font-size: 11.5px; font-weight: 600;" 
+                        onclick="toggleSupportPoint(${sp.id})" 
+                        title="${sp.is_active ? 'Klik untuk menonaktifkan titik ini (tidak akan muncul di form pengajuan BBM)' : 'Klik untuk mengaktifkan titik ini agar dapat dipilih di form pengajuan BBM'}">
+                        ${sp.is_active ? 'Nonaktifkan' : 'Aktifkan'}
                     </button>
-                    <button type="button" class="btn-digi btn-digi-red" style="padding: 3px 8px; font-size: 11px;" onclick="deleteSupportPoint(${sp.id}, '${escapeHtml(sp.name)}')" title="Hapus">
+                    <button type="button" 
+                        class="btn-digi btn-digi-red" 
+                        style="padding: 4px 10px; font-size: 11.5px; font-weight: 600;" 
+                        onclick="deleteSupportPoint(${sp.id}, '${escapeHtml(sp.name)}')" 
+                        title="Hapus titik ini secara permanen">
                         Hapus
                     </button>
                 </div>
@@ -3361,15 +3386,21 @@ function loadSupportPointsForArea(areaId) {
     if (!areaId) return;
     const tbody = document.getElementById('spTableBody');
     if (tbody) {
-        tbody.innerHTML = '<tr><td colspan="4" style="text-align: center; padding: 12px; color: #64748b;">Memuat data support point...</td></tr>';
+        tbody.innerHTML = '<tr><td colspan="4" style="text-align: center; padding: 14px; color: #64748b; font-size: 12px;">Memuat daftar support point...</td></tr>';
     }
     fetch(`/api/areas/${areaId}/support-points`)
         .then(res => res.json())
         .then(data => {
-            renderSupportPointsTable(data.support_points || []);
+            const points = data.support_points || [];
+            renderSupportPointsTable(points);
+            const spBadge = document.getElementById('spAreaBadge');
+            if (spBadge) {
+                const activeCount = points.filter(p => p.is_active).length;
+                spBadge.innerHTML = `${escapeHtml(data.area_name || '')} &bull; ${points.length} Titik (${activeCount} Aktif)`;
+            }
         })
         .catch(() => {
-            if (tbody) tbody.innerHTML = '<tr><td colspan="4" style="text-align: center; padding: 12px; color: #dc2626;">Gagal memuat data support point.</td></tr>';
+            if (tbody) tbody.innerHTML = '<tr><td colspan="4" style="text-align: center; padding: 14px; color: #dc2626; font-size: 12px;">Gagal memuat data support point.</td></tr>';
         });
 }
 
@@ -3446,6 +3477,16 @@ function toggleSupportPoint(spId) {
     .then(res => {
         if (res.success) {
             loadSupportPointsForArea(areaId);
+            if (typeof Swal !== 'undefined') {
+                Swal.fire({
+                    toast: true,
+                    position: 'top-end',
+                    icon: 'success',
+                    title: res.message || 'Status support point berhasil diubah.',
+                    showConfirmButton: false,
+                    timer: 2000
+                });
+            }
         } else {
             alert(res.message || 'Gagal mengubah status.');
         }

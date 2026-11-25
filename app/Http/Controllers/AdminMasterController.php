@@ -644,14 +644,21 @@ class AdminMasterController extends Controller
     // 3b. SUPPORT POINT CRUD (sub-resource of Area)
     // =========================================================================
 
-    public function apiSupportPoints(int|string $area_id)
+    public function apiSupportPoints(Request $request, int|string $area_id)
     {
-        $area = Area::with('activeSupportPoints')->findOrFail($area_id);
+        $area = Area::with(['supportPoints', 'activeSupportPoints'])->findOrFail($area_id);
+        $activeOnly = $request->boolean('active_only', false);
+        $points = $activeOnly ? $area->activeSupportPoints : $area->supportPoints;
+
         return response()->json([
-            'has_support_points' => $area->activeSupportPoints->isNotEmpty(),
-            'support_points' => $area->activeSupportPoints->map(fn($sp) => [
-                'id'   => $sp->id,
-                'name' => $sp->name,
+            'area_id' => $area->id,
+            'area_name' => $area->name,
+            'has_support_points' => $area->supportPoints->isNotEmpty(),
+            'has_active_support_points' => $area->activeSupportPoints->isNotEmpty(),
+            'support_points' => $points->map(fn($sp) => [
+                'id'        => $sp->id,
+                'name'      => $sp->name,
+                'is_active' => (bool)$sp->is_active,
             ])->values(),
         ]);
     }

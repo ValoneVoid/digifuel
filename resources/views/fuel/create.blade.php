@@ -612,10 +612,6 @@ function populateSelect(selectId, items, valueKey, labelKey, placeholder, append
         }
         select.appendChild(spbuOpt);
     }
-
-    if (!stillValid && items.length === 1 && !appendSpbu) {
-        select.selectedIndex = 1;
-    }
 }
 
 function updateSupportPointUi(data, preselectedId) {
