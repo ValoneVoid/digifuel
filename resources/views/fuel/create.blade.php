@@ -239,7 +239,7 @@
                         <select name="spv_id" id="spv_select" class="digi-select @error('spv_id') is-invalid @enderror" required>
                             <option value="">- Pilih Approval SPV -</option>
                             @foreach($spvs as $spv)
-                                <option value="{{ $spv->id }}" {{ old('spv_id', $spvs->first()?->id) == $spv->id ? 'selected' : '' }}>
+                                <option value="{{ $spv->id }}" {{ old('spv_id') == $spv->id ? 'selected' : '' }}>
                                     Approval By {{ $spv->nrp ?? $spv->username }} - {{ $spv->name }}
                                 </option>
                             @endforeach
@@ -258,7 +258,7 @@
                         <select name="depthead_id" id="depthead_select" class="digi-select @error('depthead_id') is-invalid @enderror" required>
                             <option value="">- Pilih Approval Dept Head -</option>
                             @foreach($deptheads as $dh)
-                                <option value="{{ $dh->id }}" {{ old('depthead_id', $deptheads->first()?->id) == $dh->id ? 'selected' : '' }}>
+                                <option value="{{ $dh->id }}" {{ old('depthead_id') == $dh->id ? 'selected' : '' }}>
                                     Approval By {{ $dh->username }} ({{ $dh->name }})
                                 </option>
                             @endforeach
